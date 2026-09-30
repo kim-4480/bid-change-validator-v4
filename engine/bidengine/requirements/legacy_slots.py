@@ -12,6 +12,7 @@ import re
 from typing import Any
 
 from bidengine.contracts import QualificationRequirement, RequirementOperator, RequirementType
+from bidengine.ports import IndustryNameResolver
 from bidengine.judgment.clause_safety import GUARD_ASSESSED, assess_clause, strip_decorations, unsafe_clause_reason
 from bidengine.judgment.rules import _COMPANY_SIZE_ALIASES
 from bidengine.requirements.deduplicate import _INDUSTRY_NAME_VALUE_RE, _REGISTRATION_ACT_VALUE_RE
@@ -141,6 +142,96 @@ def industry_code_alternation(raw: str) -> list[str] | None:
     return codes
 
 
+# ── 등록·면허 이름의 대안 ("A 또는 B 로 등록한 자") ─────────────────────────────
+#
+# [실측 2026-09-30] 실공고 4건 중 2건에서 핵심 등록 요건이 '또는' 때문에 통째로 빠졌다
+# (docs/experiments/2026-09-30). 업종코드끼리의 '또는' 은 위에서 이미 ANY_OF 로 담는다.
+# 여기서는 **이름**끼리의 '또는' 을 담는다. 두 모양이 있다.
+#
+#   괄호형  "건축(또는 토목건축)공사업", "의료기기(또는 의료용기기, 의료용기구및기기)"
+#   나열형  "건설엔지니어링업(종합) 또는 건설엔지니어링업(설계․사업관리-일반) … 로 등록한 자"
+#
+# '또는' 이 전부 대안은 아니다. 배제 조건("부정당업자 제재 중 … 또는 파산 중인 자")을
+# 대안으로 읽으면 뜻이 뒤집히고, 절차("현금 또는 보증보험으로 납부")는 자격이 아니다.
+# 그래서 여는 조건을 좁게 둔다 — 문장이 등록·신고를 **요구하는 서술로 끝나고**, 배제·예외
+# 낱말이 없고, 이름 말고 다른 조건(지역·인원·금액·보유)이 섞이지 않을 때만.
+_REGISTRATION_TAIL_RE = re.compile(
+    r"(?:으로|로|을|를)?\s*(?:등록|신고)(?:을|를)?\s*(?:필한|마친|한|된|하여야\s*하는)?\s*"
+    r"(?:자|업체|사업자|업자)(?:이어야\s*(?:합니다|한다))?\s*[.。]?\s*$"
+    r"|등록\s*업체\s*[.。]?\s*$"
+)
+_EXCLUSION_RE = re.compile(
+    r"제재|파산|부도|정지|부정당|무효|참가할\s*수\s*없|참여할\s*수\s*없|중인\s*자|중에\s*있는|취소"
+)
+_NON_NAME_CONDITION_RE = re.compile(
+    r"소재|영업소|본점|지역|이상|이하|미만|초과|이내|보유|인\s*이상|명|억|만원|실적|기술자|감리원|확인을\s*받"
+)
+_PAREN_ALTERNATION_RE = re.compile(
+    r"(?P<head>[가-힣A-Za-z0-9·ㆍ․]+)\(\s*또는\s*(?P<alts>[^()]+?)\s*\)(?P<tail>[가-힣A-Za-z0-9·ㆍ․]*)"
+)
+_NAME_LEAD_RE = re.compile(
+    r"^.*?(?:에\s*(?:의한|따른|따라|의거한?|근거한?))\s*"
+)
+_NAME_PREDICATE_RE = re.compile(
+    r"(?:(?:으로|로|을|를)?\s*(?:등록|신고)(?:을|를)?\s*(?:필한|마친|한|된)?\s*(?:자|업체|사업자)?(?:이어야\s*(?:합니다|한다))?"
+    r"|등록\s*업체)\s*[.。]?\s*$"
+)
+_OTHER_ALTERNATION_RE = re.compile(r"다만|각\s*호|중\s*하나|어느\s*하나|이거나|이며|및")
+
+
+def _clean_name(part: str) -> str:
+    text = strip_decorations(part)
+    text = _NAME_LEAD_RE.sub("", text)
+    text = _NAME_PREDICATE_RE.sub("", text)
+    text = re.sub(r"^(?:[0-9]+\)|[가-힣]\.|[-ㅇ○□■·])\s*", "", text.strip())
+    return text.strip(" ,")
+
+
+def registration_alternation(raw: str) -> list[str] | None:
+    """'또는' 으로 갈린 등록·면허 **이름** 목록. 안전하게 대안으로 읽을 수 없으면 None."""
+    collapsed = " ".join((raw or "").split())
+    # PDF 추출은 괄호·쉼표 앞뒤에 공백을 끼운다("의료기기 ( 또는 의료용기기 , …").
+    collapsed = re.sub(r"\s*([()（）,，])\s*", r"\1", collapsed)
+    collapsed = re.sub(r"([,，])", r"\1 ", collapsed)
+    if "또는" not in collapsed:
+        return None
+    if _EXCEPTION_WORDS_RE.search(collapsed) or _EXCLUSION_RE.search(collapsed):
+        return None
+    # 업종코드가 박힌 조항은 코드 경로(industry_code_alternation)의 몫이다. 거기서 일부러
+    # 열지 않는 모양("업종코드: 1468 또는 업종코드: 0036")을 이름 경로가 대신 열면 안 된다.
+    if re.search(r"[0-9]{4}", collapsed):
+        return None
+    if not _REGISTRATION_TAIL_RE.search(collapsed):
+        return None
+    body = strip_decorations(collapsed)
+
+    paren = list(_PAREN_ALTERNATION_RE.finditer(body))
+    if paren:
+        # 괄호 밖에도 '또는' 이 있으면 두 층의 대안이라 여기서 풀지 않는다.
+        if len(paren) != 1 or "또는" in _PAREN_ALTERNATION_RE.sub(" ", body):
+            return None
+        match = paren[0]
+        rest = _NAME_PREDICATE_RE.sub("", (body[: match.start()] + " " + body[match.end():]))
+        if _NON_NAME_CONDITION_RE.search(rest) or _OTHER_ALTERNATION_RE.search(rest):
+            return None
+        head = match.group("head")
+        # 괄호 바로 뒤가 조사뿐이면("…)로 등록된") 이름의 일부가 아니다.
+        tail = re.sub(r"^(?:으로|로|을|를|에|의|이|가)$", "", match.group("tail"))
+        alternatives = [a.strip() for a in re.split(r"\s*[,，]\s*|\s*또는\s*", match.group("alts")) if a.strip()]
+        names = [head + tail] + [alt + tail for alt in alternatives]
+    else:
+        parts = _ALTERNATION_SPLIT_RE.split(body)
+        names = [_clean_name(part) for part in parts]
+        for part, name in zip(parts, names):
+            if _NON_NAME_CONDITION_RE.search(_NAME_PREDICATE_RE.sub("", part)) or _OTHER_ALTERNATION_RE.search(name):
+                return None
+    if len(names) < 2 or any(not name or len(name) > 40 for name in names):
+        return None
+    if len({_compact(name) for name in names}) != len(names):
+        return None
+    return names
+
+
 def salvage_closed_identifier(raw: str) -> tuple[RequirementType, str] | None:
     """분류가 '기타요건' 으로 와도 원문의 닫힌 식별자로 유형을 되살린다.
 
@@ -190,6 +281,7 @@ def adapt_legacy_slot(
     *,
     notice_version_id: str,
     key_prefix: str,
+    industry_resolver: IndustryNameResolver | None = None,
 ) -> tuple[list[QualificationRequirement], list[dict[str, Any]]]:
     """Map one validated extraction slot into zero or more canonical requirements."""
     slot_type = slot.get("유형")
@@ -206,7 +298,12 @@ def adapt_legacy_slot(
         if unsafe_reason == "ALTERNATIVE_OR_EXCEPTION_RULE"
         else None
     )
-    if unsafe_reason and alternation is None:
+    names = (
+        registration_alternation(raw)
+        if unsafe_reason == "ALTERNATIVE_OR_EXCEPTION_RULE" and alternation is None
+        else None
+    )
+    if unsafe_reason and alternation is None and names is None:
         return [], [{"code": "UNMAPPED_REQUIREMENT", "raw": raw, "reason": unsafe_reason}]
     diagnostics: list[dict[str, Any]] = []
     requirements: list[QualificationRequirement] = []
@@ -225,6 +322,11 @@ def adapt_legacy_slot(
         named = set(_NAMED_INDUSTRY_CODE_RE.findall(_compact(raw)))
         if len(named) == 1:
             industry_codes = named
+    if names is not None:
+        return _registration_alternation_requirements(
+            raw, names, notice_version_id=notice_version_id, key_prefix=key_prefix,
+            industry_resolver=industry_resolver,
+        )
     if slot_type in {"업종요건", "등록요건"} and len(industry_codes) > 1 and alternation is None:
         return [], [{"code": "UNMAPPED_INDUSTRY", "raw": raw, "reason": "복수 업종코드의 관계를 확인해야 합니다."}]
 
@@ -478,3 +580,46 @@ def adapt_legacy_slot(
         diagnostics.append({"code": "UNKNOWN_LEGACY_TYPE", "type": slot_type, "raw": raw})
 
     return requirements, diagnostics
+
+
+def _registration_alternation_requirements(
+    raw: str,
+    names: list[str],
+    *,
+    notice_version_id: str,
+    key_prefix: str,
+    industry_resolver: IndustryNameResolver | None,
+) -> tuple[list[QualificationRequirement], list[dict[str, Any]]]:
+    """대안 이름마다 원자 하나, 묶음은 ANY_OF. 업종 마스터에 정확히 있는 이름은 코드로 담는다.
+
+    코드로 담긴 대안은 닫힌 비교(업종코드 일치)로 판정되고, 코드가 없는 이름은 등록·면허
+    이름 비교로 판정된다 — 이름이 안 맞으면 미달이 아니라 확인 필요다. 묶음은 대안 중
+    하나라도 **확정 충족**일 때만 충족이다.
+    """
+    group_key = f"{key_prefix}-GROUP"
+    requirements: list[QualificationRequirement] = []
+    resolved: dict[str, str] = {}
+    for index, name in enumerate(names, start=1):
+        code = industry_resolver.code_for(name) if industry_resolver is not None else None
+        if code is not None:
+            resolved[name] = code
+        requirements.append(
+            QualificationRequirement(
+                requirement_key=f"{key_prefix}-ALT-{index}",
+                requirement_group_key=group_key,
+                group_operator="ANY_OF",
+                notice_version_id=notice_version_id,
+                type="INDUSTRY" if code is not None else "REGISTRATION_CERTIFICATION",
+                operator="MATCH",
+                value=code if code is not None else name,
+                scope={"guard": GUARD_ASSESSED, **({"source_name": name} if code else {"kind": "REGISTRATION"})},
+                condition_complexity="simple",
+                raw=raw,
+            )
+        )
+    return requirements, [{
+        "code": "REGISTRATION_ALTERNATION",
+        "raw": raw,
+        "names": list(names),
+        "resolved_codes": resolved,
+    }]

@@ -29,6 +29,7 @@ from bidengine.normalization import normalize_value as default_normalize_value
 from bidengine.labeling.code_salvage import exception_guarded_codes, salvage_missing_industry_slots
 from bidengine.judgment.clause_safety import GUARD_ASSESSED, GUARD_REASON_EXCEPTION
 from bidengine.labeling.requirement_extraction import StructuredExtractor, extract_legacy_slots
+from bidengine.ports import IndustryNameResolver
 
 ValueNormalizer = Callable[[str], dict[str, Any]]
 
@@ -110,6 +111,7 @@ def analyze_qualification_documents(
     normalize_value: ValueNormalizer = default_normalize_value,
     max_retry: int = 1,
     max_chunk_chars: int = 1800,
+    industry_resolver: IndustryNameResolver | None = None,
 ) -> RequirementAnalysisResult:
     """Run one qualification Requirement analysis without touching Backend state."""
     document_ids = [document.document_id for document in analysis_input.documents]
@@ -141,6 +143,7 @@ def analyze_qualification_documents(
         normalized_slots,
         notice_version_id=analysis_input.notice_version_id,
         source_type="NOTICE_DOCUMENT",
+        industry_resolver=industry_resolver,
     )
 
     if chunks:

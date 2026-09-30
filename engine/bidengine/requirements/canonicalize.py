@@ -7,6 +7,7 @@ from typing import Any
 from bidengine.contracts import Evidence, QualificationRequirement
 from bidengine.grounding.evidence_adapter import build_evidence_from_slot
 from bidengine.requirements.deduplicate import deduplicate_requirements
+from bidengine.ports import IndustryNameResolver
 from bidengine.requirements.legacy_slots import adapt_legacy_slot
 
 
@@ -17,6 +18,7 @@ def canonicalize_validated_slot(
     key_prefix: str,
     source_type: str = "NOTICE_DOCUMENT",
     case_id: str | None = None,
+    industry_resolver: IndustryNameResolver | None = None,
 ) -> tuple[list[QualificationRequirement], list[Evidence], list[dict[str, Any]]]:
     """Convert one source-grounded legacy slot to canonical objects.
 
@@ -28,6 +30,7 @@ def canonicalize_validated_slot(
         slot,
         notice_version_id=notice_version_id,
         key_prefix=key_prefix,
+        industry_resolver=industry_resolver,
     )
     if slot.get("_salvaged_codes"):
         # 모델이 빠뜨려 코드가 원문에서 채운 슬롯. 요건은 정상 경로로 만들어졌고, 빠뜨렸다는
@@ -75,6 +78,7 @@ def canonicalize_validated_slots(
     source_type: str = "NOTICE_DOCUMENT",
     case_id: str | None = None,
     key_prefix: str = "REQ",
+    industry_resolver: IndustryNameResolver | None = None,
 ) -> dict[str, Any]:
     """Canonicalize multiple accepted slots with stable per-slot keys."""
     requirements: list[QualificationRequirement] = []
@@ -90,6 +94,7 @@ def canonicalize_validated_slots(
             key_prefix=slot_prefix,
             source_type=source_type,
             case_id=case_id,
+            industry_resolver=industry_resolver,
         )
         requirements.extend(slot_requirements)
         evidence.extend(slot_evidence)

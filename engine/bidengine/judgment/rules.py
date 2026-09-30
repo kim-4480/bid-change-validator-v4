@@ -796,6 +796,28 @@ def _judge_certification(
         and (item.expires_at is None or item.expires_at >= reference_date)
         and (item.issued_at is None or item.issued_at <= reference_date)
     ]
+    # 등록·면허 이름은 회사가 업종으로 등록해 둔 경우가 많다("건축공사업"). 인증 목록만 보면
+    # 업종으로 가진 회사를 놓친다 — 등록 종류면 업종 이름도 본다.
+    registration_kind = str(requirement.scope.get("kind") or "") in {"REGISTRATION", "LICENSE"}
+    industry_match = (
+        next((item for item in profile.industries if _string_match(item.name, requirement.value)), None)
+        if registration_kind and not valid_matches
+        else None
+    )
+    if industry_match is not None:
+        return _judgment(
+            requirement=requirement,
+            preflight_case_id=preflight_case_id,
+            status="SATISFIED",
+            basis_type="PROFILE",
+            evidence_held=industry_match.verified,
+            reason_code="RULE_MATCH",
+            profile_refs=[
+                _profile_ref("industry", "code", industry_match.code),
+                _profile_ref("industry", "name", industry_match.name),
+            ],
+        )
+
     if valid_matches:
         item = valid_matches[0]
         return _judgment(
@@ -840,9 +862,12 @@ def _judge_certification(
         if (item.expires_at is None or item.expires_at >= reference_date)
         and (item.issued_at is None or item.issued_at <= reference_date)
     ]
-    if not name_matches and not required_is_code and held:
+    held_industries = profile.industries if registration_kind else []
+    if not name_matches and not required_is_code and (held or held_industries):
         return _vocabulary_unknown(
-            requirement, preflight_case_id, [("certification", "name", item.name) for item in held]
+            requirement, preflight_case_id,
+            [("certification", "name", item.name) for item in held]
+            + [("industry", "name", item.name) for item in held_industries],
         )
 
     refs = [

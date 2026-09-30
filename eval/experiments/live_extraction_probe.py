@@ -27,6 +27,7 @@ from bidengine.pipeline.analysis_pipeline import (
     analyze_qualification_documents,
 )
 from bidengine.providers.openai import OpenAIStructuredExtractor
+from bideval.master_vocabulary import CsvIndustryNameResolver
 
 ROOT = Path(__file__).resolve().parents[2]
 REAL = ROOT / "eval" / "golden" / "qualification-real-v0.1"
@@ -72,7 +73,9 @@ def _run(case_id: str, label: str, doc: dict, run: int, extractor: OpenAIStructu
     )
     started = time.monotonic()
     try:
-        result = analyze_qualification_documents(analysis_input, structured_extract=extractor)
+        result = analyze_qualification_documents(
+            analysis_input, structured_extract=extractor, industry_resolver=CsvIndustryNameResolver()
+        )
     except Exception as error:  # noqa: BLE001 - 한 실행의 실패가 전체를 멈추면 안 된다
         return {"case": case_id, "format": label, "run": run, "error": repr(error)[:300]}
     requirements = list(result.requirements)
