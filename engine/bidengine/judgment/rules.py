@@ -176,6 +176,40 @@ def _unknown(
     )
 
 
+# 미달(UNSATISFIED)은 닫힌 값끼리 비교했을 때만 낸다: 코드, 마스터 공식 명칭, 행정구역 위계,
+# 기업 규모 별칭표, 숫자, 날짜. 경험분야·발주처·역할명·인증명처럼 통제 어휘가 없는 자유
+# 문자열이 안 맞은 것은 "다르다"가 아니라 "같은지 모른다"이므로 확인 필요로 돌리고, 사용자가
+# 판단할 수 있게 비교한 회사 쪽 표현을 함께 남긴다 (ADR 0001 문제 4).
+NEGATIVE_VERDICT_BASIS: dict[str, str] = {
+    "REGION": "행정구역 위계",
+    "COMPANY_SIZE": "기업 규모 별칭표 (표에 없는 표현은 확인 필요)",
+    "INDUSTRY": "업종 코드 또는 마스터 공식 명칭",
+    "STAFF": "인원 수 (역할명 불일치는 확인 필요)",
+    "PERFORMANCE_AMOUNT": "금액·기간 (분야·발주처 불일치는 확인 필요)",
+    "PERFORMANCE_COUNT": "건수·기간 (분야·발주처 불일치는 확인 필요)",
+    "EXPERIENCE_FIELD": "기간 안 실적 부재 (분야 불일치는 확인 필요)",
+    "REGISTRATION_CERTIFICATION": "코드·유효기간 (이름·발급기관 불일치는 확인 필요)",
+}
+
+
+def _vocabulary_unknown(
+    requirement: QualificationRequirement,
+    preflight_case_id: str,
+    compared: list[tuple[str, str, object]],
+) -> Judgment:
+    """자유 문자열이 안 맞아 미달을 확정하지 않은 판정. 비교한 회사 쪽 표현을 근거로 남긴다."""
+    return _judgment(
+        requirement=requirement,
+        preflight_case_id=preflight_case_id,
+        status="UNKNOWN",
+        basis_type="NONE",
+        reason_code="NEEDS_REVIEW",
+        profile_refs=[_profile_ref("vocabulary", "required", requirement.value if requirement.value is not None
+                                   else requirement.scope.get("experience_field") or requirement.scope.get("role") or "")]
+        + [_profile_ref(kind, field, value) for kind, field, value in compared],
+    )
+
+
 def _compare_number(observed: float, operator: str | None, expected: object | None) -> bool | None:
     try:
         target = float(expected)  # type: ignore[arg-type]
@@ -275,7 +309,7 @@ def _performance_candidates(
     profile: CompanyProfileSnapshot,
     requirement: QualificationRequirement,
     reference_date: date,
-) -> tuple[list[ProfilePerformanceFact], bool, bool]:
+) -> tuple[list[ProfilePerformanceFact], bool, list[ProfilePerformanceFact]]:
     """기간 안의 실적 후보, 날짜가 모호한 실적 유무, 열린 어휘 때문에 빠진 실적 유무.
 
     경험분야·발주처는 통제 어휘가 없는 자유 문자열이다(ADR 0001 문제 4). 기간 안의 실적이
@@ -291,7 +325,7 @@ def _performance_candidates(
 
     candidates: list[ProfilePerformanceFact] = []
     has_ambiguous_date = False
-    vocabulary_unresolved = False
+    vocabulary_unresolved: list[ProfilePerformanceFact] = []
     field = requirement.scope.get("experience_field")
     for item in profile.performances:
         vocabulary_ok = True
@@ -319,7 +353,7 @@ def _performance_candidates(
             has_ambiguous_date = has_ambiguous_date or vocabulary_ok
             continue
         if not vocabulary_ok:
-            vocabulary_unresolved = True
+            vocabulary_unresolved.append(item)
             continue
         candidates.append(item)
     return candidates, has_ambiguous_date, vocabulary_unresolved
@@ -462,6 +496,9 @@ def _judge_company_size(
 
     if not satisfied and not profile.completeness.company_size:
         return _unknown(requirement, preflight_case_id)
+    if not satisfied and allowed is None:
+        # 별칭표에 없는 규모 표현("벤처기업" 등)은 자유 문자열이라 미달을 확정하지 않는다.
+        return _vocabulary_unknown(requirement, preflight_case_id, [("company", "company_size", observed)])
     refs = [_profile_ref("company", "company_size", observed)]
     if needs_affiliation and is_affiliate is not None:
         refs.append(_profile_ref("extension", "conglomerate_affiliate", is_affiliate))
@@ -535,6 +572,11 @@ def _judge_staff(
         if matched_role is None:
             if not profile.completeness.staff_roles:
                 return _unknown(requirement, preflight_case_id)
+            if staff.roles:
+                return _vocabulary_unknown(
+                    requirement, preflight_case_id,
+                    [("staff_role", "role_name", item.role_name) for item in staff.roles],
+                )
             return _judgment(
                 requirement=requirement,
                 preflight_case_id=preflight_case_id,
@@ -545,6 +587,10 @@ def _judge_staff(
             )
         if requirement.operator == "MATCH" and requirement.value is not None:
             matched = _string_match(matched_role.role_name, requirement.value)
+            if not matched and profile.completeness.staff_roles:
+                return _vocabulary_unknown(
+                    requirement, preflight_case_id, [("staff_role", "role_name", matched_role.role_name)]
+                )
         else:
             compared = _compare_number(
                 matched_role.headcount, requirement.operator, requirement.value
@@ -593,7 +639,9 @@ def _judge_performance_amount(
         profile, requirement, reference_date
     )
     if not candidates:
-        if has_ambiguous_date or vocabulary_unresolved or not profile.completeness.performances:
+        if vocabulary_unresolved:
+            return _vocabulary_unknown(requirement, preflight_case_id, [("performance", "name", item.name) for item in vocabulary_unresolved])
+        if has_ambiguous_date or not profile.completeness.performances:
             return _unknown(requirement, preflight_case_id)
         return _judgment(
             requirement=requirement,
@@ -619,7 +667,9 @@ def _judge_performance_amount(
     )
     if compared is None:
         return _unknown(requirement, preflight_case_id, unsupported=True)
-    if not compared and (has_ambiguous_date or vocabulary_unresolved):
+    if not compared and vocabulary_unresolved:
+        return _vocabulary_unknown(requirement, preflight_case_id, [("performance", "name", item.name) for item in vocabulary_unresolved])
+    if not compared and has_ambiguous_date:
         return _unknown(requirement, preflight_case_id)
     if aggregation == "UNSPECIFIED" and len(candidates) > 1:
         summed = sum(item.amount for item in candidates)
@@ -655,7 +705,9 @@ def _judge_performance_count(
     compared = _compare_number(observed, requirement.operator, requirement.value)
     if compared is None:
         return _unknown(requirement, preflight_case_id, unsupported=True)
-    if not compared and (has_ambiguous_date or vocabulary_unresolved):
+    if not compared and vocabulary_unresolved:
+        return _vocabulary_unknown(requirement, preflight_case_id, [("performance", "name", item.name) for item in vocabulary_unresolved])
+    if not compared and has_ambiguous_date:
         return _unknown(requirement, preflight_case_id)
     if not compared and not profile.completeness.performances:
         return _unknown(requirement, preflight_case_id)
@@ -704,7 +756,11 @@ def _judge_experience_field(
             profile_refs=[_profile_ref("performance", "ref", matched.ref)],
         )
     # 기간 안의 실적은 있는데 분야 이름이 문자열로 안 맞았다면 같은 분야인지 모르는 것이다.
-    if has_ambiguous_date or vocabulary_unresolved or candidates:
+    if vocabulary_unresolved or candidates:
+        return _vocabulary_unknown(
+            requirement, preflight_case_id, [("performance", "name", item.name) for item in [*candidates, *vocabulary_unresolved]]
+        )
+    if has_ambiguous_date:
         return _unknown(requirement, preflight_case_id)
     if not profile.completeness.performances:
         return _unknown(requirement, preflight_case_id)
@@ -762,6 +818,32 @@ def _judge_certification(
 
     if not profile.completeness.certifications:
         return _unknown(requirement, preflight_case_id)
+
+    # 이름은 맞는데 발급기관 이름만 안 맞은 경우, 또는 이름으로 요구했는데 회사가 다른 이름의
+    # 인증을 가진 경우는 자유 문자열 불일치다. 코드로 요구했거나(숫자) 유효기간이 지난 것은
+    # 닫힌 비교라 그대로 미달이다.
+    issuer_only = [
+        item for item in name_matches
+        if issuer_requirement and not _string_match(item.issuer_name or "", issuer_requirement)
+        and (item.expires_at is None or item.expires_at >= reference_date)
+        and (item.issued_at is None or item.issued_at <= reference_date)
+    ]
+    if issuer_only:
+        return _vocabulary_unknown(
+            requirement, preflight_case_id, [("certification", "issuer_name", item.issuer_name or "") for item in issuer_only]
+        )
+    required_is_code = bool(re.fullmatch(r"[0-9A-Za-z\-]{2,}", str(requirement.value).strip())) and any(
+        ch.isdigit() for ch in str(requirement.value)
+    ) and not re.search(r"[가-힣]", str(requirement.value))
+    held = [
+        item for item in profile.certifications
+        if (item.expires_at is None or item.expires_at >= reference_date)
+        and (item.issued_at is None or item.issued_at <= reference_date)
+    ]
+    if not name_matches and not required_is_code and held:
+        return _vocabulary_unknown(
+            requirement, preflight_case_id, [("certification", "name", item.name) for item in held]
+        )
 
     refs = [
         _profile_ref("certification", "ref", item.ref)
