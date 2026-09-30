@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, computed_field, model_validator
 
 from bidengine.contracts import Evidence, QualificationRequirement
 
@@ -50,6 +50,111 @@ class DroppedRequirement(BaseModel):
     detail_value: str | None = None
 
 
+CoverageGapKind = Literal["UNREPRESENTABLE", "UNCLASSIFIED", "DROPPED", "SECTION", "TRUNCATED"]
+
+# 매핑 실패 조항을 세 갈래로 나눈다 (docs/experiments/2026-09-30).
+#   절차 조항 — 코드가 절차 규칙으로 식별했다. 회사 프로필로 판정할 조건이 아니므로 공백이 아니다.
+#   표현 불가 — 대안·예외·공동수급 조건, 또는 등록·규모 등 판정 대상 슬롯의 매핑 실패. 실제
+#              자격인데 담지 못했으므로 공백이고, 적합을 막는다.
+#   미분류   — 모델이 '기타요건'으로 분류했고 닫힌 식별자도 없다. 제출 서류 같은 절차일 때가
+#              많지만 참여 제한이 섞일 수 있어 목록으로 보여 준다. 적합을 막을지는 정책값이다.
+_PROCEDURAL_REASONS = {"LEGAL_PROCEDURAL_RULE", "REPRESENTATIVE_CONFLICT_RULE"}
+_UNREPRESENTABLE_CODES = {
+    "UNMAPPED_PERFORMANCE", "UNMAPPED_EXPERIENCE_FIELD", "UNMAPPED_INDUSTRY", "UNMAPPED_REGION",
+    "UNMAPPED_STAFF", "UNMAPPED_REGISTRATION_CERTIFICATION", "UNMAPPED_COMPANY_SIZE", "UNKNOWN_LEGACY_TYPE",
+}
+
+
+class CoverageGap(BaseModel):
+    kind: CoverageGapKind
+    raw: str = ""
+    reason: str | None = None
+
+
+class AnalysisCoverage(BaseModel):
+    """이 분석이 공고의 참가자격을 얼마나 덮었는지. 판정(적합 여부)과 따로 잰다.
+
+    `complete` 가 참일 때만 "요건을 다 봤다"고 말할 수 있다. 판정기는 이것이 거짓이면
+    모든 요건이 충족이어도 적합을 주지 않는다.
+    """
+
+    section_selection: Literal["anchored", "keyword_fallback", "whole_document", "unknown"] = "unknown"
+    input_truncated: bool = False
+    candidates: int = 0
+    judged: int = 0
+    procedural: int = 0
+    unrepresentable: int = 0
+    unclassified: int = 0
+    dropped: int = 0
+    gaps: list[CoverageGap] = Field(default_factory=list)
+    unclassified_blocks_eligibility: bool = False
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def complete(self) -> bool:
+        return (
+            self.section_selection == "anchored"
+            and not self.input_truncated
+            and self.unrepresentable == 0
+            and self.dropped == 0
+            and (self.unclassified == 0 or not self.unclassified_blocks_eligibility)
+        )
+
+
+def build_analysis_coverage(
+    *,
+    requirements: list[QualificationRequirement],
+    diagnostics: list[AnalysisDiagnostic],
+    dropped: list[dict[str, Any]] | list[DroppedRequirement],
+    section_selection: str = "unknown",
+    input_truncated: bool = False,
+    candidates: int = 0,
+    unclassified_blocks_eligibility: bool = False,
+) -> AnalysisCoverage:
+    gaps: list[CoverageGap] = []
+    procedural = unrepresentable = unclassified = 0
+    seen: set[tuple[str, str]] = set()  # 모델이 같은 조항을 두 번 올리는 일이 있다 (C03 실측)
+    for item in diagnostics:
+        raw = str(item.details.get("raw") or "")
+        reason = item.details.get("reason")
+        if item.code.startswith("UNMAPPED") or item.code == "UNKNOWN_LEGACY_TYPE":
+            key = (item.code, " ".join(raw.split()))
+            if key in seen:
+                continue
+            seen.add(key)
+        if item.code == "UNMAPPED_REQUIREMENT":
+            if reason in _PROCEDURAL_REASONS:
+                procedural += 1
+            elif reason:
+                unrepresentable += 1
+                gaps.append(CoverageGap(kind="UNREPRESENTABLE", raw=raw, reason=str(reason)))
+            else:
+                unclassified += 1
+                gaps.append(CoverageGap(kind="UNCLASSIFIED", raw=raw))
+        elif item.code in _UNREPRESENTABLE_CODES:
+            unrepresentable += 1
+            gaps.append(CoverageGap(kind="UNREPRESENTABLE", raw=raw, reason=item.code))
+    for record in dropped:
+        data = record.model_dump() if isinstance(record, BaseModel) else dict(record)
+        gaps.append(CoverageGap(kind="DROPPED", raw=str(data.get("raw") or ""), reason=data.get("reason_code")))
+    if section_selection != "anchored":
+        gaps.append(CoverageGap(kind="SECTION", reason=section_selection))
+    if input_truncated:
+        gaps.append(CoverageGap(kind="TRUNCATED"))
+    return AnalysisCoverage(
+        section_selection=section_selection if section_selection in {"anchored", "keyword_fallback", "whole_document"} else "unknown",
+        input_truncated=input_truncated,
+        candidates=candidates,
+        judged=len(requirements),
+        procedural=procedural,
+        unrepresentable=unrepresentable,
+        unclassified=unclassified,
+        dropped=len(dropped),
+        gaps=gaps,
+        unclassified_blocks_eligibility=unclassified_blocks_eligibility,
+    )
+
+
 class RequirementAnalysisResult(BaseModel):
     """Canonical AI -> Backend result for one notice version."""
 
@@ -64,6 +169,9 @@ class RequirementAnalysisResult(BaseModel):
     evidence: list[Evidence] = Field(default_factory=list)
     diagnostics: list[AnalysisDiagnostic] = Field(default_factory=list)
     dropped_requirements: list[DroppedRequirement] = Field(default_factory=list)
+    # 추가 필드. 비어 있으면(예전 저장본) 커버리지를 모르는 것이고, 판정기는 예전처럼
+    # 분석 상태(status)로만 적합을 막는다.
+    coverage: AnalysisCoverage | None = None
 
     @model_validator(mode="after")
     def validate_internal_links(self) -> "RequirementAnalysisResult":
@@ -172,6 +280,9 @@ def build_requirement_analysis_result(
     extraction_notes: str = "",
     extraction_dropped_requirements: list[dict[str, str]] | None = None,
     target_chunk_ids: list[str] | None = None,
+    section_selection: str = "unknown",
+    input_truncated: bool = False,
+    candidate_count: int = 0,
 ) -> RequirementAnalysisResult:
     """Build the stable Backend-facing payload from current pipeline outputs."""
     requirements = list(canonicalized.get("requirements") or [])
@@ -216,6 +327,15 @@ def build_requirement_analysis_result(
         requirements = []
         evidence = []
 
+    coverage = build_analysis_coverage(
+        requirements=requirements,
+        diagnostics=diagnostics,
+        dropped=list(extraction_dropped_requirements or []),
+        section_selection=section_selection,
+        input_truncated=input_truncated,
+        candidates=candidate_count,
+    )
+
     return RequirementAnalysisResult(
         status=status,
         notice_id=notice_id,
@@ -226,4 +346,5 @@ def build_requirement_analysis_result(
         evidence=evidence,
         diagnostics=diagnostics,
         dropped_requirements=list(extraction_dropped_requirements or []),
+        coverage=coverage,
     )

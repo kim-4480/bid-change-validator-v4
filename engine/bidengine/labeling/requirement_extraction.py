@@ -211,8 +211,21 @@ def _is_eligibility_section_anchor(chunk: dict[str, Any]) -> bool:
     return any(keyword in heading for keyword in _SECTION_HEADER_KEYWORDS)
 
 
+SelectionMode = str  # "anchored" | "keyword_fallback" | "whole_document"
+
+
 def select_eligibility_chunks(chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Select eligibility sections and their children without crossing documents."""
+    return select_eligibility_chunks_with_mode(chunks)[0]
+
+
+def select_eligibility_chunks_with_mode(
+    chunks: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], SelectionMode]:
+    """자격 절을 고르고, 어떻게 골랐는지(제목 앵커 / 키워드 폴백 / 문서 전체)를 함께 돌려준다.
+
+    앵커를 못 찾았다는 것은 "자격 절을 봤다"고 말할 수 없다는 뜻이라 커버리지가 쓴다.
+    """
     selected: dict[int, dict[str, Any]] = {}
     anchors = [index for index, chunk in enumerate(chunks) if _is_eligibility_section_anchor(chunk)]
 
@@ -238,7 +251,9 @@ def select_eligibility_chunks(chunks: list[dict[str, Any]]) -> list[dict[str, An
     for index, chunk in enumerate(chunks):
         if _chunk_document_id(chunk) not in anchored_documents and any(keyword in (chunk.get("text") or "") for keyword in fallback_keywords):
             selected[index] = chunk
-    return [selected[index] for index in sorted(selected)] if selected else chunks
+    if not selected:
+        return chunks, "whole_document"
+    return [selected[index] for index in sorted(selected)], "anchored" if anchors else "keyword_fallback"
 
 
 _GROUNDING_PUNCTUATION = str.maketrans(
@@ -559,8 +574,9 @@ def build_extraction_body(chunks: list[dict[str, Any]], *, max_chars: int | None
 
 def extract_legacy_slots(chunks: list[dict[str, Any]], *, structured_extract: StructuredExtractor, max_retry: int = 1) -> dict[str, Any]:
     """Run structured extraction and source-grounding validation."""
-    target = select_eligibility_chunks(chunks)
+    target, selection_mode = select_eligibility_chunks_with_mode(chunks)
     full_body = build_extraction_body(target, max_chars=None)
+    coverage_inputs = {"selection_mode": selection_mode, "input_truncated": len(full_body) > 32_000}
     body = full_body[:32_000]
     last_notes = ""
     last_rejected: list[dict[str, str]] = []
@@ -569,7 +585,7 @@ def extract_legacy_slots(chunks: list[dict[str, Any]], *, structured_extract: St
         try:
             result = structured_extract(SYSTEM_PROMPT, body, SLOT_SCHEMA)
         except Exception as error:
-            return {"slots": [], "dropped_requirements": last_rejected, "status": "failed", "notes": f"구조화 추출 호출 실패: {type(error).__name__}", "target_chunk_ids": [chunk.get("chunk_id") for chunk in target]}
+            return {"slots": [], "dropped_requirements": last_rejected, "status": "failed", "notes": f"구조화 추출 호출 실패: {type(error).__name__}", "target_chunk_ids": [chunk.get("chunk_id") for chunk in target], **coverage_inputs, "candidate_count": 0}
 
         accepted: list[dict[str, Any]] = []
         rejected: list[dict[str, str]] = []
@@ -606,8 +622,8 @@ def extract_legacy_slots(chunks: list[dict[str, Any]], *, structured_extract: St
             notes = ([f"검증 탈락 {len(reported_rejections)}건"] if reported_rejections else [])
             if truncated:
                 notes.append("입력 길이 제한으로 선택된 원문 일부를 분석하지 못했습니다.")
-            return {"slots": accepted, "dropped_requirements": reported_rejections, "status": "partial" if reported_rejections or truncated else "ok", "notes": " ".join(notes), "target_chunk_ids": [chunk.get("chunk_id") for chunk in target]}
+            return {"slots": accepted, "dropped_requirements": reported_rejections, "status": "partial" if reported_rejections or truncated else "ok", "notes": " ".join(notes), "target_chunk_ids": [chunk.get("chunk_id") for chunk in target], **coverage_inputs, "candidate_count": len(requirements)}
 
         last_notes = f"전 슬롯 검증 탈락(시도 {attempt + 1})"
 
-    return {"slots": [], "dropped_requirements": last_rejected, "status": "failed", "notes": last_notes, "target_chunk_ids": [chunk.get("chunk_id") for chunk in target]}
+    return {"slots": [], "dropped_requirements": last_rejected, "status": "failed", "notes": last_notes, "target_chunk_ids": [chunk.get("chunk_id") for chunk in target], **coverage_inputs, "candidate_count": len(last_rejected)}

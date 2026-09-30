@@ -92,6 +92,8 @@ def _run(case_id: str, label: str, doc: dict, run: int, extractor: OpenAIStructu
             or (r.type == "REGISTRATION_CERTIFICATION" and not str(r.value or "").isdigit())
         ),
         "types": sorted({r.type for r in requirements}),
+        "coverage": result.coverage.model_dump(exclude={"gaps"}) if result.coverage else None,
+        "coverage_gaps": [g.model_dump() for g in result.coverage.gaps] if result.coverage else [],
         "fingerprint": extractor.last_system_fingerprint,
         "requirements": [
             {"type": r.type, "operator": r.operator, "value": r.value, "scope": r.scope, "raw": r.raw[:160]}

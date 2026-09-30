@@ -958,7 +958,15 @@ def derive_overall_status(
     judgments: list[Judgment],
     *,
     analysis_status: str = "SUCCEEDED",
+    coverage_complete: bool | None = None,
 ) -> OverallQualificationStatus:
+    """적합은 (1) 필수 요건이 모두 충족이고 (2) 공고의 참가자격을 다 봤을 때만 준다.
+
+    (2)는 커버리지가 있으면 커버리지로, 없으면(예전 분석) 분석 상태로 판단한다. 분석 상태
+    PARTIAL 은 "후보 하나가 검증에서 떨어졌다" 같은 파이프라인 사정을 섞어 쓰므로, 커버리지가
+    있으면 그쪽이 우선이다. 부적합은 (2)와 무관하다 — 본 요건 중 하나가 확정 미달이면 된다.
+    """
+    seen_everything = coverage_complete if coverage_complete is not None else analysis_status == "SUCCEEDED"
     status_by_key = {item.requirement_key: item.status for item in judgments}
     grouped: dict[str, tuple[str, list[str]]] = {}
 
@@ -991,7 +999,7 @@ def derive_overall_status(
 
     if "UNSATISFIED" in group_statuses:
         return "ineligible"
-    if "UNKNOWN" in group_statuses or not group_statuses or analysis_status != "SUCCEEDED":
+    if "UNKNOWN" in group_statuses or not group_statuses or not seen_everything:
         return "insufficient_data"
     return "eligible"
 
@@ -1003,6 +1011,7 @@ def judge_requirements(
     preflight_case_id: str,
     reference_date: date,
     analysis_status: str = "SUCCEEDED",
+    coverage_complete: bool | None = None,
 ) -> JudgmentEvaluation:
     judgments = [
         judge_requirement(
@@ -1015,5 +1024,7 @@ def judge_requirements(
     ]
     return JudgmentEvaluation(
         judgments=judgments,
-        overall_status=derive_overall_status(requirements, judgments, analysis_status=analysis_status),
+        overall_status=derive_overall_status(
+            requirements, judgments, analysis_status=analysis_status, coverage_complete=coverage_complete
+        ),
     )

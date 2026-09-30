@@ -212,4 +212,7 @@ def analyze_qualification_documents(
             extraction.get("dropped_requirements") or []
         ),
         target_chunk_ids=list(extraction.get("target_chunk_ids") or []),
+        section_selection=str(extraction.get("selection_mode") or "unknown"),
+        input_truncated=bool(extraction.get("input_truncated")),
+        candidate_count=int(extraction.get("candidate_count") or 0),
     )
