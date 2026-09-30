@@ -1,0 +1,1615 @@
+[
+  {
+    "turn": 1,
+    "question": "이 공고 우리 회사가 참여할 수 있는지, 부족한 점과 다음에 할 일을 알려줘.",
+    "expected_fact_ids": [
+      "judgment",
+      "exception",
+      "manual"
+    ],
+    "envelope": {
+      "version": "3.1",
+      "conversation_id": "3ea84fcf-2137-4ea0-b409-3bf1a646607b",
+      "context_revision": 1,
+      "message_id": "90799762-22ad-4acd-a1da-52b66474f3b0",
+      "status_card": null,
+      "claims": [
+        {
+          "claim_id": "quote-judgment-s-judgment-0",
+          "text": "현재 저장된 판정은 참가 불가입니다. 단체급식업 등록 요건은 미달입니다.",
+          "fact_ids": [
+            "judgment"
+          ],
+          "source_ids": [
+            "s-judgment"
+          ],
+          "validation": "SUPPORTED",
+          "method": "rule",
+          "reason": "EXACT_SOURCE"
+        },
+        {
+          "claim_id": "quote-exception-s-exception-0",
+          "text": "공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.",
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "validation": "SUPPORTED",
+          "method": "extractive",
+          "reason": "EXACT_SOURCE"
+        },
+        {
+          "claim_id": "quote-manual-s-manual-0",
+          "text": "설명회 참석 및 입찰등록 기한은 원문에서 직접 확인해야 합니다. 공동수급과 하도급은 허용되지 않습니다.",
+          "fact_ids": [
+            "manual"
+          ],
+          "source_ids": [
+            "s-manual"
+          ],
+          "validation": "SUPPORTED",
+          "method": "extractive",
+          "reason": "EXACT_SOURCE"
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "s-judgment",
+          "kind": "PRODUCT",
+          "quote": "현재 저장된 판정은 참가 불가입니다. 단체급식업 등록 요건은 미달입니다.",
+          "scope": {
+            "case_id": "00000000-0000-4000-8000-000000000001",
+            "company_id": "00000000-0000-4000-8000-000000000002",
+            "notice_id": "00000000-0000-4000-8000-000000000003",
+            "notice_version_id": "00000000-0000-4000-8000-000000000004",
+            "analysis_run_id": "00000000-0000-4000-8000-000000000005",
+            "judgment_run_id": "00000000-0000-4000-8000-000000000006"
+          },
+          "document_id": null,
+          "location": {},
+          "source_sha256": null,
+          "extracted_sha256": null
+        },
+        {
+          "source_id": "s-exception",
+          "kind": "DOCUMENT",
+          "quote": "공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.",
+          "scope": {
+            "case_id": "00000000-0000-4000-8000-000000000001",
+            "company_id": "00000000-0000-4000-8000-000000000002",
+            "notice_id": "00000000-0000-4000-8000-000000000003",
+            "notice_version_id": "00000000-0000-4000-8000-000000000004",
+            "analysis_run_id": "00000000-0000-4000-8000-000000000005",
+            "judgment_run_id": "00000000-0000-4000-8000-000000000006"
+          },
+          "document_id": null,
+          "location": {},
+          "source_sha256": null,
+          "extracted_sha256": null
+        },
+        {
+          "source_id": "s-manual",
+          "kind": "DOCUMENT",
+          "quote": "설명회 참석 및 입찰등록 기한은 원문에서 직접 확인해야 합니다. 공동수급과 하도급은 허용되지 않습니다.",
+          "scope": {
+            "case_id": "00000000-0000-4000-8000-000000000001",
+            "company_id": "00000000-0000-4000-8000-000000000002",
+            "notice_id": "00000000-0000-4000-8000-000000000003",
+            "notice_version_id": "00000000-0000-4000-8000-000000000004",
+            "analysis_run_id": "00000000-0000-4000-8000-000000000005",
+            "judgment_run_id": "00000000-0000-4000-8000-000000000006"
+          },
+          "document_id": null,
+          "location": {},
+          "source_sha256": null,
+          "extracted_sha256": null
+        }
+      ],
+      "limitations": [
+        "자동 설명 일부를 검증하지 못해 확인된 내용과 원문을 함께 표시합니다."
+      ],
+      "follow_up_targets": [
+        {
+          "target_id": "b1da7410-5b73-42b5-a752-f7573aba403d",
+          "kind": "REQUIREMENT",
+          "label": "현재 저장된 판정은 참가 불가입니다. 단체급식업 등록 요건은 미달입니다.",
+          "message_id": "90799762-22ad-4acd-a1da-52b66474f3b0",
+          "ordinal": 1,
+          "fact_ids": [
+            "judgment"
+          ],
+          "source_ids": [
+            "s-judgment"
+          ],
+          "requirement_key": null
+        },
+        {
+          "target_id": "20d0440c-1574-4ba1-829c-4f498d420221",
+          "kind": "DOCUMENT",
+          "label": "공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.",
+          "message_id": "90799762-22ad-4acd-a1da-52b66474f3b0",
+          "ordinal": 1,
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "requirement_key": null
+        },
+        {
+          "target_id": "9df2e464-a989-4d4c-becd-aba1b9883ecc",
+          "kind": "MANUAL",
+          "label": "설명회 참석 및 입찰등록 기한은 원문에서 직접 확인해야 합니다. 공동수급과 하도급은 허용되지 않습니다.",
+          "message_id": "90799762-22ad-4acd-a1da-52b66474f3b0",
+          "ordinal": 1,
+          "fact_ids": [
+            "manual"
+          ],
+          "source_ids": [
+            "s-manual"
+          ],
+          "requirement_key": null
+        }
+      ],
+      "actions": [],
+      "capabilities": {},
+      "clarification": null,
+      "processing": {
+        "path": "v3.1",
+        "model": "gpt-5.6-luna",
+        "fallback": true,
+        "task_status": "PARTIAL",
+        "elapsed_ms": 15172,
+        "calls": [
+          {
+            "stage": "plan",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 3094,
+            "usage": {
+              "completion_tokens": 389,
+              "prompt_tokens": 636,
+              "total_tokens": 1025,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 123,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 0,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 5203
+          },
+          {
+            "stage": "generate",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 7694,
+            "usage": {
+              "completion_tokens": 1144,
+              "prompt_tokens": 2235,
+              "total_tokens": 3379,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 494,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 2232,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 9172
+          }
+        ],
+        "validation_events": [
+          {
+            "stage": "generate",
+            "reason": "ValidationError"
+          }
+        ],
+        "tools": [
+          {
+            "tool": "READ_JUDGMENT",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          },
+          {
+            "tool": "READ_PROFILE",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          },
+          {
+            "tool": "READ_DOCUMENT",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          },
+          {
+            "tool": "READ_CHECKS",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          }
+        ],
+        "plan": {
+          "goal": "현재 공고에 대해 우리 회사의 참여 가능 여부, 부족한 요건과 다음 조치를 확인한다.",
+          "tasks": [
+            {
+              "kind": "READ_JUDGMENT",
+              "question": "현재 공고에 대해 우리 회사가 참여 가능한지에 대한 저장 판정과 그 근거를 조회한다.",
+              "scope_ref": "current_case"
+            },
+            {
+              "kind": "READ_PROFILE",
+              "question": "현재 공고의 참여 주체인 우리 회사의 등록정보, 자격, 실적, 인증 및 관련 회사 프로필을 조회한다.",
+              "scope_ref": "current_case"
+            },
+            {
+              "kind": "READ_DOCUMENT",
+              "question": "현재 공고의 참가자격, 필수 요건, 제출서류, 일정 및 평가조건을 조회한다.",
+              "scope_ref": "current_case"
+            },
+            {
+              "kind": "READ_CHECKS",
+              "question": "현재 공고에 참여하려는 우리 회사를 기준으로 자격요건과 제출요건의 충족·미충족·확인 필요 항목을 조회한다.",
+              "scope_ref": "current_case"
+            }
+          ],
+          "clarification": null
+        },
+        "deadline_seconds": 45,
+        "storage": "process-memory; restart clears history; one worker only"
+      }
+    },
+    "required_fact_coverage": true,
+    "scope": "real planner/generator/verifier; synthetic read adapters; no database",
+    "calls": [
+      {
+        "stage": "plan",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 3094,
+        "usage": {
+          "completion_tokens": 389,
+          "prompt_tokens": 636,
+          "total_tokens": 1025,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 123,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 0,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 5203
+      },
+      {
+        "stage": "generate",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 7694,
+        "usage": {
+          "completion_tokens": 1144,
+          "prompt_tokens": 2235,
+          "total_tokens": 3379,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 494,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 2232,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 9172
+      }
+    ],
+    "usage_cost_upper_usd": 0.0024138
+  },
+  {
+    "turn": 2,
+    "question": "병원 급식 실적도 인정돼?",
+    "expected_fact_ids": [
+      "exception"
+    ],
+    "envelope": {
+      "version": "3.1",
+      "conversation_id": "3ea84fcf-2137-4ea0-b409-3bf1a646607b",
+      "context_revision": 2,
+      "message_id": "f2da10fc-8a20-468e-a5cd-3dd8a120b290",
+      "status_card": null,
+      "claims": [
+        {
+          "claim_id": "c1",
+          "text": "현재 공고의 실적 인정 대상 기관은 관공서와 기업체로 한정되어 있습니다.",
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "출처에 실적 인정 대상이 관공서와 기업체에 한한다고 명시되어 있습니다."
+        },
+        {
+          "claim_id": "c2",
+          "text": "이 공고는 관공서와 기업체의 실적만 인정하고 병원·학교·군부대·사회복지시설의 실적은 제외하므로, 병원 급식 실적은 이 공고의 실적으로 인정되지 않습니다.",
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "공고문은 실적 대상을 관공서와 기업체로 한정하고, 병원·학교·군부대·사회복지시설을 제외한다고 명시합니다. 따라서 병원 급식 실적은 인정되지 않습니다."
+        },
+        {
+          "claim_id": "c3",
+          "text": "인정되는 실적은 공고일 기준 2년 이내에 2개 이상의 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적이어야 합니다.",
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "출처에 공고일 기준 2년 내, 2개 이상 단체급식소, 1일 평균 800식 이상, 1년 이상 운영한 실적이라고 명시되어 있습니다."
+        },
+        {
+          "claim_id": "c4",
+          "text": "병원 외에도 학교, 군부대, 사회복지시설 실적은 인정 대상에서 제외됩니다.",
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "출처에 병원, 학교, 군부대, 사회복지시설은 제외된다고 명시되어 있습니다."
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "s-exception",
+          "kind": "DOCUMENT",
+          "quote": "공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.",
+          "scope": {
+            "case_id": "00000000-0000-4000-8000-000000000001",
+            "company_id": "00000000-0000-4000-8000-000000000002",
+            "notice_id": "00000000-0000-4000-8000-000000000003",
+            "notice_version_id": "00000000-0000-4000-8000-000000000004",
+            "analysis_run_id": "00000000-0000-4000-8000-000000000005",
+            "judgment_run_id": "00000000-0000-4000-8000-000000000006"
+          },
+          "document_id": null,
+          "location": {},
+          "source_sha256": null,
+          "extracted_sha256": null
+        }
+      ],
+      "limitations": [],
+      "follow_up_targets": [
+        {
+          "target_id": "624bd6ee-4f24-4c10-bf9a-53a78e1be34c",
+          "kind": "DOCUMENT",
+          "label": "현재 공고의 실적 인정 대상 기관은 관공서와 기업체로 한정되어 있습니다.",
+          "message_id": "f2da10fc-8a20-468e-a5cd-3dd8a120b290",
+          "ordinal": 1,
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "requirement_key": null
+        }
+      ],
+      "actions": [],
+      "capabilities": {},
+      "clarification": null,
+      "processing": {
+        "path": "v3.1",
+        "model": "gpt-5.6-luna",
+        "fallback": false,
+        "task_status": "PASS",
+        "elapsed_ms": 18875,
+        "calls": [
+          {
+            "stage": "plan",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 5173,
+            "usage": {
+              "completion_tokens": 260,
+              "prompt_tokens": 1348,
+              "total_tokens": 1608,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 164,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 1345,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 3391
+          },
+          {
+            "stage": "generate",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 5590,
+            "usage": {
+              "completion_tokens": 415,
+              "prompt_tokens": 1521,
+              "total_tokens": 1936,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 182,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 1518,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 5781
+          },
+          {
+            "stage": "validate",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 4653,
+            "usage": {
+              "completion_tokens": 442,
+              "prompt_tokens": 1281,
+              "total_tokens": 1723,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 236,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 1278,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 4703
+          },
+          {
+            "stage": "repair",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 4793,
+            "usage": {
+              "completion_tokens": 213,
+              "prompt_tokens": 1250,
+              "total_tokens": 1463,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 120,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 1247,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 3203
+          },
+          {
+            "stage": "revalidate",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 4062,
+            "usage": {
+              "completion_tokens": 116,
+              "prompt_tokens": 1120,
+              "total_tokens": 1236,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 32,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 1117,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 1782
+          }
+        ],
+        "validation_events": [
+          {
+            "claim_id": "c1",
+            "validation": "SUPPORTED",
+            "reason": "출처에 실적 인정 대상이 관공서와 기업체에 한한다고 명시되어 있습니다."
+          },
+          {
+            "claim_id": "c2",
+            "validation": "SUPPORTED",
+            "reason": "공고문은 실적 대상을 관공서와 기업체로 한정하고, 병원·학교·군부대·사회복지시설을 제외한다고 명시합니다. 따라서 병원 급식 실적은 인정되지 않습니다."
+          },
+          {
+            "claim_id": "c3",
+            "validation": "SUPPORTED",
+            "reason": "출처에 공고일 기준 2년 내, 2개 이상 단체급식소, 1일 평균 800식 이상, 1년 이상 운영한 실적이라고 명시되어 있습니다."
+          },
+          {
+            "claim_id": "c4",
+            "validation": "SUPPORTED",
+            "reason": "출처에 병원, 학교, 군부대, 사회복지시설은 제외된다고 명시되어 있습니다."
+          }
+        ],
+        "tools": [
+          {
+            "tool": "READ_DOCUMENT",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          }
+        ],
+        "plan": {
+          "goal": "현재 공고에서 우리 회사의 병원 급식 실적이 인정되는지 확인한다.",
+          "tasks": [
+            {
+              "kind": "READ_DOCUMENT",
+              "question": "현재 공고의 실적 인정 요건에서 우리 회사가 보유한 병원 급식 실적이 인정되는지, 인정 대상 기관과 제외 기관 조건을 확인한다.",
+              "scope_ref": "current_case"
+            }
+          ],
+          "clarification": null
+        },
+        "deadline_seconds": 45,
+        "storage": "process-memory; restart clears history; one worker only"
+      }
+    },
+    "required_fact_coverage": true,
+    "scope": "real planner/generator/verifier; synthetic read adapters; no database",
+    "calls": [
+      {
+        "stage": "plan",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 5173,
+        "usage": {
+          "completion_tokens": 260,
+          "prompt_tokens": 1348,
+          "total_tokens": 1608,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 164,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 1345,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 3391
+      },
+      {
+        "stage": "generate",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 5590,
+        "usage": {
+          "completion_tokens": 415,
+          "prompt_tokens": 1521,
+          "total_tokens": 1936,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 182,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 1518,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 5781
+      },
+      {
+        "stage": "validate",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 4653,
+        "usage": {
+          "completion_tokens": 442,
+          "prompt_tokens": 1281,
+          "total_tokens": 1723,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 236,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 1278,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 4703
+      },
+      {
+        "stage": "repair",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 4793,
+        "usage": {
+          "completion_tokens": 213,
+          "prompt_tokens": 1250,
+          "total_tokens": 1463,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 120,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 1247,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 3203
+      },
+      {
+        "stage": "revalidate",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 4062,
+        "usage": {
+          "completion_tokens": 116,
+          "prompt_tokens": 1120,
+          "total_tokens": 1236,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 32,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 1117,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 1782
+      }
+    ],
+    "usage_cost_upper_usd": 0.0030392000000000006
+  },
+  {
+    "turn": 3,
+    "question": "그 조건 원문 보여줘.",
+    "expected_fact_ids": [
+      "exception"
+    ],
+    "envelope": {
+      "version": "3.1",
+      "conversation_id": "3ea84fcf-2137-4ea0-b409-3bf1a646607b",
+      "context_revision": 3,
+      "message_id": "d35ca70e-0fd1-4a7e-ac1d-a008c725c782",
+      "status_card": null,
+      "claims": [
+        {
+          "claim_id": "claim-1",
+          "text": "현재 확인된 조건 원문은 다음과 같습니다.\n\n“공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.”",
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "제공된 fact와 source가 주장에 인용된 조건 원문과 동일한 내용을 담고 있습니다."
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "s-exception",
+          "kind": "DOCUMENT",
+          "quote": "공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.",
+          "scope": {
+            "case_id": "00000000-0000-4000-8000-000000000001",
+            "company_id": "00000000-0000-4000-8000-000000000002",
+            "notice_id": "00000000-0000-4000-8000-000000000003",
+            "notice_version_id": "00000000-0000-4000-8000-000000000004",
+            "analysis_run_id": "00000000-0000-4000-8000-000000000005",
+            "judgment_run_id": "00000000-0000-4000-8000-000000000006"
+          },
+          "document_id": null,
+          "location": {},
+          "source_sha256": null,
+          "extracted_sha256": null
+        }
+      ],
+      "limitations": [],
+      "follow_up_targets": [
+        {
+          "target_id": "b3b261fe-ff1e-4691-82e4-5bc6f8e61b21",
+          "kind": "DOCUMENT",
+          "label": "현재 확인된 조건 원문은 다음과 같습니다.\n\n“공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.”",
+          "message_id": "d35ca70e-0fd1-4a7e-ac1d-a008c725c782",
+          "ordinal": 1,
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "requirement_key": null
+        }
+      ],
+      "actions": [],
+      "capabilities": {},
+      "clarification": null,
+      "processing": {
+        "path": "v3.1",
+        "model": "gpt-5.6-luna",
+        "fallback": false,
+        "task_status": "PASS",
+        "elapsed_ms": 7000,
+        "calls": [
+          {
+            "stage": "plan",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 6563,
+            "usage": {
+              "completion_tokens": 207,
+              "prompt_tokens": 1808,
+              "total_tokens": 2015,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 125,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 1805,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 3235
+          },
+          {
+            "stage": "generate",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 6512,
+            "usage": {
+              "completion_tokens": 153,
+              "prompt_tokens": 1834,
+              "total_tokens": 1987,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 36,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 1831,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 1984
+          },
+          {
+            "stage": "validate",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 4127,
+            "usage": {
+              "completion_tokens": 79,
+              "prompt_tokens": 1144,
+              "total_tokens": 1223,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 22,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 1141,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 1781
+          }
+        ],
+        "validation_events": [
+          {
+            "claim_id": "claim-1",
+            "validation": "SUPPORTED",
+            "reason": "제공된 fact와 source가 주장에 인용된 조건 원문과 동일한 내용을 담고 있습니다."
+          }
+        ],
+        "tools": [
+          {
+            "tool": "READ_DOCUMENT",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          }
+        ],
+        "plan": {
+          "goal": "그 조건 원문 보여줘.",
+          "tasks": [
+            {
+              "kind": "READ_DOCUMENT",
+              "question": "현재 공고의 실적 인정 대상 기관은 관공서와 기업체로 한정되어 있습니다.",
+              "scope_ref": "current_case"
+            }
+          ],
+          "clarification": null
+        },
+        "deadline_seconds": 45,
+        "storage": "process-memory; restart clears history; one worker only"
+      }
+    },
+    "required_fact_coverage": true,
+    "scope": "real planner/generator/verifier; synthetic read adapters; no database",
+    "calls": [
+      {
+        "stage": "plan",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 6563,
+        "usage": {
+          "completion_tokens": 207,
+          "prompt_tokens": 1808,
+          "total_tokens": 2015,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 125,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 1805,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 3235
+      },
+      {
+        "stage": "generate",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 6512,
+        "usage": {
+          "completion_tokens": 153,
+          "prompt_tokens": 1834,
+          "total_tokens": 1987,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 36,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 1831,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 1984
+      },
+      {
+        "stage": "validate",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 4127,
+        "usage": {
+          "completion_tokens": 79,
+          "prompt_tokens": 1144,
+          "total_tokens": 1223,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 22,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 1141,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 1781
+      }
+    ],
+    "usage_cost_upper_usd": 0.0014839999999999999
+  },
+  {
+    "turn": 4,
+    "question": "그럼 내가 실제로 더 확인할 것만 정리해줘.",
+    "expected_fact_ids": [
+      "manual"
+    ],
+    "envelope": {
+      "version": "3.1",
+      "conversation_id": "3ea84fcf-2137-4ea0-b409-3bf1a646607b",
+      "context_revision": 4,
+      "message_id": "a7217adf-e6ed-4507-9caf-ed9f245070e3",
+      "status_card": null,
+      "claims": [
+        {
+          "claim_id": "c1",
+          "text": "공동수급과 하도급은 허용되지 않습니다.",
+          "fact_ids": [
+            "manual"
+          ],
+          "source_ids": [
+            "s-manual"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "s-manual에 공동수급과 하도급은 허용되지 않는다고 명시되어 있습니다."
+        },
+        {
+          "claim_id": "c2",
+          "text": "실적은 공고일 기준 2년 이내에 수행한 실적이어야 하고, 서로 다른 단체급식소 2개 이상에서 각각 또는 해당 기준에 맞게 1일 평균 800식 이상을 1년 이상 운영했는지 확인해야 합니다.",
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "근거는 공고일 기준 2년 내, 2개 이상 단체급식소, 1일 평균 800식 이상, 1년 이상 운영한 실적을 요구한다고 명시합니다."
+        },
+        {
+          "claim_id": "c3",
+          "text": "인정되는 실적의 운영기관은 관공서와 기업체로 한정되며, 병원·학교·군부대·사회복지시설의 실적은 제외됩니다.",
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "s-exception은 인정 실적의 대상이 관공서와 기업체에 한정되고, 병원·학교·군부대·사회복지시설은 제외된다고 명시합니다."
+        },
+        {
+          "claim_id": "c4",
+          "text": "병원·학교·군부대·사회복지시설에서 수행한 급식 실적은 이 공고의 인정 실적에서 제외되므로, 해당 기관 실적만 보유한 경우 실적요건 충족 자료로 사용할 수 있는지 추가 검토가 필요합니다.",
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "근거는 병원·학교·군부대·사회복지시설의 실적을 제외한다고 명시하므로, 해당 실적만 보유한 경우 인정 실적으로 사용할 수 있는지 검토해야 한다는 취지는 뒷받침됩니다."
+        },
+        {
+          "claim_id": "c5",
+          "text": "실적요건은 공고일 기준 2년 이내에 2개 이상의 단체급식소에서 각각 1일 평균 800식 이상을 1년 이상 운영한 실적입니다.",
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "s-exception에 공고일 기준 2년 내, 2개 이상 단체급식소, 1일 평균 800식 이상, 1년 이상 운영 실적이라는 요건이 모두 제시되어 있습니다."
+        },
+        {
+          "claim_id": "c6",
+          "text": "공동수급은 허용되지 않으므로, 회사 단독으로 참가자격과 실적요건을 충족할 수 있는지 확인해야 합니다.",
+          "fact_ids": [
+            "manual"
+          ],
+          "source_ids": [
+            "s-manual"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "근거가 공동수급을 허용하지 않는다고 명시하므로, 회사 단독으로 참가자격과 실적요건을 충족할 수 있는지 확인해야 한다는 취지는 뒷받침됩니다."
+        },
+        {
+          "claim_id": "c7",
+          "text": "하도급도 허용되지 않으므로, 핵심 급식 운영을 다른 업체의 실적으로 보완하거나 하도급으로 수행하는 방식이 가능한지 전제로 검토해서는 안 됩니다.",
+          "fact_ids": [
+            "manual"
+          ],
+          "source_ids": [
+            "s-manual"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "근거가 하도급을 허용하지 않는다고 명시하므로, 하도급을 전제로 핵심 급식 운영을 수행하는 방식을 검토해서는 안 된다는 내용은 뒷받침됩니다."
+        },
+        {
+          "claim_id": "c8",
+          "text": "설명회 참석이 참가요건인지, 설명회 개최일시와 참석 방법이 무엇인지는 공고 원문에서 직접 확인해야 합니다.",
+          "fact_ids": [
+            "manual"
+          ],
+          "source_ids": [
+            "s-manual"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "근거는 설명회 참석 관련 사항을 공고 원문에서 직접 확인해야 한다고 명시하므로, 참석의 참가요건 여부와 개최 일시·방법을 원문에서 확인해야 한다는 취지는 뒷받침됩니다."
+        },
+        {
+          "claim_id": "c9",
+          "text": "설명회 참석 및 입찰등록 기한은 공고 원문에서 직접 확인해야 합니다.",
+          "fact_ids": [
+            "manual"
+          ],
+          "source_ids": [
+            "s-manual"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "s-manual은 설명회 참석 및 입찰등록 기한을 원문에서 직접 확인해야 한다고 명시합니다."
+        },
+        {
+          "claim_id": "c10",
+          "text": "현재 제공된 근거에는 제출서류 전체 목록이나 서류별 발급일·유효기간·원본 또는 사본 요건이 제시되어 있지 않습니다.",
+          "fact_ids": [
+            "manual"
+          ],
+          "source_ids": [
+            "s-manual"
+          ],
+          "validation": "SUPPORTED",
+          "method": "semantic",
+          "reason": "현재 제공된 facts와 sources에는 제출서류 전체 목록이나 서류별 발급일·유효기간·원본 또는 사본 요건이 제시되어 있지 않습니다."
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "s-manual",
+          "kind": "DOCUMENT",
+          "quote": "설명회 참석 및 입찰등록 기한은 원문에서 직접 확인해야 합니다. 공동수급과 하도급은 허용되지 않습니다.",
+          "scope": {
+            "case_id": "00000000-0000-4000-8000-000000000001",
+            "company_id": "00000000-0000-4000-8000-000000000002",
+            "notice_id": "00000000-0000-4000-8000-000000000003",
+            "notice_version_id": "00000000-0000-4000-8000-000000000004",
+            "analysis_run_id": "00000000-0000-4000-8000-000000000005",
+            "judgment_run_id": "00000000-0000-4000-8000-000000000006"
+          },
+          "document_id": null,
+          "location": {},
+          "source_sha256": null,
+          "extracted_sha256": null
+        },
+        {
+          "source_id": "s-exception",
+          "kind": "DOCUMENT",
+          "quote": "공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.",
+          "scope": {
+            "case_id": "00000000-0000-4000-8000-000000000001",
+            "company_id": "00000000-0000-4000-8000-000000000002",
+            "notice_id": "00000000-0000-4000-8000-000000000003",
+            "notice_version_id": "00000000-0000-4000-8000-000000000004",
+            "analysis_run_id": "00000000-0000-4000-8000-000000000005",
+            "judgment_run_id": "00000000-0000-4000-8000-000000000006"
+          },
+          "document_id": null,
+          "location": {},
+          "source_sha256": null,
+          "extracted_sha256": null
+        }
+      ],
+      "limitations": [],
+      "follow_up_targets": [
+        {
+          "target_id": "c1cea259-2d25-4d01-91dc-24556f869ff2",
+          "kind": "MANUAL",
+          "label": "공동수급과 하도급은 허용되지 않습니다.",
+          "message_id": "a7217adf-e6ed-4507-9caf-ed9f245070e3",
+          "ordinal": 1,
+          "fact_ids": [
+            "manual"
+          ],
+          "source_ids": [
+            "s-manual"
+          ],
+          "requirement_key": null
+        },
+        {
+          "target_id": "be576134-5a8d-4679-aabf-a42ff813142c",
+          "kind": "DOCUMENT",
+          "label": "실적은 공고일 기준 2년 이내에 수행한 실적이어야 하고, 서로 다른 단체급식소 2개 이상에서 각각 또는 해당 기준에 맞게 1일 평균 800식 이상을 1년 이상 운영했는지 확인해야 합니다.",
+          "message_id": "a7217adf-e6ed-4507-9caf-ed9f245070e3",
+          "ordinal": 1,
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "requirement_key": null
+        }
+      ],
+      "actions": [],
+      "capabilities": {},
+      "clarification": null,
+      "processing": {
+        "path": "v3.1",
+        "model": "gpt-5.6-luna",
+        "fallback": false,
+        "task_status": "PASS",
+        "elapsed_ms": 42641,
+        "calls": [
+          {
+            "stage": "plan",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 7843,
+            "usage": {
+              "completion_tokens": 475,
+              "prompt_tokens": 2260,
+              "total_tokens": 2735,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 220,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 2257,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 5500
+          },
+          {
+            "stage": "generate",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 9375,
+            "usage": {
+              "completion_tokens": 1122,
+              "prompt_tokens": 2755,
+              "total_tokens": 3877,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 364,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 2752,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 9422
+          },
+          {
+            "stage": "validate",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 8165,
+            "usage": {
+              "completion_tokens": 1347,
+              "prompt_tokens": 2304,
+              "total_tokens": 3651,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 671,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 2301,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 12453
+          },
+          {
+            "stage": "repair",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 8664,
+            "usage": {
+              "completion_tokens": 997,
+              "prompt_tokens": 2363,
+              "total_tokens": 3360,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 705,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 2360,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 11375
+          },
+          {
+            "stage": "revalidate",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 6126,
+            "usage": {
+              "completion_tokens": 383,
+              "prompt_tokens": 1797,
+              "total_tokens": 2180,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 120,
+                "rejected_prediction_tokens": 0,
+                "text_tokens": null
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": 1794,
+                "cached_tokens": 0,
+                "image_tokens": null,
+                "text_tokens": null
+              }
+            },
+            "status": "succeeded",
+            "elapsed_ms": 3891
+          }
+        ],
+        "validation_events": [
+          {
+            "claim_id": "c1",
+            "validation": "SUPPORTED",
+            "reason": "s-manual에 공동수급과 하도급은 허용되지 않는다고 명시되어 있습니다."
+          },
+          {
+            "claim_id": "c2",
+            "validation": "SUPPORTED",
+            "reason": "근거는 공고일 기준 2년 내, 2개 이상 단체급식소, 1일 평균 800식 이상, 1년 이상 운영한 실적을 요구한다고 명시합니다."
+          },
+          {
+            "claim_id": "c3",
+            "validation": "SUPPORTED",
+            "reason": "s-exception은 인정 실적의 대상이 관공서와 기업체에 한정되고, 병원·학교·군부대·사회복지시설은 제외된다고 명시합니다."
+          },
+          {
+            "claim_id": "c4",
+            "validation": "SUPPORTED",
+            "reason": "근거는 병원·학교·군부대·사회복지시설의 실적을 제외한다고 명시하므로, 해당 실적만 보유한 경우 인정 실적으로 사용할 수 있는지 검토해야 한다는 취지는 뒷받침됩니다."
+          },
+          {
+            "claim_id": "c5",
+            "validation": "SUPPORTED",
+            "reason": "s-exception에 공고일 기준 2년 내, 2개 이상 단체급식소, 1일 평균 800식 이상, 1년 이상 운영 실적이라는 요건이 모두 제시되어 있습니다."
+          },
+          {
+            "claim_id": "c6",
+            "validation": "SUPPORTED",
+            "reason": "근거가 공동수급을 허용하지 않는다고 명시하므로, 회사 단독으로 참가자격과 실적요건을 충족할 수 있는지 확인해야 한다는 취지는 뒷받침됩니다."
+          },
+          {
+            "claim_id": "c7",
+            "validation": "SUPPORTED",
+            "reason": "근거가 하도급을 허용하지 않는다고 명시하므로, 하도급을 전제로 핵심 급식 운영을 수행하는 방식을 검토해서는 안 된다는 내용은 뒷받침됩니다."
+          },
+          {
+            "claim_id": "c8",
+            "validation": "SUPPORTED",
+            "reason": "근거는 설명회 참석 관련 사항을 공고 원문에서 직접 확인해야 한다고 명시하므로, 참석의 참가요건 여부와 개최 일시·방법을 원문에서 확인해야 한다는 취지는 뒷받침됩니다."
+          },
+          {
+            "claim_id": "c9",
+            "validation": "SUPPORTED",
+            "reason": "s-manual은 설명회 참석 및 입찰등록 기한을 원문에서 직접 확인해야 한다고 명시합니다."
+          },
+          {
+            "claim_id": "c10",
+            "validation": "SUPPORTED",
+            "reason": "현재 제공된 facts와 sources에는 제출서류 전체 목록이나 서류별 발급일·유효기간·원본 또는 사본 요건이 제시되어 있지 않습니다."
+          }
+        ],
+        "tools": [
+          {
+            "tool": "READ_CHECKS",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          },
+          {
+            "tool": "READ_PROFILE",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          },
+          {
+            "tool": "READ_DOCUMENT",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          }
+        ],
+        "plan": {
+          "goal": "현재 회사가 실제로 추가 확인해야 할 항목만 정리한다.",
+          "tasks": [
+            {
+              "kind": "READ_CHECKS",
+              "question": "현재 공고의 참가요건과 회사의 미충족·미확인 항목 중, 사용자가 실제로 추가 확인해야 할 사항은 무엇인가? 특히 단체급식업 등록 여부, 인정되는 실적의 기관 유형·기간·식수·운영기간, 공동수급·하도급 제한을 확인한다.",
+              "scope_ref": "current_case"
+            },
+            {
+              "kind": "READ_PROFILE",
+              "question": "현재 회사가 단체급식업 등록요건과 실적요건을 충족하는지 확인하기 위해, 회사 프로필에 등록된 업종·자격·실적 자료 중 추가 증빙이 필요한 항목은 무엇인가?",
+              "scope_ref": "current_case"
+            },
+            {
+              "kind": "READ_DOCUMENT",
+              "question": "현재 공고 원문에서 사용자가 직접 확인해야 하는 설명회 참석 여부와 일정, 입찰등록 마감일, 제출서류, 공동수급·하도급 제한 및 실적 증빙 기준은 무엇인가?",
+              "scope_ref": "current_case"
+            }
+          ],
+          "clarification": null
+        },
+        "deadline_seconds": 45,
+        "storage": "process-memory; restart clears history; one worker only"
+      }
+    },
+    "required_fact_coverage": true,
+    "scope": "real planner/generator/verifier; synthetic read adapters; no database",
+    "calls": [
+      {
+        "stage": "plan",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 7843,
+        "usage": {
+          "completion_tokens": 475,
+          "prompt_tokens": 2260,
+          "total_tokens": 2735,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 220,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 2257,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 5500
+      },
+      {
+        "stage": "generate",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 9375,
+        "usage": {
+          "completion_tokens": 1122,
+          "prompt_tokens": 2755,
+          "total_tokens": 3877,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 364,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 2752,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 9422
+      },
+      {
+        "stage": "validate",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 8165,
+        "usage": {
+          "completion_tokens": 1347,
+          "prompt_tokens": 2304,
+          "total_tokens": 3651,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 671,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 2301,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 12453
+      },
+      {
+        "stage": "repair",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 8664,
+        "usage": {
+          "completion_tokens": 997,
+          "prompt_tokens": 2363,
+          "total_tokens": 3360,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 705,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 2360,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 11375
+      },
+      {
+        "stage": "revalidate",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 6126,
+        "usage": {
+          "completion_tokens": 383,
+          "prompt_tokens": 1797,
+          "total_tokens": 2180,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 120,
+            "rejected_prediction_tokens": 0,
+            "text_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 1794,
+            "cached_tokens": 0,
+            "image_tokens": null,
+            "text_tokens": null
+          }
+        },
+        "status": "succeeded",
+        "elapsed_ms": 3891
+      }
+    ],
+    "usage_cost_upper_usd": 0.007484600000000001
+  }
+]

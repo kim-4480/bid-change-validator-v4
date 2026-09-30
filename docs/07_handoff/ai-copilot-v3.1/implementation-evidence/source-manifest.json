@@ -1,0 +1,98 @@
+{
+  ".gitignore": {
+    "sha256": "0797349ef1468026d65b4531eead71e62f57f658a66e453abae33d1571552e82",
+    "bytes": 793
+  },
+  "apps/api/app/copilot/answer_validation.py": {
+    "sha256": "82e9781b9028c1d4fbd13669355936c570288014e31f2e6dbfe2a78b2c6dbfc6",
+    "bytes": 8929
+  },
+  "apps/api/app/copilot/chat.py": {
+    "sha256": "bd04775aab647e236b09c3dff8dc61830ec49af015a8c767c61e122d4a7dfe8f",
+    "bytes": 23850
+  },
+  "apps/api/app/copilot/conversation_state.py": {
+    "sha256": "a1cd9dd9a3aae64d4c13d5e7cd20bfce9aafc4ee69913f22ab799792d87084c9",
+    "bytes": 2625
+  },
+  "apps/api/app/copilot/model_gateway.py": {
+    "sha256": "855f70f1a7393de9638fa900215ae2fdb97505df5e990d0c7a9b9b9888164ec6",
+    "bytes": 4495
+  },
+  "apps/api/app/copilot/narration.py": {
+    "sha256": "d6c405f6f95e1d0c5a26368e928b26f4f07a6c31f012aa03ab3c7b9a007e71e8",
+    "bytes": 17474
+  },
+  "apps/api/app/copilot/orchestration.py": {
+    "sha256": "6a09ef06f76830359769ea277a244e242b6b0b8cdeaea6c8719f53d2b628aa5a",
+    "bytes": 15984
+  },
+  "apps/api/app/copilot/router.py": {
+    "sha256": "a743c5f520135d31c885cab434cf7577c0d7f221530bfdabc2dbfd8d73c585be",
+    "bytes": 6572
+  },
+  "apps/api/app/copilot/tool_adapters.py": {
+    "sha256": "093c22f775e6fbdd6f65559da2828e84ad1a06defeb6cf725f948d9d62f2576b",
+    "bytes": 12059
+  },
+  "apps/api/app/copilot/v31_contracts.py": {
+    "sha256": "38b5cfb4be524ece999e27fdc0ee32b0761c7115affa4cc37f589de8ab354778",
+    "bytes": 5369
+  },
+  "apps/api/app/document_rag/readiness.py": {
+    "sha256": "b118f15d0c65024a5a71da9395bb33d35a990b6b9a2e8318286765efdc7889b4",
+    "bytes": 10004
+  },
+  "apps/api/app/scripts/prepare_copilot_index.py": {
+    "sha256": "de8212e1ec9b22db318a991bd1fa106da86429b8922c414c86f138fca3431646",
+    "bytes": 2599
+  },
+  "apps/api/eval/copilot_v31_replay.json": {
+    "sha256": "d70d87c2b5717f4954f410f63a3c99dbe8dd4ebe7170ddc0a7d6287145d44912",
+    "bytes": 1890
+  },
+  "apps/api/tests/test_copilot_v31.py": {
+    "sha256": "2acae1e1c86940bd63de29597b95f14f4d097fddc7071f67feb16d8b0f851ec3",
+    "bytes": 25217
+  },
+  "apps/api/tests/test_copilot_v31_readiness.py": {
+    "sha256": "50913eb55f33fd91d759831d892de42ac0481903685ba1f67c0584a7c47a8d2b",
+    "bytes": 7146
+  },
+  "apps/web/components/copilot/envelope-answer.tsx": {
+    "sha256": "d057c2ea5ff7ca43d7206ffce70f9a46b604dfff57861ff4a3f5d32bfc57dd22",
+    "bytes": 2814
+  },
+  "apps/web/components/copilot/panel.tsx": {
+    "sha256": "ffae5928dc4bb56852e6fe67df04ae30fe346222898776ab58093388e7a6a31f",
+    "bytes": 15086
+  },
+  "apps/web/lib/copilot-api.ts": {
+    "sha256": "02c9e68bd0c8a3727c09b920cdf7ec5a42dcf2e4c1181b1859e72e78b36bb474",
+    "bytes": 9665
+  },
+  "apps/web/lib/copilot-conversation.ts": {
+    "sha256": "7517256821cbd0a123b0b547e8912a7d987affa88be8cd88d659eabeb357e275",
+    "bytes": 14424
+  },
+  "apps/web/lib/copilot-v31.ts": {
+    "sha256": "d9e599149f883fd8d502c8068593fa19e0520ee58a0ab78716456fe55488d46f",
+    "bytes": 1887
+  },
+  "apps/web/scripts/check-copilot-v31-browser.cjs": {
+    "sha256": "ecd63fc31fbe195cfd6f1b2ab6ac97cb8b76788ac7510f3a45568c94093c90c5",
+    "bytes": 5942
+  },
+  "scripts/eval_copilot_v31_live.py": {
+    "sha256": "516bd32ee95c6e317a3fda7a69569fc342485c80a478eba90dcb3f719631449d",
+    "bytes": 7733
+  },
+  "scripts/package_copilot_v31_evidence.py": {
+    "sha256": "ba24b5e35c02da7b9cf5bd9d6825b72d29c14e412e89ce6aeb205c2e49090021",
+    "bytes": 5029
+  },
+  "scripts/verify_copilot_v31.py": {
+    "sha256": "2cb3f57eb61bbfaafd074d1943b09f4ff0b42b605edd079516a849d39c31c6ac",
+    "bytes": 3363
+  }
+}

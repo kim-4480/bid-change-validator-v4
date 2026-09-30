@@ -1,0 +1,159 @@
+{
+  "case_id": "C02",
+  "notice_no": "R26BK01715895",
+  "golden_class": "SOURCE_GOLDEN",
+  "identity_status": "PARTIAL",
+  "notice_id": null,
+  "notice_metadata": {
+    "id": null,
+    "bid_notice_no": "R26BK01715895"
+  },
+  "provenance": {
+    "kind": "real",
+    "snapshot_path": "R26BK01715895/document-export.json",
+    "snapshot_sha256": "8364ce27eeafd7a8461baae7b3f3c975535bda424ddf5f876b3a52d93f40ba69",
+    "identity_note": "DB identity and complete version lineage unavailable"
+  },
+  "versions": [
+    {
+      "version_key": "C02-source-order-000",
+      "notice_version_id": null,
+      "version_number": null,
+      "bid_notice_order": "000",
+      "metadata": {
+        "id": null,
+        "version_number": null,
+        "bid_notice_order": "000"
+      }
+    }
+  ],
+  "documents": [
+    {
+      "document_key": "C02-cache-22a8e7e5e696000f",
+      "document_id": null,
+      "version_key": "C02-source-order-000",
+      "notice_version_id": null,
+      "name": "2026학년도 앵커사업 임상병리과 기자재(뇌파분석시스템) 재입찰공고문.hwp",
+      "source_file_sha256": "fd8590fc801449ab07d6eda2218676bdf25eb13f448e801429a0d83aa8eb1ec2",
+      "source_snapshot_path": "R26BK01715895/originals/22a8e7e5e696000f.bin",
+      "extracted_text_sha256": "d7fffc6e014aa0884d7cd3f918d5d2e473d9f9f8af8da1f3c274f146326601c0",
+      "blocks_file_sha256": "5bb994017a349b18975a79ccbcbaffcdd1cbdf25e678be06ed43a8693463ed4f",
+      "text": {
+        "path": "cases/C02/documents/d7fffc6e014aa0884d7cd3f918d5d2e473d9f9f8af8da1f3c274f146326601c0.txt",
+        "sha256": "d7fffc6e014aa0884d7cd3f918d5d2e473d9f9f8af8da1f3c274f146326601c0"
+      },
+      "blocks": {
+        "path": "cases/C02/documents/5bb994017a349b18975a79ccbcbaffcdd1cbdf25e678be06ed43a8693463ed4f.blocks.json",
+        "sha256": "5bb994017a349b18975a79ccbcbaffcdd1cbdf25e678be06ed43a8693463ed4f"
+      },
+      "metadata": {
+        "document_id": null,
+        "cache_key": "22a8e7e5e696000f",
+        "notice_version_id": null,
+        "original_path": "originals/22a8e7e5e696000f.bin",
+        "file_sha256": "fd8590fc801449ab07d6eda2218676bdf25eb13f448e801429a0d83aa8eb1ec2",
+        "bytes": 63488,
+        "url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01715895&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+        "filename": "2026학년도 앵커사업 임상병리과 기자재(뇌파분석시스템) 재입찰공고문.hwp",
+        "content_type": "application/octet-stream",
+        "source_bid_notice_order": "000",
+        "extraction_provenance": "new export-time extraction, not historical DB output",
+        "parser_version": {
+          "code_sha256": "c31bfd71d64985f4605aec4fd22036c55c552054558474b7a3de717da3a30e00",
+          "python": "3.12.14",
+          "pypdf": "6.17.0",
+          "olefile": "0.47"
+        },
+        "extraction_status": "EXTRACTED",
+        "extraction_error": null,
+        "text_extractor": "HWP5_BODYTEXT",
+        "extracted_text_sha256": "d7fffc6e014aa0884d7cd3f918d5d2e473d9f9f8af8da1f3c274f146326601c0"
+      }
+    },
+    {
+      "document_key": "C02-cache-8206a801dcacf2cf",
+      "document_id": null,
+      "version_key": "C02-source-order-000",
+      "notice_version_id": null,
+      "name": "2026학년도 앵커사업 임상병리과 기자재(뇌파분석시스템) 제품규격서.hwp",
+      "source_file_sha256": "2a6f477c09104d4235390ca909be32f4fdf84207274a081ce61d531e700bbdc7",
+      "source_snapshot_path": "R26BK01715895/originals/8206a801dcacf2cf.bin",
+      "extracted_text_sha256": "d558b89e686229541f11f2c891bd381baca837e1afef5b5c2508e1d60431b401",
+      "blocks_file_sha256": "1584ce205fee45858229f1ef7f817caa3378813a1e7f7dc2b44459a493e0906d",
+      "text": {
+        "path": "cases/C02/documents/d558b89e686229541f11f2c891bd381baca837e1afef5b5c2508e1d60431b401.txt",
+        "sha256": "d558b89e686229541f11f2c891bd381baca837e1afef5b5c2508e1d60431b401"
+      },
+      "blocks": {
+        "path": "cases/C02/documents/1584ce205fee45858229f1ef7f817caa3378813a1e7f7dc2b44459a493e0906d.blocks.json",
+        "sha256": "1584ce205fee45858229f1ef7f817caa3378813a1e7f7dc2b44459a493e0906d"
+      },
+      "metadata": {
+        "document_id": null,
+        "cache_key": "8206a801dcacf2cf",
+        "notice_version_id": null,
+        "original_path": "originals/8206a801dcacf2cf.bin",
+        "file_sha256": "2a6f477c09104d4235390ca909be32f4fdf84207274a081ce61d531e700bbdc7",
+        "bytes": 3398144,
+        "url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01715895&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+        "filename": "2026학년도 앵커사업 임상병리과 기자재(뇌파분석시스템) 제품규격서.hwp",
+        "content_type": "application/octet-stream",
+        "source_bid_notice_order": "000",
+        "extraction_provenance": "new export-time extraction, not historical DB output",
+        "parser_version": {
+          "code_sha256": "c31bfd71d64985f4605aec4fd22036c55c552054558474b7a3de717da3a30e00",
+          "python": "3.12.14",
+          "pypdf": "6.17.0",
+          "olefile": "0.47"
+        },
+        "extraction_status": "EXTRACTED",
+        "extraction_error": null,
+        "text_extractor": "HWP5_BODYTEXT",
+        "extracted_text_sha256": "d558b89e686229541f11f2c891bd381baca837e1afef5b5c2508e1d60431b401"
+      }
+    },
+    {
+      "document_key": "C02-cache-ceba2d44d9523469",
+      "document_id": null,
+      "version_key": "C02-source-order-000",
+      "notice_version_id": null,
+      "name": "2026학년도 앵커사업 임상병리과 기자재(뇌파분석시스템) 재입찰공고문.pdf",
+      "source_file_sha256": "f5e3e5ec431bbc2dc028f19e6a1814c19c2f0a44630d8593cc15cc29000ad531",
+      "source_snapshot_path": "R26BK01715895/originals/ceba2d44d9523469.bin",
+      "extracted_text_sha256": "51bfa12ca91c47c7d7540a539ca934a7f7609438f563fbf5b7e9a165997a43bd",
+      "blocks_file_sha256": "a4f0d9555f6288926e18b43b89580beaacf74ae1fca11b77ff3c0923e922951c",
+      "text": {
+        "path": "cases/C02/documents/51bfa12ca91c47c7d7540a539ca934a7f7609438f563fbf5b7e9a165997a43bd.txt",
+        "sha256": "51bfa12ca91c47c7d7540a539ca934a7f7609438f563fbf5b7e9a165997a43bd"
+      },
+      "blocks": {
+        "path": "cases/C02/documents/a4f0d9555f6288926e18b43b89580beaacf74ae1fca11b77ff3c0923e922951c.blocks.json",
+        "sha256": "a4f0d9555f6288926e18b43b89580beaacf74ae1fca11b77ff3c0923e922951c"
+      },
+      "metadata": {
+        "document_id": null,
+        "cache_key": "ceba2d44d9523469",
+        "notice_version_id": null,
+        "original_path": "originals/ceba2d44d9523469.bin",
+        "file_sha256": "f5e3e5ec431bbc2dc028f19e6a1814c19c2f0a44630d8593cc15cc29000ad531",
+        "bytes": 467831,
+        "url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01715895&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+        "filename": "2026학년도 앵커사업 임상병리과 기자재(뇌파분석시스템) 재입찰공고문.pdf",
+        "content_type": "application/pdf",
+        "source_bid_notice_order": "000",
+        "extraction_provenance": "new export-time extraction, not historical DB output",
+        "parser_version": {
+          "code_sha256": "c31bfd71d64985f4605aec4fd22036c55c552054558474b7a3de717da3a30e00",
+          "python": "3.12.14",
+          "pypdf": "6.17.0",
+          "olefile": "0.47"
+        },
+        "extraction_status": "EXTRACTED",
+        "extraction_error": null,
+        "text_extractor": "PYPDF",
+        "extracted_text_sha256": "51bfa12ca91c47c7d7540a539ca934a7f7609438f563fbf5b7e9a165997a43bd"
+      }
+    }
+  ],
+  "observations": []
+}

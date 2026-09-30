@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bidengine"
+version = "0.1.0"
+description = "공고 문서 → 조항 → 요건 → 판정 파이프라인 (DB·ORM 비의존)"
+requires-python = ">=3.12"
+dependencies = [
+    "faiss-cpu>=1.12,<2",
+    "langchain-core>=1.2,<2",
+    "numpy>=2,<3",
+    "openai==3.8.0",
+    "pydantic>=2",
+]
+
+[tool.setuptools.packages.find]
+include = ["bidengine*"]
+
+[tool.setuptools.package-data]
+"bidengine.clause_review.standards" = ["data/*.json"]

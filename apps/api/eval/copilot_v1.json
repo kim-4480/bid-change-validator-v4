@@ -1,0 +1,1585 @@
+{
+  "version": "1.0",
+  "method": "Synthetic contract set frozen before first execution. Holdout reserved from execution, not independent/unseen human-authored data. No routing changes based on this set.",
+  "single_turn": [
+    {
+      "id": "summary-1",
+      "split": "dev",
+      "task": "summary",
+      "request": {
+        "message": "우리 회사 참여 가능해?"
+      },
+      "expected": {
+        "intent": "QUALIFICATION_SUMMARY",
+        "action": null
+      }
+    },
+    {
+      "id": "summary-2",
+      "split": "dev",
+      "task": "summary",
+      "request": {
+        "message": "입찰 넣어도 돼?"
+      },
+      "expected": {
+        "intent": "QUALIFICATION_SUMMARY",
+        "action": null
+      }
+    },
+    {
+      "id": "summary-3",
+      "split": "dev",
+      "task": "summary",
+      "request": {
+        "message": "지금 참가 가능해?"
+      },
+      "expected": {
+        "intent": "QUALIFICATION_SUMMARY",
+        "action": null
+      }
+    },
+    {
+      "id": "summary-4",
+      "split": "dev",
+      "task": "summary",
+      "request": {
+        "message": "우리 회사 지원할 수 있어?"
+      },
+      "expected": {
+        "intent": "QUALIFICATION_SUMMARY",
+        "action": null
+      }
+    },
+    {
+      "id": "summary-5",
+      "split": "dev",
+      "task": "summary",
+      "request": {
+        "message": "판정 결과 보여줘"
+      },
+      "expected": {
+        "intent": "QUALIFICATION_SUMMARY",
+        "action": null
+      }
+    },
+    {
+      "id": "summary-6",
+      "split": "holdout",
+      "task": "summary",
+      "request": {
+        "message": "재검증 후 참여 가능해졌어?"
+      },
+      "expected": {
+        "intent": "QUALIFICATION_SUMMARY",
+        "action": null
+      }
+    },
+    {
+      "id": "summary-7",
+      "split": "holdout",
+      "task": "summary",
+      "request": {
+        "message": "현재 결과 알려줘"
+      },
+      "expected": {
+        "intent": "QUALIFICATION_SUMMARY",
+        "action": null
+      }
+    },
+    {
+      "id": "summary-8",
+      "split": "holdout",
+      "task": "summary",
+      "request": {
+        "message": "입찰 해도 돼?"
+      },
+      "expected": {
+        "intent": "QUALIFICATION_SUMMARY",
+        "action": null
+      }
+    },
+    {
+      "id": "summary-9",
+      "split": "holdout",
+      "task": "summary",
+      "request": {
+        "message": "왜 미달이야?"
+      },
+      "expected": {
+        "intent": "QUALIFICATION_SUMMARY",
+        "action": null
+      }
+    },
+    {
+      "id": "summary-10",
+      "split": "holdout",
+      "task": "summary",
+      "request": {
+        "message": "현재 참가 불가야?"
+      },
+      "expected": {
+        "intent": "QUALIFICATION_SUMMARY",
+        "action": null
+      }
+    },
+    {
+      "id": "checks-1",
+      "split": "dev",
+      "task": "checks",
+      "request": {
+        "message": "무엇을 확인해야 해?"
+      },
+      "expected": {
+        "intent": "REQUIRED_CHECKS",
+        "action": null
+      }
+    },
+    {
+      "id": "checks-2",
+      "split": "dev",
+      "task": "checks",
+      "request": {
+        "message": "뭐가 부족해?"
+      },
+      "expected": {
+        "intent": "REQUIRED_CHECKS",
+        "action": null
+      }
+    },
+    {
+      "id": "checks-3",
+      "split": "dev",
+      "task": "checks",
+      "request": {
+        "message": "다음에 뭘 해야 해?"
+      },
+      "expected": {
+        "intent": "REQUIRED_CHECKS",
+        "action": null
+      }
+    },
+    {
+      "id": "checks-4",
+      "split": "dev",
+      "task": "checks",
+      "request": {
+        "message": "확인할 항목 알려줘"
+      },
+      "expected": {
+        "intent": "REQUIRED_CHECKS",
+        "action": null
+      }
+    },
+    {
+      "id": "checks-5",
+      "split": "dev",
+      "task": "checks",
+      "request": {
+        "message": "왜 확인 필요야?"
+      },
+      "expected": {
+        "intent": "REQUIRED_CHECKS",
+        "action": null
+      }
+    },
+    {
+      "id": "checks-6",
+      "split": "holdout",
+      "task": "checks",
+      "request": {
+        "message": "다음 할 일 알려줘"
+      },
+      "expected": {
+        "intent": "REQUIRED_CHECKS",
+        "action": null
+      }
+    },
+    {
+      "id": "checks-7",
+      "split": "holdout",
+      "task": "checks",
+      "request": {
+        "message": "무엇을 해야 해?"
+      },
+      "expected": {
+        "intent": "REQUIRED_CHECKS",
+        "action": null
+      }
+    },
+    {
+      "id": "checks-8",
+      "split": "holdout",
+      "task": "checks",
+      "request": {
+        "message": "미확인 요건 보여줘"
+      },
+      "expected": {
+        "intent": "REQUIRED_CHECKS",
+        "action": null
+      }
+    },
+    {
+      "id": "checks-9",
+      "split": "holdout",
+      "task": "checks",
+      "request": {
+        "message": "어떤 정보를 입력해야 해?"
+      },
+      "expected": {
+        "intent": "REQUIRED_CHECKS",
+        "action": null
+      }
+    },
+    {
+      "id": "checks-10",
+      "split": "holdout",
+      "task": "checks",
+      "request": {
+        "message": "부족한 조건 알려줘"
+      },
+      "expected": {
+        "intent": "REQUIRED_CHECKS",
+        "action": null
+      }
+    },
+    {
+      "id": "evidence-1",
+      "split": "dev",
+      "task": "evidence",
+      "request": {
+        "message": "근거 보여줘",
+        "requirement_key": "R2"
+      },
+      "expected": {
+        "intent": "REQUIREMENT_EVIDENCE",
+        "action": null
+      }
+    },
+    {
+      "id": "evidence-2",
+      "split": "dev",
+      "task": "evidence",
+      "request": {
+        "message": "원문 보여줘",
+        "requirement_key": "R2"
+      },
+      "expected": {
+        "intent": "REQUIREMENT_EVIDENCE",
+        "action": null
+      }
+    },
+    {
+      "id": "evidence-3",
+      "split": "dev",
+      "task": "evidence",
+      "request": {
+        "message": "어디에 나와?",
+        "requirement_key": "R2"
+      },
+      "expected": {
+        "intent": "REQUIREMENT_EVIDENCE",
+        "action": null
+      }
+    },
+    {
+      "id": "evidence-4",
+      "split": "dev",
+      "task": "evidence",
+      "request": {
+        "message": "이 요건 근거 찾아줘",
+        "requirement_key": "R2"
+      },
+      "expected": {
+        "intent": "REQUIREMENT_EVIDENCE",
+        "action": null
+      }
+    },
+    {
+      "id": "evidence-5",
+      "split": "dev",
+      "task": "evidence",
+      "request": {
+        "message": "공고 원문 보여주세요",
+        "requirement_key": "R2"
+      },
+      "expected": {
+        "intent": "REQUIREMENT_EVIDENCE",
+        "action": null
+      }
+    },
+    {
+      "id": "evidence-6",
+      "split": "holdout",
+      "task": "evidence",
+      "request": {
+        "message": "관련 근거 부탁해",
+        "requirement_key": "R2"
+      },
+      "expected": {
+        "intent": "REQUIREMENT_EVIDENCE",
+        "action": null
+      }
+    },
+    {
+      "id": "evidence-7",
+      "split": "holdout",
+      "task": "evidence",
+      "request": {
+        "message": "자격 원문 알려줘",
+        "requirement_key": "R2"
+      },
+      "expected": {
+        "intent": "REQUIREMENT_EVIDENCE",
+        "action": null
+      }
+    },
+    {
+      "id": "evidence-8",
+      "split": "holdout",
+      "task": "evidence",
+      "request": {
+        "message": "등록 조건 어디 있어?",
+        "requirement_key": "R2"
+      },
+      "expected": {
+        "intent": "REQUIREMENT_EVIDENCE",
+        "action": null
+      }
+    },
+    {
+      "id": "evidence-9",
+      "split": "holdout",
+      "task": "evidence",
+      "request": {
+        "message": "근거를 확인할래",
+        "requirement_key": "R2"
+      },
+      "expected": {
+        "intent": "REQUIREMENT_EVIDENCE",
+        "action": null
+      }
+    },
+    {
+      "id": "evidence-10",
+      "split": "holdout",
+      "task": "evidence",
+      "request": {
+        "message": "문서에서 어디에 있어?",
+        "requirement_key": "R2"
+      },
+      "expected": {
+        "intent": "REQUIREMENT_EVIDENCE",
+        "action": null
+      }
+    },
+    {
+      "id": "profile-1",
+      "split": "dev",
+      "task": "profile",
+      "request": {
+        "message": "판정 당시 프로필 보여줘"
+      },
+      "expected": {
+        "intent": "PROFILE_SNAPSHOT",
+        "action": null
+      }
+    },
+    {
+      "id": "profile-2",
+      "split": "dev",
+      "task": "profile",
+      "request": {
+        "message": "어떤 회사정보로 판단했어?"
+      },
+      "expected": {
+        "intent": "PROFILE_SNAPSHOT",
+        "action": null
+      }
+    },
+    {
+      "id": "profile-3",
+      "split": "dev",
+      "task": "profile",
+      "request": {
+        "message": "회사정보 보여줘"
+      },
+      "expected": {
+        "intent": "PROFILE_SNAPSHOT",
+        "action": null
+      }
+    },
+    {
+      "id": "profile-4",
+      "split": "dev",
+      "task": "profile",
+      "request": {
+        "message": "판정당시 자료"
+      },
+      "expected": {
+        "intent": "PROFILE_SNAPSHOT",
+        "action": null
+      }
+    },
+    {
+      "id": "profile-5",
+      "split": "dev",
+      "task": "profile",
+      "request": {
+        "message": "프로필 알려줘"
+      },
+      "expected": {
+        "intent": "PROFILE_SNAPSHOT",
+        "action": null
+      }
+    },
+    {
+      "id": "profile-6",
+      "split": "holdout",
+      "task": "profile",
+      "request": {
+        "message": "사용한 회사정보는?"
+      },
+      "expected": {
+        "intent": "PROFILE_SNAPSHOT",
+        "action": null
+      }
+    },
+    {
+      "id": "profile-7",
+      "split": "holdout",
+      "task": "profile",
+      "request": {
+        "message": "회사 프로필"
+      },
+      "expected": {
+        "intent": "PROFILE_SNAPSHOT",
+        "action": null
+      }
+    },
+    {
+      "id": "profile-8",
+      "split": "holdout",
+      "task": "profile",
+      "request": {
+        "message": "당시 프로필 보여주세요"
+      },
+      "expected": {
+        "intent": "PROFILE_SNAPSHOT",
+        "action": null
+      }
+    },
+    {
+      "id": "profile-9",
+      "split": "holdout",
+      "task": "profile",
+      "request": {
+        "message": "판정당시 회사 자료"
+      },
+      "expected": {
+        "intent": "PROFILE_SNAPSHOT",
+        "action": null
+      }
+    },
+    {
+      "id": "profile-10",
+      "split": "holdout",
+      "task": "profile",
+      "request": {
+        "message": "저장된 회사정보"
+      },
+      "expected": {
+        "intent": "PROFILE_SNAPSHOT",
+        "action": null
+      }
+    },
+    {
+      "id": "changes-1",
+      "split": "dev",
+      "task": "changes",
+      "request": {
+        "message": "변경공고에서 뭐 바뀌었어?"
+      },
+      "expected": {
+        "intent": "CHANGED_NOTICE",
+        "action": null
+      }
+    },
+    {
+      "id": "changes-2",
+      "split": "dev",
+      "task": "changes",
+      "request": {
+        "message": "뭐가 바뀌었어?"
+      },
+      "expected": {
+        "intent": "CHANGED_NOTICE",
+        "action": null
+      }
+    },
+    {
+      "id": "changes-3",
+      "split": "dev",
+      "task": "changes",
+      "request": {
+        "message": "전 버전과 비교해줘"
+      },
+      "expected": {
+        "intent": "CHANGED_NOTICE",
+        "action": null
+      }
+    },
+    {
+      "id": "changes-4",
+      "split": "dev",
+      "task": "changes",
+      "request": {
+        "message": "변경된 요건 보여줘"
+      },
+      "expected": {
+        "intent": "CHANGED_NOTICE",
+        "action": null
+      }
+    },
+    {
+      "id": "changes-5",
+      "split": "dev",
+      "task": "changes",
+      "request": {
+        "message": "다른 조건 알려줘"
+      },
+      "expected": {
+        "intent": "CHANGED_NOTICE",
+        "action": null
+      }
+    },
+    {
+      "id": "changes-6",
+      "split": "holdout",
+      "task": "changes",
+      "request": {
+        "message": "이번 변경공고 내용"
+      },
+      "expected": {
+        "intent": "CHANGED_NOTICE",
+        "action": null
+      }
+    },
+    {
+      "id": "changes-7",
+      "split": "holdout",
+      "task": "changes",
+      "request": {
+        "message": "뭐 바뀌었는지 알려줘"
+      },
+      "expected": {
+        "intent": "CHANGED_NOTICE",
+        "action": null
+      }
+    },
+    {
+      "id": "changes-8",
+      "split": "holdout",
+      "task": "changes",
+      "request": {
+        "message": "전버전 내용과 비교"
+      },
+      "expected": {
+        "intent": "CHANGED_NOTICE",
+        "action": null
+      }
+    },
+    {
+      "id": "changes-9",
+      "split": "holdout",
+      "task": "changes",
+      "request": {
+        "message": "변경된 요건을 보여주세요"
+      },
+      "expected": {
+        "intent": "CHANGED_NOTICE",
+        "action": null
+      }
+    },
+    {
+      "id": "changes-10",
+      "split": "holdout",
+      "task": "changes",
+      "request": {
+        "message": "변경공고 요약"
+      },
+      "expected": {
+        "intent": "CHANGED_NOTICE",
+        "action": null
+      }
+    },
+    {
+      "id": "answer-1",
+      "split": "dev",
+      "task": "answer",
+      "request": {
+        "message": "적용해줘",
+        "requirement_key": "R2",
+        "user_input": {
+          "satisfies_requirement": false,
+          "evidence_held": false
+        }
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": "ANSWER_REQUIREMENT"
+      }
+    },
+    {
+      "id": "answer-2",
+      "split": "dev",
+      "task": "answer",
+      "request": {
+        "message": "반영해주세요",
+        "requirement_key": "R2",
+        "user_input": {
+          "satisfies_requirement": false,
+          "evidence_held": false
+        }
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": "ANSWER_REQUIREMENT"
+      }
+    },
+    {
+      "id": "answer-3",
+      "split": "dev",
+      "task": "answer",
+      "request": {
+        "message": "적용하지 마",
+        "requirement_key": "R2",
+        "user_input": {
+          "satisfies_requirement": false,
+          "evidence_held": false
+        }
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": null
+      }
+    },
+    {
+      "id": "answer-4",
+      "split": "dev",
+      "task": "answer",
+      "request": {
+        "message": "적용해 주지 마",
+        "requirement_key": "R2",
+        "user_input": {
+          "satisfies_requirement": false,
+          "evidence_held": false
+        }
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": null
+      }
+    },
+    {
+      "id": "answer-5",
+      "split": "dev",
+      "task": "answer",
+      "request": {
+        "message": "반영이 뭐야?",
+        "requirement_key": "R2",
+        "user_input": {
+          "satisfies_requirement": false,
+          "evidence_held": false
+        }
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": null
+      }
+    },
+    {
+      "id": "answer-6",
+      "split": "holdout",
+      "task": "answer",
+      "request": {
+        "message": "반영해줄래",
+        "requirement_key": "R2",
+        "user_input": {
+          "satisfies_requirement": false,
+          "evidence_held": false
+        }
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": "ANSWER_REQUIREMENT"
+      }
+    },
+    {
+      "id": "answer-7",
+      "split": "holdout",
+      "task": "answer",
+      "request": {
+        "message": "그 답은 적용하지 않을래",
+        "requirement_key": "R2",
+        "user_input": {
+          "satisfies_requirement": false,
+          "evidence_held": false
+        }
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": null
+      }
+    },
+    {
+      "id": "answer-8",
+      "split": "holdout",
+      "task": "answer",
+      "request": {
+        "message": "반영해 주지 않았으면 해",
+        "requirement_key": "R2",
+        "user_input": {
+          "satisfies_requirement": false,
+          "evidence_held": false
+        }
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": null
+      }
+    },
+    {
+      "id": "answer-9",
+      "split": "holdout",
+      "task": "answer",
+      "request": {
+        "message": "적용하자",
+        "requirement_key": "R2",
+        "user_input": {
+          "satisfies_requirement": false,
+          "evidence_held": false
+        }
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": "ANSWER_REQUIREMENT"
+      }
+    },
+    {
+      "id": "answer-10",
+      "split": "holdout",
+      "task": "answer",
+      "request": {
+        "message": "반영하지 말아줘",
+        "requirement_key": "R2",
+        "user_input": {
+          "satisfies_requirement": false,
+          "evidence_held": false
+        }
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": null
+      }
+    },
+    {
+      "id": "revalidate-1",
+      "split": "dev",
+      "task": "revalidate",
+      "request": {
+        "message": "전체 변경 요건 재검증해줘"
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": "REVALIDATE"
+      }
+    },
+    {
+      "id": "revalidate-2",
+      "split": "dev",
+      "task": "revalidate",
+      "request": {
+        "message": "재검증해줘"
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": "REVALIDATE"
+      }
+    },
+    {
+      "id": "revalidate-3",
+      "split": "dev",
+      "task": "revalidate",
+      "request": {
+        "message": "재검증하지 마"
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": null
+      }
+    },
+    {
+      "id": "revalidate-4",
+      "split": "dev",
+      "task": "revalidate",
+      "request": {
+        "message": "그 조건만 재검증해줘"
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": null
+      }
+    },
+    {
+      "id": "revalidate-5",
+      "split": "dev",
+      "task": "revalidate",
+      "request": {
+        "message": "재검증이 뭐야?"
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": null
+      }
+    },
+    {
+      "id": "revalidate-6",
+      "split": "holdout",
+      "task": "revalidate",
+      "request": {
+        "message": "전체 다시 봐줘"
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": "REVALIDATE"
+      }
+    },
+    {
+      "id": "revalidate-7",
+      "split": "holdout",
+      "task": "revalidate",
+      "request": {
+        "message": "지역 요건 제외하고 전체 재검증해줘"
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": null
+      }
+    },
+    {
+      "id": "revalidate-8",
+      "split": "holdout",
+      "task": "revalidate",
+      "request": {
+        "message": "전체 말고 그 조건만 재검증해줘"
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": null
+      }
+    },
+    {
+      "id": "revalidate-9",
+      "split": "holdout",
+      "task": "revalidate",
+      "request": {
+        "message": "전체 변경 요건 다시 검증하고 싶어"
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": "REVALIDATE"
+      }
+    },
+    {
+      "id": "revalidate-10",
+      "split": "holdout",
+      "task": "revalidate",
+      "request": {
+        "message": "재검증하고 싶지 않아"
+      },
+      "expected": {
+        "intent": "ACTION_REQUEST",
+        "action": null
+      }
+    },
+    {
+      "id": "document-1",
+      "split": "dev",
+      "task": "document",
+      "request": {
+        "message": "공고문 지역 조건 찾아줘"
+      },
+      "expected": {
+        "intent": "DOCUMENT_QA",
+        "action": null
+      }
+    },
+    {
+      "id": "document-2",
+      "split": "dev",
+      "task": "document",
+      "request": {
+        "message": "공개 문서의 실적 조건"
+      },
+      "expected": {
+        "intent": "DOCUMENT_QA",
+        "action": null
+      }
+    },
+    {
+      "id": "document-3",
+      "split": "dev",
+      "task": "document",
+      "request": {
+        "message": "공고문 원문 보여줘"
+      },
+      "expected": {
+        "intent": "DOCUMENT_QA",
+        "action": null
+      }
+    },
+    {
+      "id": "document-4",
+      "split": "dev",
+      "task": "document",
+      "request": {
+        "message": "문서 관련 조항"
+      },
+      "expected": {
+        "intent": "DOCUMENT_QA",
+        "action": null
+      }
+    },
+    {
+      "id": "document-5",
+      "split": "dev",
+      "task": "document",
+      "request": {
+        "message": "공고문 자격조건"
+      },
+      "expected": {
+        "intent": "DOCUMENT_QA",
+        "action": null
+      }
+    },
+    {
+      "id": "document-6",
+      "split": "holdout",
+      "task": "document",
+      "request": {
+        "message": "첨부 문서 찾아줘"
+      },
+      "expected": {
+        "intent": "DOCUMENT_QA",
+        "action": null
+      }
+    },
+    {
+      "id": "document-7",
+      "split": "holdout",
+      "task": "document",
+      "request": {
+        "message": "공고문에 있는 지역 제한"
+      },
+      "expected": {
+        "intent": "DOCUMENT_QA",
+        "action": null
+      }
+    },
+    {
+      "id": "document-8",
+      "split": "holdout",
+      "task": "document",
+      "request": {
+        "message": "관련 문서 원문"
+      },
+      "expected": {
+        "intent": "DOCUMENT_QA",
+        "action": null
+      }
+    },
+    {
+      "id": "document-9",
+      "split": "holdout",
+      "task": "document",
+      "request": {
+        "message": "공고문 실적 근거"
+      },
+      "expected": {
+        "intent": "DOCUMENT_QA",
+        "action": null
+      }
+    },
+    {
+      "id": "document-10",
+      "split": "holdout",
+      "task": "document",
+      "request": {
+        "message": "문서 검색해줘"
+      },
+      "expected": {
+        "intent": "DOCUMENT_QA",
+        "action": null
+      }
+    }
+  ],
+  "multi_turn": [
+    {
+      "id": "why",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "참여 가능해?"
+          },
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "왜?"
+          },
+          "use_previous": true,
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "status": "RESOLVED",
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "ordinal-second",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "참여 가능해?"
+          },
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "두 번째 근거"
+          },
+          "use_previous": true,
+          "expected": {
+            "intent": "REQUIREMENT_EVIDENCE",
+            "focus": "R2",
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "ordinal-first",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "참여 가능해?"
+          },
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "첫 번째 원문"
+          },
+          "use_previous": true,
+          "expected": {
+            "intent": "REQUIREMENT_EVIDENCE",
+            "focus": "R1",
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "focused-followup",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "원문",
+            "requirement_key": "R2"
+          },
+          "expected": {
+            "intent": "REQUIREMENT_EVIDENCE",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "그 조건 근거"
+          },
+          "use_previous": true,
+          "expected": {
+            "focus": "R2",
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "missing-receipt",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "참여 가능해?"
+          },
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "두 번째 원문"
+          },
+          "expected": {
+            "status": "NEEDS_CONTEXT",
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "stale-judgment_run_id",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "참여 가능해?"
+          },
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "두 번째 적용해줘",
+            "requirement_key": "R2",
+            "user_input": {
+              "satisfies_requirement": false,
+              "evidence_held": false
+            }
+          },
+          "use_previous": true,
+          "stale_field": "judgment_run_id",
+          "expected": {
+            "status": "STALE_CONTEXT",
+            "focus": null,
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "stale-analysis_run_id",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "참여 가능해?"
+          },
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "두 번째 적용해줘",
+            "requirement_key": "R2",
+            "user_input": {
+              "satisfies_requirement": false,
+              "evidence_held": false
+            }
+          },
+          "use_previous": true,
+          "stale_field": "analysis_run_id",
+          "expected": {
+            "status": "STALE_CONTEXT",
+            "focus": null,
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "stale-case_id",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "참여 가능해?"
+          },
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "두 번째 적용해줘",
+            "requirement_key": "R2",
+            "user_input": {
+              "satisfies_requirement": false,
+              "evidence_held": false
+            }
+          },
+          "use_previous": true,
+          "stale_field": "case_id",
+          "expected": {
+            "status": "STALE_CONTEXT",
+            "focus": null,
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "ordinal-overflow",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "참여 가능해?"
+          },
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "세 번째 적용해줘",
+            "requirement_key": "R2",
+            "user_input": {
+              "satisfies_requirement": false,
+              "evidence_held": false
+            }
+          },
+          "use_previous": true,
+          "expected": {
+            "status": "NEEDS_TARGET",
+            "focus": null,
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "ambiguous-target",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "참여 가능해?"
+          },
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "그 조건 근거"
+          },
+          "use_previous": true,
+          "expected": {
+            "status": "NEEDS_TARGET",
+            "focus": null,
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "false-proposal",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "참여 가능해?"
+          },
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "2 번 째 적용해줘",
+            "user_input": {
+              "satisfies_requirement": false,
+              "evidence_held": false
+            }
+          },
+          "use_previous": true,
+          "expected": {
+            "action": "ANSWER_REQUIREMENT",
+            "focus": "R2"
+          }
+        },
+        {
+          "request": {
+            "message": "응",
+            "requirement_key": "R2",
+            "user_input": {
+              "satisfies_requirement": false,
+              "evidence_held": false
+            },
+            "intent": "ACTION_REQUEST"
+          },
+          "use_previous": true,
+          "expected": {
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "negation",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "참여 가능해?"
+          },
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "적용해 주지 마",
+            "requirement_key": "R2",
+            "user_input": {
+              "satisfies_requirement": false,
+              "evidence_held": false
+            }
+          },
+          "use_previous": true,
+          "expected": {
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "partial-scope",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "뭐가 바뀌었어?"
+          },
+          "expected": {
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "전체 말고 그 조건만 재검증해줘"
+          },
+          "use_previous": true,
+          "expected": {
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "whole-scope",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "뭐가 바뀌었어?"
+          },
+          "expected": {
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "전체 변경 요건 재검증해줘"
+          },
+          "use_previous": true,
+          "expected": {
+            "action": "REVALIDATE"
+          }
+        }
+      ]
+    },
+    {
+      "id": "result-read",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "참여 가능해?"
+          },
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "재검증 결과 참여 가능해?"
+          },
+          "use_previous": true,
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "explicit-read",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "참여 가능해?"
+          },
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "전체 변경 요건 재검증해줘",
+            "intent": "QUALIFICATION_SUMMARY"
+          },
+          "use_previous": true,
+          "expected": {
+            "intent": "QUALIFICATION_SUMMARY",
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "single-list-no-fallback",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "근거",
+            "requirement_key": "R2"
+          },
+          "expected": {
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "2 번 째 적용해줘",
+            "requirement_key": "R2",
+            "user_input": {
+              "satisfies_requirement": false,
+              "evidence_held": false
+            }
+          },
+          "use_previous": true,
+          "expected": {
+            "status": "NEEDS_TARGET",
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "changed-why",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "뭐가 바뀌었어?"
+          },
+          "expected": {
+            "intent": "CHANGED_NOTICE",
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "왜?"
+          },
+          "use_previous": true,
+          "expected": {
+            "intent": "CHANGED_NOTICE",
+            "action": null,
+            "status": "RESOLVED"
+          }
+        }
+      ]
+    },
+    {
+      "id": "stale-baseline",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "뭐가 바뀌었어?"
+          },
+          "expected": {
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "그 조건으로 재검증해줘"
+          },
+          "use_previous": true,
+          "stale_field": "baseline.analysis_run_id",
+          "expected": {
+            "status": "STALE_CONTEXT",
+            "action": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "stale-current",
+      "split": "scenario",
+      "turns": [
+        {
+          "request": {
+            "message": "뭐가 바뀌었어?"
+          },
+          "expected": {
+            "action": null
+          }
+        },
+        {
+          "request": {
+            "message": "그 조건으로 재검증해줘"
+          },
+          "use_previous": true,
+          "stale_field": "current.analysis_run_id",
+          "expected": {
+            "status": "STALE_CONTEXT",
+            "action": null
+          }
+        }
+      ]
+    }
+  ]
+}

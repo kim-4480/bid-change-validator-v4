@@ -1,0 +1,118 @@
+[
+  {
+    "path": "apps/api/app/copilot/__init__.py",
+    "sha256": "973F14AC713B182C5D01E18A9EA29B71699E0BF7B6C6CCAFF2C67A9EA244D2E0"
+  },
+  {
+    "path": "apps/api/app/copilot/actions.py",
+    "sha256": "9FB66B9847C2552BF5D6A447260033E427085B0A9DA02BC1DF6A8E278A17CD51"
+  },
+  {
+    "path": "apps/api/app/copilot/chat.py",
+    "sha256": "4A0F205687E42CFA9DCA69EE1F557EE37BA54BD5B6D516DC43E56217D04DD2D3"
+  },
+  {
+    "path": "apps/api/app/copilot/context.py",
+    "sha256": "4F74899BC23BACE9223FBBBEEA89F19C13AB8490F6541749C5B3D025B943189B"
+  },
+  {
+    "path": "apps/api/app/copilot/contracts.py",
+    "sha256": "D287F79A163DFEAB7B24011F18A3C9B760C996D92F3EE8F1EACAB4A241373BAD"
+  },
+  {
+    "path": "apps/api/app/copilot/document_qa.py",
+    "sha256": "61E32C6D6980A5EB8F9489BA0E45173D00F99958A5D0463514F6213A27E5D7C5"
+  },
+  {
+    "path": "apps/api/app/copilot/intent_resolver.py",
+    "sha256": "DBB7917C99A3CFDFD480FF79357E581EC3258D879B4A4DFF0BB3BDE362E7B793"
+  },
+  {
+    "path": "apps/api/app/copilot/narration.py",
+    "sha256": "19BE7FAF4A4DC2BE19B762052C44CE66EB1A8770B9FD562AFB2822BF881CCD96"
+  },
+  {
+    "path": "apps/api/app/copilot/presentation.py",
+    "sha256": "3D7636D96CCD13FE231F04DCC4C95FEE52EDCCFBE00C324373A93539F34CAFC0"
+  },
+  {
+    "path": "apps/api/app/copilot/product_tools.py",
+    "sha256": "3C1DC7ECF97DFE3157AD28B6D8B016F56F979960B37E95D92807C3C2FADC113E"
+  },
+  {
+    "path": "apps/api/app/copilot/router.py",
+    "sha256": "BB0DF1A617A95B2817B6E2262519CEBB17864FF87522FB10FCF03DF5366CC123"
+  },
+  {
+    "path": "apps/api/app/copilot/semantic_router.py",
+    "sha256": "B50EF47F3E2D88A60FEFBD3E57E04ABFBCA7F1D192D6DFEBA4D2F406B5863710"
+  },
+  {
+    "path": "apps/api/app/copilot/source_map.py",
+    "sha256": "9B8E9F0555264A792D3C8F33C24600A09C8F8FB0448786B340BF3751C9B70E7D"
+  },
+  {
+    "path": "apps/api/app/document_rag/__init__.py",
+    "sha256": "4BEEF9AA92746D8EB352E50AB76E6D39529430E73066C4927BCCAEC7198AF0C4"
+  },
+  {
+    "path": "apps/api/app/document_rag/answer.py",
+    "sha256": "A3BCB4C0E9BB2ED61A5AB1D9755D349E7FD283055B5BB43BA1D0E9A419ADA6BC"
+  },
+  {
+    "path": "apps/api/app/document_rag/retrieval.py",
+    "sha256": "F7DD19C2915532571791498E32D534C511923AABCABEF04F14AA78221546312F"
+  },
+  {
+    "path": "apps/api/app/document_rag/service.py",
+    "sha256": "FF576121949F6FCCEC0D0595FCD8328F18074B3291A8E91443C303CA229EDDE3"
+  },
+  {
+    "path": "apps/api/app/document_rag/store.py",
+    "sha256": "6999BFE61CA24BAE40F69B0D1749CCBEA97A49F01DFD18B458D704B4AC4BD23F"
+  },
+  {
+    "path": "apps/api/requirements-dev.txt",
+    "sha256": "5D23ED1F12571694DDB2CC722F47235D320B44F622DD86991DEB968D4181DEA6"
+  },
+  {
+    "path": "apps/api/requirements.txt",
+    "sha256": "CA92A852BFF48C0ECF7E7DA04F7AA4B613CA9A6BB43A900E5B3BE1112873D9C0"
+  },
+  {
+    "path": "apps/api/tests/test_copilot_narration.py",
+    "sha256": "231EADF467433A045EC2397ACA91FA4ECB3CC95693B27F32BFA7781E7C2B982F"
+  },
+  {
+    "path": "apps/api/tests/test_copilot_product_tools.py",
+    "sha256": "0500D7D70DBBF82F1ED8D03238A42526AB5AD3BE15675197B8DAB1E3F42C86D8"
+  },
+  {
+    "path": "apps/api/tests/test_copilot_required_checks_narration.py",
+    "sha256": "954DA464E69740AEC2F912E76E7E8ADCFFD7F102AEF42611A6291A15569D4CDD"
+  },
+  {
+    "path": "apps/web/components/copilot/panel.tsx",
+    "sha256": "FB57554EE27E0141B18E693007C57D2576CD204E44656518BC1828631834BB9D"
+  },
+  {
+    "path": "apps/web/lib/copilot-api.ts",
+    "sha256": "E8EBE4E02D355CFECFC938A7A5F13F75CB1115D018EE3F63CC99FBFD829D3C5C"
+  },
+  {
+    "path": "apps/web/lib/copilot-conversation.ts",
+    "sha256": "084756FED7FCD7A96295E5C3B76BC4CEACF119911F6FC75418176A917AACD4EA"
+  },
+  {
+    "path": "apps/web/pnpm-lock.yaml",
+    "sha256": "8F5B4B311A2720DD59481E07F3CD4DA6134FB43BAF4FDBD2DE3084F512E8C2F7"
+  },
+  {
+    "path": "apps/web/scripts/check-copilot-target-memory.mjs",
+    "sha256": "2C2B293B71AB8C4994C3E32FCF0BED7F98CCC5B51CF93A8A263BF3C70AE67E4B"
+  },
+  {
+    "path": "apps/web/scripts/check-copilot.mjs",
+    "sha256": "5C624F394DC319F87D5ED4ACC484ADFC49D5FC9792A3323DF48B4D65083BB7CE"
+  }
+]

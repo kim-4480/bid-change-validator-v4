@@ -1,0 +1,23 @@
+{
+  "schema": "copilot-replay-3.1",
+  "provenance": "synthetic, hand-authored regression fixture; not a live Golden export or independently reviewed answer key",
+  "case_id": "00000000-0000-4000-8000-000000000001",
+  "company_id": "00000000-0000-4000-8000-000000000002",
+  "notice_id": "00000000-0000-4000-8000-000000000003",
+  "notice_version_id": "00000000-0000-4000-8000-000000000004",
+  "analysis_run_id": "00000000-0000-4000-8000-000000000005",
+  "judgment_run_id": "00000000-0000-4000-8000-000000000006",
+  "rule_version": "fixture-rule-v1",
+  "model": "scripted-fake",
+  "facts": [
+    {"id": "judgment", "kind": "SERVER_RESULT", "target": "REQUIREMENT", "text": "현재 저장된 판정은 참가 불가입니다. 단체급식업 등록 요건은 미달입니다."},
+    {"id": "exception", "kind": "NOTICE_FACT", "target": "DOCUMENT", "text": "공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외."},
+    {"id": "manual", "kind": "NOTICE_FACT", "target": "MANUAL", "text": "설명회 참석 및 입찰등록 기한은 원문에서 직접 확인해야 합니다. 공동수급과 하도급은 허용되지 않습니다."}
+  ],
+  "turns": [
+    {"question": "이 공고 우리 회사가 참여할 수 있는지, 부족한 점과 다음에 할 일을 알려줘.", "tasks": ["READ_JUDGMENT", "READ_PROFILE", "READ_DOCUMENT", "READ_CHECKS"], "facts": ["judgment", "exception", "manual"]},
+    {"question": "병원 급식 실적도 인정돼?", "tasks": ["READ_DOCUMENT"], "facts": ["exception"]},
+    {"question": "그 조건 원문 보여줘.", "tasks": ["READ_DOCUMENT"], "facts": ["exception"]},
+    {"question": "그럼 내가 실제로 더 확인할 것만 정리해줘.", "tasks": ["READ_CHECKS"], "facts": ["manual"]}
+  ]
+}

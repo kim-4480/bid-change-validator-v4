@@ -1,0 +1,27 @@
+{
+  "purpose": "Reserved profile variants; not used as Judgment ground truth in this PR",
+  "profiles": [
+    {
+      "profile_id": "industry-match",
+      "provenance": "synthetic",
+      "industry_codes": [
+        "1468"
+      ],
+      "complete": true
+    },
+    {
+      "profile_id": "industry-mismatch",
+      "provenance": "synthetic",
+      "industry_codes": [
+        "0036"
+      ],
+      "complete": true
+    },
+    {
+      "profile_id": "industry-unknown",
+      "provenance": "synthetic",
+      "industry_codes": [],
+      "complete": false
+    }
+  ]
+}

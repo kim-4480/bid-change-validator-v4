@@ -1,0 +1,29 @@
+## feature/ai-copilot-user-test-hardening...origin/feature/ai-copilot-user-test-hardening [behind 2]
+?? docs/07_handoff/ai-copilot-v3.1/
+  feat/llm-rag-integration                              66066b1 [origin/feat/llm-rag-integration: gone] test: validate industry and experience extraction schema
+  feature/ai-copilot-e1-ux-baseline                     3b09dc8 [origin/feature/ai-copilot-e1-ux-baseline: gone] fix(copilot): align consent copy and lint checks
+* feature/ai-copilot-user-test-hardening                49d4d1a [origin/feature/ai-copilot-user-test-hardening: behind 2] test(copilot): preserve ordinal targets across manual review turns
+  feature/ai-copilot-v1                                 cdbd1b8 [origin/feature/ai-copilot-v1: gone] docs(copilot): record integrated backend and designer UI validation results
+  main                                                  7be0941 [origin/main] Merge pull request #127 from gyuniverse-hq/release/product-baseline-v3-auth-copilot-v2
+  release/pre-copilot-baseline                          93b7b91 [origin/release/pre-copilot-baseline: gone] chore(release): sync main history before Pre-Copilot baseline
+  remotes/origin/HEAD                                   -> origin/main
+  remotes/origin/LLM                                    64817dc first commit
+  remotes/origin/develop                                b9153a5 Merge pull request #130 from gyuniverse-hq/fix/production-pooler-env-example
+  remotes/origin/feat/backend-preflight-and-collector   9f17d4b README 한글로 변환
+  remotes/origin/feat/business-plan-conformance-eval    bd3432c Merge remote-tracking branch 'origin/develop' into feat/business-plan-conformance-eval
+  remotes/origin/feat/business-plan-draft               7d7f5e1 feat(narration): 사업계획서 초안 생성 — 브리핑 모듈과 분리해서 도입
+  remotes/origin/feat/business-plan-draft-api           4c7a3a2 fix(business-plan): 판정 행이 0건인 실행은 거절한다
+  remotes/origin/feat/golden-fixture-ci                 5da2d17 ci(eval): 골든셋 v0.2 frozen fixture + 판정 회귀 게이트
+  remotes/origin/feat/notice-relations-main-sync        8729478 feat: add notice relations and notice fact persistence
+  remotes/origin/feature/ai-copilot-user-test-hardening ea613b2 docs(copilot): correct unverified implementation claims and define Codex audit handoff
+  remotes/origin/feature/llm-rag-pipeline               6189efe refactor(ai): 골든셋·청킹 모듈의 import 를 새 패키지 경로로 정리
+  remotes/origin/fix/notices-hydrate-n-plus-one         c933e76 fix(web): #131 재리뷰 반영 - 기존 Case 단건 확인 + 검토 건 회사 스코프
+  remotes/origin/fix/region-hierarchy                   5e41776 fix(rules): 지역 요건에 위계를 둔다 — 통합시 프로필로 종전 시·도 요건을 미달 확정하지 않는다
+  remotes/origin/integration/llm-rag-validation         aa4557a test: lock clause representative priority
+  remotes/origin/main                                   7be0941 Merge pull request #127 from gyuniverse-hq/release/product-baseline-v3-auth-copilot-v2
+worktree E:/dev/02_TeamProjects/bid-change-validator
+HEAD 49d4d1a4fa350f321c0cbc6bf09b26f70ff5f4e5
+branch refs/heads/feature/ai-copilot-user-test-hardening
+
+stash@{0} 02a630d4eb4f14275f19d42473356ddc41e82e1a On feature/ai-copilot-e1-ux-baseline: !!GitHub_Desktop<feature/ai-copilot-e1-ux-baseline>
+stash@{1} 7481cba916d94c71755e1d56e70133f9dd1b8725 On release/pre-copilot-baseline: !!GitHub_Desktop<release/pre-copilot-baseline>

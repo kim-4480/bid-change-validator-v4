@@ -1,0 +1,8 @@
+Recorded from actual tool output, 2026-09-14 KST.
+Node v24.14.0; pnpm 11.19.0; package lock unchanged.
+node scripts/check-copilot.mjs: exit 0, client/view-model checks; 11 response mocks + 1 error fixture.
+node scripts/check-copilot-target-memory.mjs: exit 0.
+node node_modules/typescript/bin/tsc --noEmit --incremental false: exit 0, no output.
+node node_modules/oxlint/bin/oxlint [five modified/new files]: exit 0, no output.
+Build and actual Chrome mock-API results: adjacent raw logs.
+Python 3.12.14 verification venv pip check: No broken requirements found.

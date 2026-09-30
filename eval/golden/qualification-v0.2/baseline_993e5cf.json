@@ -1,0 +1,5577 @@
+{
+  "executed_at": "2026-09-12T10:03:24.769064+00:00",
+  "kind": "LOCAL_PROJECT_RULE_ENGINE_DRAFT_RUN",
+  "product_rule_engine_executed": true,
+  "llm_executed": false,
+  "api_e2e_executed": false,
+  "database_written": false,
+  "code_sha": "993e5cf446e46c740503ec0840a5996d1f82dfe1",
+  "expected_code_sha": "993e5cf446e46c740503ec0840a5996d1f82dfe1",
+  "dirty_paths": "",
+  "source_sha256": {
+    "apps/api/app/qualification/rules/judgment.py": "e024832c7f259f5a1c50377d51a9f8f3e48a98a023d0a3c60b529e65bf98af8f",
+    "apps/api/app/qualification/rules/clause_safety.py": "4aa2c99afb316977b5f0ad01a9129db50ba289d606dea0dca4b1dde3d3b46d96",
+    "apps/api/app/ai/contracts.py": "dd3443c3fe775732bf6436070054f919bf760c84ecd3e6013449bc5b3784da3d",
+    "apps/api/app/ai/extensions.py": "a95cb3a8ed4b2de596666052ccc7f126eb34028b8fd8d927d84befd1ee160ad5"
+  },
+  "case_count": 40,
+  "row_categories": {
+    "MATCH_DRAFT_TARGET": 104,
+    "SAFE_ABSTENTION": 34
+  },
+  "fatal_errors": [],
+  "rows": [
+    {
+      "case_id": "J01",
+      "requirement_key": "J01:processing",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J01",
+      "requirement_key": "J01:transport",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J01",
+      "requirement_key": "J01:region",
+      "type": "REGION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J02",
+      "requirement_key": "J02:processing",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J02",
+      "requirement_key": "J02:transport",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J02",
+      "requirement_key": "J02:region",
+      "type": "REGION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J03",
+      "requirement_key": "J03:processing",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J03",
+      "requirement_key": "J03:transport",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J03",
+      "requirement_key": "J03:region",
+      "type": "REGION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J04",
+      "requirement_key": "J04:processing",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "INSUFFICIENT_DATA",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J04",
+      "requirement_key": "J04:transport",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J04",
+      "requirement_key": "J04:region",
+      "type": "REGION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J05",
+      "requirement_key": "J05:industry",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J05",
+      "requirement_key": "J05:sites",
+      "type": "PERFORMANCE_COUNT",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J06",
+      "requirement_key": "J06:industry",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J06",
+      "requirement_key": "J06:sites",
+      "type": "PERFORMANCE_COUNT",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J07",
+      "requirement_key": "J07:industry",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J07",
+      "requirement_key": "J07:sites",
+      "type": "PERFORMANCE_COUNT",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J08",
+      "requirement_key": "J08:industry",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J08",
+      "requirement_key": "J08:sites",
+      "type": "PERFORMANCE_COUNT",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J09",
+      "requirement_key": "J09:industries:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J09",
+      "requirement_key": "J09:industries:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J09",
+      "requirement_key": "J09:industries:atom3",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J09",
+      "requirement_key": "J09:technical_any",
+      "type": "EXPERIENCE_FIELD",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J10",
+      "requirement_key": "J10:industries:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J10",
+      "requirement_key": "J10:industries:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J10",
+      "requirement_key": "J10:industries:atom3",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J10",
+      "requirement_key": "J10:technical_any",
+      "type": "EXPERIENCE_FIELD",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J11",
+      "requirement_key": "J11:industries:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J11",
+      "requirement_key": "J11:industries:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J11",
+      "requirement_key": "J11:industries:atom3",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J11",
+      "requirement_key": "J11:technical_any",
+      "type": "EXPERIENCE_FIELD",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J12",
+      "requirement_key": "J12:industries:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J12",
+      "requirement_key": "J12:industries:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J12",
+      "requirement_key": "J12:industries:atom3",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J12",
+      "requirement_key": "J12:technical_any",
+      "type": "EXPERIENCE_FIELD",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J13",
+      "requirement_key": "J13:processing_any:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J13",
+      "requirement_key": "J13:processing_any:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J13",
+      "requirement_key": "J13:processing_any:atom3",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J13",
+      "requirement_key": "J13:transport_literal",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J13",
+      "requirement_key": "J13:region",
+      "type": "REGION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J13",
+      "requirement_key": "J13:code_review",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J14",
+      "requirement_key": "J14:processing_any:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J14",
+      "requirement_key": "J14:processing_any:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J14",
+      "requirement_key": "J14:processing_any:atom3",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J14",
+      "requirement_key": "J14:transport_literal",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J14",
+      "requirement_key": "J14:region",
+      "type": "REGION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J14",
+      "requirement_key": "J14:code_review",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J15",
+      "requirement_key": "J15:processing_any:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J15",
+      "requirement_key": "J15:processing_any:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J15",
+      "requirement_key": "J15:processing_any:atom3",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J15",
+      "requirement_key": "J15:transport_literal",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J15",
+      "requirement_key": "J15:region",
+      "type": "REGION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J15",
+      "requirement_key": "J15:code_review",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J16",
+      "requirement_key": "J16:processing_any:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J16",
+      "requirement_key": "J16:processing_any:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J16",
+      "requirement_key": "J16:processing_any:atom3",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J16",
+      "requirement_key": "J16:transport_literal",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J16",
+      "requirement_key": "J16:region",
+      "type": "REGION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J16",
+      "requirement_key": "J16:code_review",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J17",
+      "requirement_key": "J17:count",
+      "type": "PERFORMANCE_COUNT",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J17",
+      "requirement_key": "J17:sum",
+      "type": "PERFORMANCE_AMOUNT",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J17",
+      "requirement_key": "J17:onprem",
+      "type": "EXPERIENCE_FIELD",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J18",
+      "requirement_key": "J18:industry",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J18",
+      "requirement_key": "J18:academic",
+      "type": "PERFORMANCE_COUNT",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J18",
+      "requirement_key": "J18:scale",
+      "type": "PERFORMANCE_COUNT",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J19",
+      "requirement_key": "J19:industry",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J19",
+      "requirement_key": "J19:amount",
+      "type": "PERFORMANCE_AMOUNT",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J20",
+      "requirement_key": "J20:industry",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J20",
+      "requirement_key": "J20:single_amount",
+      "type": "PERFORMANCE_AMOUNT",
+      "mapping": "DIRECT",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J21",
+      "requirement_key": "J21:industry_or:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J21",
+      "requirement_key": "J21:industry_or:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J21",
+      "requirement_key": "J21:single_amount",
+      "type": "PERFORMANCE_AMOUNT",
+      "mapping": "DIRECT",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J22",
+      "requirement_key": "J22:industry_or:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J22",
+      "requirement_key": "J22:industry_or:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J22",
+      "requirement_key": "J22:guide_headcount",
+      "type": "STAFF",
+      "mapping": "DIRECT",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J22",
+      "requirement_key": "J22:stage_review",
+      "type": "STAFF",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J23",
+      "requirement_key": "J23:responsible",
+      "type": "STAFF",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J23",
+      "requirement_key": "J23:researchers",
+      "type": "STAFF",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J23",
+      "requirement_key": "J23:size",
+      "type": "COMPANY_SIZE",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J24",
+      "requirement_key": "J24:industry:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J24",
+      "requirement_key": "J24:industry:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J24",
+      "requirement_key": "J24:industry:atom3",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J24",
+      "requirement_key": "J24:members",
+      "type": "STAFF",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J25",
+      "requirement_key": "J25:industry",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J25",
+      "requirement_key": "J25:conflict",
+      "type": "REGISTRATION_CERTIFICATION",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J26",
+      "requirement_key": "J26:company_permit",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J26",
+      "requirement_key": "J26:product_permit",
+      "type": "REGISTRATION_CERTIFICATION",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J26",
+      "requirement_key": "J26:size",
+      "type": "COMPANY_SIZE",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J27",
+      "requirement_key": "J27:manufacturer",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J27",
+      "requirement_key": "J27:tuning_or:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J27",
+      "requirement_key": "J27:tuning_or:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J28",
+      "requirement_key": "J28:company_size_conflict",
+      "type": "COMPANY_SIZE",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J29",
+      "requirement_key": "J29:region",
+      "type": "REGION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J29",
+      "requirement_key": "J29:size",
+      "type": "COMPANY_SIZE",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "J30",
+      "requirement_key": "J30:industry",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J30",
+      "requirement_key": "J30:direct_production",
+      "type": "REGISTRATION_CERTIFICATION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J31",
+      "requirement_key": "J31:industry:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J31",
+      "requirement_key": "J31:industry:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J31",
+      "requirement_key": "J31:region",
+      "type": "REGION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J31",
+      "requirement_key": "J31:sign_code",
+      "type": "REGISTRATION_CERTIFICATION",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J32",
+      "requirement_key": "J32:industry",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J32",
+      "requirement_key": "J32:size",
+      "type": "COMPANY_SIZE",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "J32",
+      "requirement_key": "J32:pending_certificate",
+      "type": "COMPANY_SIZE",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH01-BEFORE",
+      "requirement_key": "CH01-BEFORE:processing",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH01-BEFORE",
+      "requirement_key": "CH01-BEFORE:transport",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "CH01-BEFORE",
+      "requirement_key": "CH01-BEFORE:region",
+      "type": "REGION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "CH01-BEFORE",
+      "requirement_key": "CH01-BEFORE:removed_group:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH01-BEFORE",
+      "requirement_key": "CH01-BEFORE:removed_group:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH02-BEFORE",
+      "requirement_key": "CH02-BEFORE:processing",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH02-BEFORE",
+      "requirement_key": "CH02-BEFORE:transport",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "CH02-BEFORE",
+      "requirement_key": "CH02-BEFORE:region",
+      "type": "REGION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "CH02-BEFORE",
+      "requirement_key": "CH02-BEFORE:removed_group:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH02-BEFORE",
+      "requirement_key": "CH02-BEFORE:removed_group:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH03-BEFORE",
+      "requirement_key": "CH03-BEFORE:industry",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH03-BEFORE",
+      "requirement_key": "CH03-BEFORE:sites",
+      "type": "PERFORMANCE_COUNT",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "CH04-BEFORE",
+      "requirement_key": "CH04-BEFORE:industry",
+      "type": "INDUSTRY",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH04-BEFORE",
+      "requirement_key": "CH04-BEFORE:sites",
+      "type": "PERFORMANCE_COUNT",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "CH05-BEFORE",
+      "requirement_key": "CH05-BEFORE:industries:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH05-BEFORE",
+      "requirement_key": "CH05-BEFORE:industries:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH05-BEFORE",
+      "requirement_key": "CH05-BEFORE:industries:atom3",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH05-BEFORE",
+      "requirement_key": "CH05-BEFORE:technical_any",
+      "type": "EXPERIENCE_FIELD",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "CH06-BEFORE",
+      "requirement_key": "CH06-BEFORE:industries:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH06-BEFORE",
+      "requirement_key": "CH06-BEFORE:industries:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH06-BEFORE",
+      "requirement_key": "CH06-BEFORE:industries:atom3",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH06-BEFORE",
+      "requirement_key": "CH06-BEFORE:technical_any",
+      "type": "EXPERIENCE_FIELD",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "CH07-BEFORE",
+      "requirement_key": "CH07-BEFORE:processing_any:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH07-BEFORE",
+      "requirement_key": "CH07-BEFORE:processing_any:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH07-BEFORE",
+      "requirement_key": "CH07-BEFORE:processing_any:atom3",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH07-BEFORE",
+      "requirement_key": "CH07-BEFORE:transport_literal",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "CH07-BEFORE",
+      "requirement_key": "CH07-BEFORE:region",
+      "type": "REGION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH07-BEFORE",
+      "requirement_key": "CH07-BEFORE:code_review",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH08-BEFORE",
+      "requirement_key": "CH08-BEFORE:processing_any:atom1",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH08-BEFORE",
+      "requirement_key": "CH08-BEFORE:processing_any:atom2",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH08-BEFORE",
+      "requirement_key": "CH08-BEFORE:processing_any:atom3",
+      "type": "INDUSTRY",
+      "mapping": "ATOMIZED",
+      "expected_draft_status": "UNSATISFIED",
+      "actual_status": "UNSATISFIED",
+      "reason_code": "RULE_MISMATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH08-BEFORE",
+      "requirement_key": "CH08-BEFORE:transport_literal",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "SAFE_ABSTENTION"
+    },
+    {
+      "case_id": "CH08-BEFORE",
+      "requirement_key": "CH08-BEFORE:region",
+      "type": "REGION",
+      "mapping": "DIRECT",
+      "expected_draft_status": "SATISFIED",
+      "actual_status": "SATISFIED",
+      "reason_code": "RULE_MATCH",
+      "category": "MATCH_DRAFT_TARGET"
+    },
+    {
+      "case_id": "CH08-BEFORE",
+      "requirement_key": "CH08-BEFORE:code_review",
+      "type": "INDUSTRY",
+      "mapping": "REVIEW_HELD",
+      "expected_draft_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "reason_code": "UNSUPPORTED_REQUIREMENT",
+      "category": "MATCH_DRAFT_TARGET"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "J01",
+      "source_id": "01634263-003",
+      "profile_sha256": "e14e200100c5b3e7f62e9a9f28a7a44f0ef1d022008f75d45a099043301f6079",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J01:J01:processing",
+            "preflight_case_id": "J01",
+            "notice_version_id": "41edcf38-d3cf-474f-9008-5b2924127d30",
+            "requirement_key": "J01:processing",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1253"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1253"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E001"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J01:J01:transport",
+            "preflight_case_id": "J01",
+            "notice_version_id": "41edcf38-d3cf-474f-9008-5b2924127d30",
+            "requirement_key": "J01:transport",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E002"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J01:J01:region",
+            "preflight_case_id": "J01",
+            "notice_version_id": "41edcf38-d3cf-474f-9008-5b2924127d30",
+            "requirement_key": "J01:region",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": false,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E003"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J02",
+      "source_id": "01634263-003",
+      "profile_sha256": "0c2c403061e1d38f1c29f295739b915214a953e55638ac43188238bf407a29b4",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J02:J02:processing",
+            "preflight_case_id": "J02",
+            "notice_version_id": "41edcf38-d3cf-474f-9008-5b2924127d30",
+            "requirement_key": "J02:processing",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1253"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1253"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E001"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J02:J02:transport",
+            "preflight_case_id": "J02",
+            "notice_version_id": "41edcf38-d3cf-474f-9008-5b2924127d30",
+            "requirement_key": "J02:transport",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E002"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J02:J02:region",
+            "preflight_case_id": "J02",
+            "notice_version_id": "41edcf38-d3cf-474f-9008-5b2924127d30",
+            "requirement_key": "J02:region",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": false,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E003"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J03",
+      "source_id": "01634263-003",
+      "profile_sha256": "f15b4326447d856aeff29d6105e8243fb24bf4b0929336f595717a064fcadff4",
+      "expected_safe_overall": "ineligible",
+      "actual_overall": "insufficient_data",
+      "overall_match": false,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J03:J03:processing",
+            "preflight_case_id": "J03",
+            "notice_version_id": "41edcf38-d3cf-474f-9008-5b2924127d30",
+            "requirement_key": "J03:processing",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1253"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1253"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E001"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J03:J03:transport",
+            "preflight_case_id": "J03",
+            "notice_version_id": "41edcf38-d3cf-474f-9008-5b2924127d30",
+            "requirement_key": "J03:transport",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E002"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J03:J03:region",
+            "preflight_case_id": "J03",
+            "notice_version_id": "41edcf38-d3cf-474f-9008-5b2924127d30",
+            "requirement_key": "J03:region",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": false,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E003"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J04",
+      "source_id": "01634263-003",
+      "profile_sha256": "ebb848a770e1b45122a71ab11ed739fbe7936e384aedf76c3770e3c2f46af973",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J04:J04:processing",
+            "preflight_case_id": "J04",
+            "notice_version_id": "41edcf38-d3cf-474f-9008-5b2924127d30",
+            "requirement_key": "J04:processing",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "INSUFFICIENT_DATA",
+            "unknown_reason": "profile_missing",
+            "reason": "판정에 필요한 회사 정보가 부족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E001"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J04:J04:transport",
+            "preflight_case_id": "J04",
+            "notice_version_id": "41edcf38-d3cf-474f-9008-5b2924127d30",
+            "requirement_key": "J04:transport",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E002"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J04:J04:region",
+            "preflight_case_id": "J04",
+            "notice_version_id": "41edcf38-d3cf-474f-9008-5b2924127d30",
+            "requirement_key": "J04:region",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": false,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E003"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J05",
+      "source_id": "01633750-001",
+      "profile_sha256": "06cb7f90999c0b8f944f69f051c2e01f4ddf684913cb5d90352fc0ed03921e61",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J05:J05:industry",
+            "preflight_case_id": "J05",
+            "notice_version_id": "bcfda908-5dc9-4dbd-bec6-c59c5272e88f",
+            "requirement_key": "J05:industry",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1450"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1450"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E006"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J05:J05:sites",
+            "preflight_case_id": "J05",
+            "notice_version_id": "bcfda908-5dc9-4dbd-bec6-c59c5272e88f",
+            "requirement_key": "J05:sites",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E007",
+              "E008"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J06",
+      "source_id": "01633750-001",
+      "profile_sha256": "e53d1ecdfb07b38f7d485cde91d48a8c59a79f27a5819432b11fba3bb8eea11e",
+      "expected_safe_overall": "ineligible",
+      "actual_overall": "insufficient_data",
+      "overall_match": false,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J06:J06:industry",
+            "preflight_case_id": "J06",
+            "notice_version_id": "bcfda908-5dc9-4dbd-bec6-c59c5272e88f",
+            "requirement_key": "J06:industry",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1450"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1450"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E006"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J06:J06:sites",
+            "preflight_case_id": "J06",
+            "notice_version_id": "bcfda908-5dc9-4dbd-bec6-c59c5272e88f",
+            "requirement_key": "J06:sites",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E007",
+              "E008"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J07",
+      "source_id": "01633750-001",
+      "profile_sha256": "6ea4dec08d68acfdfc77f60763a9023d57f13d51cc90800bb0d75205b0b984bf",
+      "expected_safe_overall": "ineligible",
+      "actual_overall": "insufficient_data",
+      "overall_match": false,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J07:J07:industry",
+            "preflight_case_id": "J07",
+            "notice_version_id": "bcfda908-5dc9-4dbd-bec6-c59c5272e88f",
+            "requirement_key": "J07:industry",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1450"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1450"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E006"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J07:J07:sites",
+            "preflight_case_id": "J07",
+            "notice_version_id": "bcfda908-5dc9-4dbd-bec6-c59c5272e88f",
+            "requirement_key": "J07:sites",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E007",
+              "E008"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J08",
+      "source_id": "01633750-001",
+      "profile_sha256": "e6d324cd771a2ffe15e541a49f6d68915350b07d7bad2c377b2d91e1c3143eb4",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J08:J08:industry",
+            "preflight_case_id": "J08",
+            "notice_version_id": "bcfda908-5dc9-4dbd-bec6-c59c5272e88f",
+            "requirement_key": "J08:industry",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1450"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1450"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E006"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J08:J08:sites",
+            "preflight_case_id": "J08",
+            "notice_version_id": "bcfda908-5dc9-4dbd-bec6-c59c5272e88f",
+            "requirement_key": "J08:sites",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E007",
+              "E008"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J09",
+      "source_id": "01687120-001",
+      "profile_sha256": "e82eb8f79f28d9c4a5aeeace7e395b78b6fbac9061d50c04b384f8841e4e1fa3",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J09:J09:industries:atom1",
+            "preflight_case_id": "J09",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J09:industries:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "컴퓨터관련서비스사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010",
+              "E079",
+              "E080",
+              "E081"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J09:J09:industries:atom2",
+            "preflight_case_id": "J09",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J09:industries:atom2",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "디지털콘텐츠개발서비스사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010",
+              "E079",
+              "E080",
+              "E081"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J09:J09:industries:atom3",
+            "preflight_case_id": "J09",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J09:industries:atom3",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "패키지소프트웨어개발·공급사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010",
+              "E079",
+              "E080",
+              "E081"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J09:J09:technical_any",
+            "preflight_case_id": "J09",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J09:technical_any",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E082",
+              "E083",
+              "E084",
+              "E085",
+              "E086"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J10",
+      "source_id": "01687120-001",
+      "profile_sha256": "08ec34ed50d3719592b70dcf704827c37ddcbd577e46a10e7b92e02b5bc66a00",
+      "expected_safe_overall": "ineligible",
+      "actual_overall": "ineligible",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J10:J10:industries:atom1",
+            "preflight_case_id": "J10",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J10:industries:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "컴퓨터관련서비스사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010",
+              "E079",
+              "E080",
+              "E081"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J10:J10:industries:atom2",
+            "preflight_case_id": "J10",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J10:industries:atom2",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "디지털콘텐츠개발서비스사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010",
+              "E079",
+              "E080",
+              "E081"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J10:J10:industries:atom3",
+            "preflight_case_id": "J10",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J10:industries:atom3",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E010",
+              "E079",
+              "E080",
+              "E081"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J10:J10:technical_any",
+            "preflight_case_id": "J10",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J10:technical_any",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E082",
+              "E083",
+              "E084",
+              "E085",
+              "E086"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "ineligible"
+      }
+    },
+    {
+      "case_id": "J11",
+      "source_id": "01687120-001",
+      "profile_sha256": "cca29a2f15b695897f6c7d5676a77f486bdc778edceffa6c1ae2b32fb178e0d8",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J11:J11:industries:atom1",
+            "preflight_case_id": "J11",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J11:industries:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "컴퓨터관련서비스사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010",
+              "E079",
+              "E080",
+              "E081"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J11:J11:industries:atom2",
+            "preflight_case_id": "J11",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J11:industries:atom2",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "디지털콘텐츠개발서비스사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010",
+              "E079",
+              "E080",
+              "E081"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J11:J11:industries:atom3",
+            "preflight_case_id": "J11",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J11:industries:atom3",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "패키지소프트웨어개발·공급사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010",
+              "E079",
+              "E080",
+              "E081"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J11:J11:technical_any",
+            "preflight_case_id": "J11",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J11:technical_any",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E082",
+              "E083",
+              "E084",
+              "E085",
+              "E086"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J12",
+      "source_id": "01687120-001",
+      "profile_sha256": "908a58aee0e6162c296c4f79afa28c2b7f100d134ed535a474cda46fa33535d2",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J12:J12:industries:atom1",
+            "preflight_case_id": "J12",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J12:industries:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "컴퓨터관련서비스사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010",
+              "E079",
+              "E080",
+              "E081"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J12:J12:industries:atom2",
+            "preflight_case_id": "J12",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J12:industries:atom2",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "디지털콘텐츠개발서비스사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010",
+              "E079",
+              "E080",
+              "E081"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J12:J12:industries:atom3",
+            "preflight_case_id": "J12",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J12:industries:atom3",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "패키지소프트웨어개발·공급사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010",
+              "E079",
+              "E080",
+              "E081"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J12:J12:technical_any",
+            "preflight_case_id": "J12",
+            "notice_version_id": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+            "requirement_key": "J12:technical_any",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E082",
+              "E083",
+              "E084",
+              "E085",
+              "E086"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J13",
+      "source_id": "01684863-001",
+      "profile_sha256": "8678ba77d92b68ffbfca593afe3c9e6ac7fd898ec86c8fbf672b07ff017d8009",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J13:J13:processing_any:atom1",
+            "preflight_case_id": "J13",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J13:processing_any:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1257"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1257"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E013"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J13:J13:processing_any:atom2",
+            "preflight_case_id": "J13",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J13:processing_any:atom2",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E013"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J13:J13:processing_any:atom3",
+            "preflight_case_id": "J13",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J13:processing_any:atom3",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E013"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J13:J13:transport_literal",
+            "preflight_case_id": "J13",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J13:transport_literal",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E014"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J13:J13:region",
+            "preflight_case_id": "J13",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J13:region",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": false,
+            "profile_refs": [
+              {
+                "kind": "company",
+                "field": "region",
+                "value": "전북특별자치도"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E015"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J13:J13:code_review",
+            "preflight_case_id": "J13",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J13:code_review",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E014"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J14",
+      "source_id": "01684863-001",
+      "profile_sha256": "f8fbd31d443a883bf2fe6c1a308c19f36df5ad57bbbc9347095edb13a3028b4f",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J14:J14:processing_any:atom1",
+            "preflight_case_id": "J14",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J14:processing_any:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1257"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1257"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E013"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J14:J14:processing_any:atom2",
+            "preflight_case_id": "J14",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J14:processing_any:atom2",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E013"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J14:J14:processing_any:atom3",
+            "preflight_case_id": "J14",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J14:processing_any:atom3",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E013"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J14:J14:transport_literal",
+            "preflight_case_id": "J14",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J14:transport_literal",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E014"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J14:J14:region",
+            "preflight_case_id": "J14",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J14:region",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": false,
+            "profile_refs": [
+              {
+                "kind": "company",
+                "field": "region",
+                "value": "전북특별자치도"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E015"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J14:J14:code_review",
+            "preflight_case_id": "J14",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J14:code_review",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E014"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J15",
+      "source_id": "01684863-001",
+      "profile_sha256": "bc400c057c13ab15305412301b0855bf0001114ab9241ef55c1a2538bdca172e",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J15:J15:processing_any:atom1",
+            "preflight_case_id": "J15",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J15:processing_any:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1257"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1257"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E013"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J15:J15:processing_any:atom2",
+            "preflight_case_id": "J15",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J15:processing_any:atom2",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E013"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J15:J15:processing_any:atom3",
+            "preflight_case_id": "J15",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J15:processing_any:atom3",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E013"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J15:J15:transport_literal",
+            "preflight_case_id": "J15",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J15:transport_literal",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E014"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J15:J15:region",
+            "preflight_case_id": "J15",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J15:region",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": false,
+            "profile_refs": [
+              {
+                "kind": "company",
+                "field": "region",
+                "value": "전북특별자치도"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E015"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J15:J15:code_review",
+            "preflight_case_id": "J15",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J15:code_review",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E014"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J16",
+      "source_id": "01684863-001",
+      "profile_sha256": "130364fe2c5de2027b6949f99b93e390da2f7e1c2ccd58d09bba658f9a13005f",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J16:J16:processing_any:atom1",
+            "preflight_case_id": "J16",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J16:processing_any:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1257"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1257"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E013"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J16:J16:processing_any:atom2",
+            "preflight_case_id": "J16",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J16:processing_any:atom2",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E013"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J16:J16:processing_any:atom3",
+            "preflight_case_id": "J16",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J16:processing_any:atom3",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E013"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J16:J16:transport_literal",
+            "preflight_case_id": "J16",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J16:transport_literal",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E014"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J16:J16:region",
+            "preflight_case_id": "J16",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J16:region",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": false,
+            "profile_refs": [
+              {
+                "kind": "company",
+                "field": "region",
+                "value": "전북특별자치도"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E015"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J16:J16:code_review",
+            "preflight_case_id": "J16",
+            "notice_version_id": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+            "requirement_key": "J16:code_review",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E014"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J17",
+      "source_id": "01626459-000",
+      "profile_sha256": "f65a35573db99cde601ac5663dc25f63cabecd00e860935fd089790a269ac601",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J17:J17:count",
+            "preflight_case_id": "J17",
+            "notice_version_id": "3572f2d5-fc76-4fcc-b0cf-5486156f9f42",
+            "requirement_key": "J17:count",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E018"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J17:J17:sum",
+            "preflight_case_id": "J17",
+            "notice_version_id": "3572f2d5-fc76-4fcc-b0cf-5486156f9f42",
+            "requirement_key": "J17:sum",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "performance",
+                "field": "ref",
+                "value": "AI-1"
+              },
+              {
+                "kind": "performance",
+                "field": "ref",
+                "value": "AI-2"
+              },
+              {
+                "kind": "performance",
+                "field": "observed_amount",
+                "value": "400000000"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E019"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J17:J17:onprem",
+            "preflight_case_id": "J17",
+            "notice_version_id": "3572f2d5-fc76-4fcc-b0cf-5486156f9f42",
+            "requirement_key": "J17:onprem",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "performance",
+                "field": "ref",
+                "value": "AI-2"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E020"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J18",
+      "source_id": "01635124-000",
+      "profile_sha256": "bf2d96d39777c977570b25a432fe0c8dfc9d81b0dec89ca64ac2a5dd51b5d0a5",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J18:J18:industry",
+            "preflight_case_id": "J18",
+            "notice_version_id": "ec21f6ab-d352-4c80-8507-5d47207f3113",
+            "requirement_key": "J18:industry",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1468"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1468"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E025"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J18:J18:academic",
+            "preflight_case_id": "J18",
+            "notice_version_id": "ec21f6ab-d352-4c80-8507-5d47207f3113",
+            "requirement_key": "J18:academic",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E026",
+              "E027"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J18:J18:scale",
+            "preflight_case_id": "J18",
+            "notice_version_id": "ec21f6ab-d352-4c80-8507-5d47207f3113",
+            "requirement_key": "J18:scale",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E028"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J19",
+      "source_id": "01686686-000",
+      "profile_sha256": "b2360070d60888abb86a7c6a523a205a96c013694e677929ee8021c57021af6d",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J19:J19:industry",
+            "preflight_case_id": "J19",
+            "notice_version_id": "494a5542-1b3f-4289-86a4-d6a529dc0300",
+            "requirement_key": "J19:industry",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "소프트웨어사업자"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E030"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J19:J19:amount",
+            "preflight_case_id": "J19",
+            "notice_version_id": "494a5542-1b3f-4289-86a4-d6a529dc0300",
+            "requirement_key": "J19:amount",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E031",
+              "E032"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J20",
+      "source_id": "01684825-000",
+      "profile_sha256": "703feec47f5f2fe56839af60264bf409106a28df4e491d8f2712e78f77b81af7",
+      "expected_safe_overall": "ineligible",
+      "actual_overall": "ineligible",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J20:J20:industry",
+            "preflight_case_id": "J20",
+            "notice_version_id": "1bec1ad5-e9e2-4fe9-a9d8-1ae5ef96a387",
+            "requirement_key": "J20:industry",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "9901"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "9901"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E033"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J20:J20:single_amount",
+            "preflight_case_id": "J20",
+            "notice_version_id": "1bec1ad5-e9e2-4fe9-a9d8-1ae5ef96a387",
+            "requirement_key": "J20:single_amount",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "performance",
+                "field": "ref",
+                "value": "EVENT-1"
+              },
+              {
+                "kind": "performance",
+                "field": "observed_amount",
+                "value": "120000000"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E089",
+              "E034",
+              "E035"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "ineligible"
+      }
+    },
+    {
+      "case_id": "J21",
+      "source_id": "01707963-000",
+      "profile_sha256": "c0d3427fc6a986b5bcbe720fcec768d9ae0166fc63f92be1498b0317a3480fea",
+      "expected_safe_overall": "ineligible",
+      "actual_overall": "ineligible",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J21:J21:industry_or:atom1",
+            "preflight_case_id": "J21",
+            "notice_version_id": "715fc1de-f355-48dd-912a-a3a616d13bd1",
+            "requirement_key": "J21:industry_or:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "3572"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "3572"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E036"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J21:J21:industry_or:atom2",
+            "preflight_case_id": "J21",
+            "notice_version_id": "715fc1de-f355-48dd-912a-a3a616d13bd1",
+            "requirement_key": "J21:industry_or:atom2",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E036"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J21:J21:single_amount",
+            "preflight_case_id": "J21",
+            "notice_version_id": "715fc1de-f355-48dd-912a-a3a616d13bd1",
+            "requirement_key": "J21:single_amount",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "performance",
+                "field": "ref",
+                "value": "DC-1"
+              },
+              {
+                "kind": "performance",
+                "field": "observed_amount",
+                "value": "129999999"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E037",
+              "E038"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "ineligible"
+      }
+    },
+    {
+      "case_id": "J22",
+      "source_id": "01633754-000",
+      "profile_sha256": "de20d502c0be69a48d57d67684731f93f1ec837b443a2a7849c2baeb8155df99",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J22:J22:industry_or:atom1",
+            "preflight_case_id": "J22",
+            "notice_version_id": "6484c63a-847e-44ca-b7b9-df7bcbebddd7",
+            "requirement_key": "J22:industry_or:atom1",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E040"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J22:J22:industry_or:atom2",
+            "preflight_case_id": "J22",
+            "notice_version_id": "6484c63a-847e-44ca-b7b9-df7bcbebddd7",
+            "requirement_key": "J22:industry_or:atom2",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "국내외여행업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E040"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J22:J22:guide_headcount",
+            "preflight_case_id": "J22",
+            "notice_version_id": "6484c63a-847e-44ca-b7b9-df7bcbebddd7",
+            "requirement_key": "J22:guide_headcount",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "staff_role",
+                "field": "role_name",
+                "value": "국외여행인솔자"
+              },
+              {
+                "kind": "staff_role",
+                "field": "headcount",
+                "value": "2"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E041"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J22:J22:stage_review",
+            "preflight_case_id": "J22",
+            "notice_version_id": "6484c63a-847e-44ca-b7b9-df7bcbebddd7",
+            "requirement_key": "J22:stage_review",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E041"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J23",
+      "source_id": "01634767-000",
+      "profile_sha256": "cd0df2529230839cb44f75081a15f1c44d85e8b1ee9f3cf411a12eaa0df7d715",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J23:J23:responsible",
+            "preflight_case_id": "J23",
+            "notice_version_id": "fedb6e79-ef66-41a8-ae30-c156a9604b7c",
+            "requirement_key": "J23:responsible",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "staff_role",
+                "field": "role_name",
+                "value": "책임연구원"
+              },
+              {
+                "kind": "staff_role",
+                "field": "headcount",
+                "value": "1"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E043"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J23:J23:researchers",
+            "preflight_case_id": "J23",
+            "notice_version_id": "fedb6e79-ef66-41a8-ae30-c156a9604b7c",
+            "requirement_key": "J23:researchers",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "staff_role",
+                "field": "role_name",
+                "value": "연구원(연구보조원)"
+              },
+              {
+                "kind": "staff_role",
+                "field": "headcount",
+                "value": "2"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E043"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J23:J23:size",
+            "preflight_case_id": "J23",
+            "notice_version_id": "fedb6e79-ef66-41a8-ae30-c156a9604b7c",
+            "requirement_key": "J23:size",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": false,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E044"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J24",
+      "source_id": "01697220-000",
+      "profile_sha256": "3e629a7634e998f15dd91f2e63628344bb65575a135cb0e19b7eadf149cc9ea3",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J24:J24:industry:atom1",
+            "preflight_case_id": "J24",
+            "notice_version_id": "0637fccf-85e5-4539-9eca-caebebdf8e40",
+            "requirement_key": "J24:industry:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "건설엔지니어링업(종합)"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E047"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J24:J24:industry:atom2",
+            "preflight_case_id": "J24",
+            "notice_version_id": "0637fccf-85e5-4539-9eca-caebebdf8e40",
+            "requirement_key": "J24:industry:atom2",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E047"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J24:J24:industry:atom3",
+            "preflight_case_id": "J24",
+            "notice_version_id": "0637fccf-85e5-4539-9eca-caebebdf8e40",
+            "requirement_key": "J24:industry:atom3",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E047"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J24:J24:members",
+            "preflight_case_id": "J24",
+            "notice_version_id": "0637fccf-85e5-4539-9eca-caebebdf8e40",
+            "requirement_key": "J24:members",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E048"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J25",
+      "source_id": "01706001-000",
+      "profile_sha256": "7b4ce0de2e1c8731495fa7f15f90a92668935ea708d6449f9fbd0401d89b7202",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J25:J25:industry",
+            "preflight_case_id": "J25",
+            "notice_version_id": "b4eb41d3-eef6-4e2f-aa8f-d2f67f75f7ec",
+            "requirement_key": "J25:industry",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "6315"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "6315"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E052"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J25:J25:conflict",
+            "preflight_case_id": "J25",
+            "notice_version_id": "b4eb41d3-eef6-4e2f-aa8f-d2f67f75f7ec",
+            "requirement_key": "J25:conflict",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E055"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J26",
+      "source_id": "01685616-000",
+      "profile_sha256": "02a71f9008ae9abdaf68d44d610db3a455ca2ce068990c1f2091657fb526ff08",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J26:J26:company_permit",
+            "preflight_case_id": "J26",
+            "notice_version_id": "65486a80-24a1-4764-bda6-f24351038e45",
+            "requirement_key": "J26:company_permit",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E056"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J26:J26:product_permit",
+            "preflight_case_id": "J26",
+            "notice_version_id": "65486a80-24a1-4764-bda6-f24351038e45",
+            "requirement_key": "J26:product_permit",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E057"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J26:J26:size",
+            "preflight_case_id": "J26",
+            "notice_version_id": "65486a80-24a1-4764-bda6-f24351038e45",
+            "requirement_key": "J26:size",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": false,
+            "profile_refs": [
+              {
+                "kind": "company",
+                "field": "company_size",
+                "value": "SMALL"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E058"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J27",
+      "source_id": "01688607-000",
+      "profile_sha256": "9a4f511d801322efa6088c8e7a344d5bc5357ac3f9247e0b67ce19b6c13df287",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J27:J27:manufacturer",
+            "preflight_case_id": "J27",
+            "notice_version_id": "32d17393-dba5-4527-add6-1693367c1d5f",
+            "requirement_key": "J27:manufacturer",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "5898"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "5898"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E060",
+              "E087"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J27:J27:tuning_or:atom1",
+            "preflight_case_id": "J27",
+            "notice_version_id": "32d17393-dba5-4527-add6-1693367c1d5f",
+            "requirement_key": "J27:tuning_or:atom1",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E060",
+              "E088"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J27:J27:tuning_or:atom2",
+            "preflight_case_id": "J27",
+            "notice_version_id": "32d17393-dba5-4527-add6-1693367c1d5f",
+            "requirement_key": "J27:tuning_or:atom2",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "7607"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "7607"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E060",
+              "E088"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J28",
+      "source_id": "01694234-000",
+      "profile_sha256": "41f720cccd27dea14db1608b1b51608069f8c03637cca428db88b4e369893ce1",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J28:J28:company_size_conflict",
+            "preflight_case_id": "J28",
+            "notice_version_id": "52c88bd6-24dd-48fc-92c7-f69cc82e82f3",
+            "requirement_key": "J28:company_size_conflict",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": false,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E062"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J29",
+      "source_id": "01699215-000",
+      "profile_sha256": "f20ac30ef3859d2ae82dbe6b43d564035ec0adc1cdcf686d70f61e81906f1b9f",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J29:J29:region",
+            "preflight_case_id": "J29",
+            "notice_version_id": "a556bd11-e1b4-4aaa-824a-6bc0a16d1b4f",
+            "requirement_key": "J29:region",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": false,
+            "profile_refs": [
+              {
+                "kind": "company",
+                "field": "region",
+                "value": "충청북도"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E065"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J29:J29:size",
+            "preflight_case_id": "J29",
+            "notice_version_id": "a556bd11-e1b4-4aaa-824a-6bc0a16d1b4f",
+            "requirement_key": "J29:size",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": false,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E066"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "J30",
+      "source_id": "01699574-000",
+      "profile_sha256": "b524f5de3fbd1c169174787e4f6cadb1b9f283cdc228c176d826ffb1d65210eb",
+      "expected_safe_overall": "ineligible",
+      "actual_overall": "ineligible",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J30:J30:industry",
+            "preflight_case_id": "J30",
+            "notice_version_id": "e36f0630-8212-4c72-b525-401d2b160113",
+            "requirement_key": "J30:industry",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1468"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1468"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E069"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J30:J30:direct_production",
+            "preflight_case_id": "J30",
+            "notice_version_id": "e36f0630-8212-4c72-b525-401d2b160113",
+            "requirement_key": "J30:direct_production",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "certification",
+                "field": "ref",
+                "value": "PC-DP"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E071"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "ineligible"
+      }
+    },
+    {
+      "case_id": "J31",
+      "source_id": "01686972-001",
+      "profile_sha256": "7c6dc5a642040b8f5e0ccc86cc33d53170b0a16508bf8b08fe5f39b3423eeba4",
+      "expected_safe_overall": "ineligible",
+      "actual_overall": "ineligible",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J31:J31:industry:atom1",
+            "preflight_case_id": "J31",
+            "notice_version_id": "28eee55f-4a2e-4ead-8425-8d543c4117a2",
+            "requirement_key": "J31:industry:atom1",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E072"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J31:J31:industry:atom2",
+            "preflight_case_id": "J31",
+            "notice_version_id": "28eee55f-4a2e-4ead-8425-8d543c4117a2",
+            "requirement_key": "J31:industry:atom2",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "4444"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "4444"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E072"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J31:J31:region",
+            "preflight_case_id": "J31",
+            "notice_version_id": "28eee55f-4a2e-4ead-8425-8d543c4117a2",
+            "requirement_key": "J31:region",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": false,
+            "profile_refs": [
+              {
+                "kind": "company",
+                "field": "region",
+                "value": "서울특별시"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E073"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J31:J31:sign_code",
+            "preflight_case_id": "J31",
+            "notice_version_id": "28eee55f-4a2e-4ead-8425-8d543c4117a2",
+            "requirement_key": "J31:sign_code",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E075"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "ineligible"
+      }
+    },
+    {
+      "case_id": "J32",
+      "source_id": "01634169-001",
+      "profile_sha256": "f4de81fcd7eeb7c0cdf1bb881a786cf1533ba6f693d5e971bcf11e454d8bef57",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:J32:J32:industry",
+            "preflight_case_id": "J32",
+            "notice_version_id": "41ccaf51-31d3-4682-98a9-7c4fc456b2fa",
+            "requirement_key": "J32:industry",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "9999"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "9999"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E076"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J32:J32:size",
+            "preflight_case_id": "J32",
+            "notice_version_id": "41ccaf51-31d3-4682-98a9-7c4fc456b2fa",
+            "requirement_key": "J32:size",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": false,
+            "profile_refs": [
+              {
+                "kind": "company",
+                "field": "company_size",
+                "value": "SMALL"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E077"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:J32:J32:pending_certificate",
+            "preflight_case_id": "J32",
+            "notice_version_id": "41ccaf51-31d3-4682-98a9-7c4fc456b2fa",
+            "requirement_key": "J32:pending_certificate",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": false,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E078"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "CH01-BEFORE",
+      "source_id": "01634263-002",
+      "profile_sha256": "e14e200100c5b3e7f62e9a9f28a7a44f0ef1d022008f75d45a099043301f6079",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:CH01-BEFORE:CH01-BEFORE:processing",
+            "preflight_case_id": "CH01-BEFORE",
+            "notice_version_id": "416e81e5-6817-4fd0-9e71-acd2044169f9",
+            "requirement_key": "CH01-BEFORE:processing",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1253"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1253"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E001@002"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH01-BEFORE:CH01-BEFORE:transport",
+            "preflight_case_id": "CH01-BEFORE",
+            "notice_version_id": "416e81e5-6817-4fd0-9e71-acd2044169f9",
+            "requirement_key": "CH01-BEFORE:transport",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E002@002"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH01-BEFORE:CH01-BEFORE:region",
+            "preflight_case_id": "CH01-BEFORE",
+            "notice_version_id": "416e81e5-6817-4fd0-9e71-acd2044169f9",
+            "requirement_key": "CH01-BEFORE:region",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": false,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E003@002"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH01-BEFORE:CH01-BEFORE:removed_group:atom1",
+            "preflight_case_id": "CH01-BEFORE",
+            "notice_version_id": "416e81e5-6817-4fd0-9e71-acd2044169f9",
+            "requirement_key": "CH01-BEFORE:removed_group:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1257"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1257"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E005"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH01-BEFORE:CH01-BEFORE:removed_group:atom2",
+            "preflight_case_id": "CH01-BEFORE",
+            "notice_version_id": "416e81e5-6817-4fd0-9e71-acd2044169f9",
+            "requirement_key": "CH01-BEFORE:removed_group:atom2",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E005"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "CH02-BEFORE",
+      "source_id": "01634263-002",
+      "profile_sha256": "0c2c403061e1d38f1c29f295739b915214a953e55638ac43188238bf407a29b4",
+      "expected_safe_overall": "ineligible",
+      "actual_overall": "ineligible",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:CH02-BEFORE:CH02-BEFORE:processing",
+            "preflight_case_id": "CH02-BEFORE",
+            "notice_version_id": "416e81e5-6817-4fd0-9e71-acd2044169f9",
+            "requirement_key": "CH02-BEFORE:processing",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1253"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1253"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E001@002"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH02-BEFORE:CH02-BEFORE:transport",
+            "preflight_case_id": "CH02-BEFORE",
+            "notice_version_id": "416e81e5-6817-4fd0-9e71-acd2044169f9",
+            "requirement_key": "CH02-BEFORE:transport",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E002@002"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH02-BEFORE:CH02-BEFORE:region",
+            "preflight_case_id": "CH02-BEFORE",
+            "notice_version_id": "416e81e5-6817-4fd0-9e71-acd2044169f9",
+            "requirement_key": "CH02-BEFORE:region",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": false,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E003@002"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH02-BEFORE:CH02-BEFORE:removed_group:atom1",
+            "preflight_case_id": "CH02-BEFORE",
+            "notice_version_id": "416e81e5-6817-4fd0-9e71-acd2044169f9",
+            "requirement_key": "CH02-BEFORE:removed_group:atom1",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E005"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH02-BEFORE:CH02-BEFORE:removed_group:atom2",
+            "preflight_case_id": "CH02-BEFORE",
+            "notice_version_id": "416e81e5-6817-4fd0-9e71-acd2044169f9",
+            "requirement_key": "CH02-BEFORE:removed_group:atom2",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E005"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "ineligible"
+      }
+    },
+    {
+      "case_id": "CH03-BEFORE",
+      "source_id": "01633750-000",
+      "profile_sha256": "06cb7f90999c0b8f944f69f051c2e01f4ddf684913cb5d90352fc0ed03921e61",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:CH03-BEFORE:CH03-BEFORE:industry",
+            "preflight_case_id": "CH03-BEFORE",
+            "notice_version_id": "fa749316-a37e-401c-aba1-648b354a093b",
+            "requirement_key": "CH03-BEFORE:industry",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1450"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1450"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E006@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH03-BEFORE:CH03-BEFORE:sites",
+            "preflight_case_id": "CH03-BEFORE",
+            "notice_version_id": "fa749316-a37e-401c-aba1-648b354a093b",
+            "requirement_key": "CH03-BEFORE:sites",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E007@000",
+              "E008@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "CH04-BEFORE",
+      "source_id": "01633750-000",
+      "profile_sha256": "e53d1ecdfb07b38f7d485cde91d48a8c59a79f27a5819432b11fba3bb8eea11e",
+      "expected_safe_overall": "ineligible",
+      "actual_overall": "insufficient_data",
+      "overall_match": false,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:CH04-BEFORE:CH04-BEFORE:industry",
+            "preflight_case_id": "CH04-BEFORE",
+            "notice_version_id": "fa749316-a37e-401c-aba1-648b354a093b",
+            "requirement_key": "CH04-BEFORE:industry",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1450"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1450"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E006@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH04-BEFORE:CH04-BEFORE:sites",
+            "preflight_case_id": "CH04-BEFORE",
+            "notice_version_id": "fa749316-a37e-401c-aba1-648b354a093b",
+            "requirement_key": "CH04-BEFORE:sites",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E007@000",
+              "E008@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "CH05-BEFORE",
+      "source_id": "01687120-000",
+      "profile_sha256": "e82eb8f79f28d9c4a5aeeace7e395b78b6fbac9061d50c04b384f8841e4e1fa3",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:CH05-BEFORE:CH05-BEFORE:industries:atom1",
+            "preflight_case_id": "CH05-BEFORE",
+            "notice_version_id": "8d2215dd-80d4-4417-8ff3-bf79e9274257",
+            "requirement_key": "CH05-BEFORE:industries:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "컴퓨터관련서비스사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010@000",
+              "E079@000",
+              "E080@000",
+              "E081@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH05-BEFORE:CH05-BEFORE:industries:atom2",
+            "preflight_case_id": "CH05-BEFORE",
+            "notice_version_id": "8d2215dd-80d4-4417-8ff3-bf79e9274257",
+            "requirement_key": "CH05-BEFORE:industries:atom2",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "디지털콘텐츠개발서비스사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010@000",
+              "E079@000",
+              "E080@000",
+              "E081@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH05-BEFORE:CH05-BEFORE:industries:atom3",
+            "preflight_case_id": "CH05-BEFORE",
+            "notice_version_id": "8d2215dd-80d4-4417-8ff3-bf79e9274257",
+            "requirement_key": "CH05-BEFORE:industries:atom3",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "패키지소프트웨어개발·공급사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010@000",
+              "E079@000",
+              "E080@000",
+              "E081@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH05-BEFORE:CH05-BEFORE:technical_any",
+            "preflight_case_id": "CH05-BEFORE",
+            "notice_version_id": "8d2215dd-80d4-4417-8ff3-bf79e9274257",
+            "requirement_key": "CH05-BEFORE:technical_any",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E082@000",
+              "E083@000",
+              "E084@000",
+              "E085@000",
+              "E086@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "CH06-BEFORE",
+      "source_id": "01687120-000",
+      "profile_sha256": "08ec34ed50d3719592b70dcf704827c37ddcbd577e46a10e7b92e02b5bc66a00",
+      "expected_safe_overall": "ineligible",
+      "actual_overall": "ineligible",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:CH06-BEFORE:CH06-BEFORE:industries:atom1",
+            "preflight_case_id": "CH06-BEFORE",
+            "notice_version_id": "8d2215dd-80d4-4417-8ff3-bf79e9274257",
+            "requirement_key": "CH06-BEFORE:industries:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "컴퓨터관련서비스사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010@000",
+              "E079@000",
+              "E080@000",
+              "E081@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH06-BEFORE:CH06-BEFORE:industries:atom2",
+            "preflight_case_id": "CH06-BEFORE",
+            "notice_version_id": "8d2215dd-80d4-4417-8ff3-bf79e9274257",
+            "requirement_key": "CH06-BEFORE:industries:atom2",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": ""
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "디지털콘텐츠개발서비스사업"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E010@000",
+              "E079@000",
+              "E080@000",
+              "E081@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH06-BEFORE:CH06-BEFORE:industries:atom3",
+            "preflight_case_id": "CH06-BEFORE",
+            "notice_version_id": "8d2215dd-80d4-4417-8ff3-bf79e9274257",
+            "requirement_key": "CH06-BEFORE:industries:atom3",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E010@000",
+              "E079@000",
+              "E080@000",
+              "E081@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH06-BEFORE:CH06-BEFORE:technical_any",
+            "preflight_case_id": "CH06-BEFORE",
+            "notice_version_id": "8d2215dd-80d4-4417-8ff3-bf79e9274257",
+            "requirement_key": "CH06-BEFORE:technical_any",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E082@000",
+              "E083@000",
+              "E084@000",
+              "E085@000",
+              "E086@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "ineligible"
+      }
+    },
+    {
+      "case_id": "CH07-BEFORE",
+      "source_id": "01684863-000",
+      "profile_sha256": "8678ba77d92b68ffbfca593afe3c9e6ac7fd898ec86c8fbf672b07ff017d8009",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:CH07-BEFORE:CH07-BEFORE:processing_any:atom1",
+            "preflight_case_id": "CH07-BEFORE",
+            "notice_version_id": "96264b55-4205-4cd3-8c02-59eb0181c94d",
+            "requirement_key": "CH07-BEFORE:processing_any:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1257"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1257"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E013@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH07-BEFORE:CH07-BEFORE:processing_any:atom2",
+            "preflight_case_id": "CH07-BEFORE",
+            "notice_version_id": "96264b55-4205-4cd3-8c02-59eb0181c94d",
+            "requirement_key": "CH07-BEFORE:processing_any:atom2",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E013@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH07-BEFORE:CH07-BEFORE:processing_any:atom3",
+            "preflight_case_id": "CH07-BEFORE",
+            "notice_version_id": "96264b55-4205-4cd3-8c02-59eb0181c94d",
+            "requirement_key": "CH07-BEFORE:processing_any:atom3",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E013@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH07-BEFORE:CH07-BEFORE:transport_literal",
+            "preflight_case_id": "CH07-BEFORE",
+            "notice_version_id": "96264b55-4205-4cd3-8c02-59eb0181c94d",
+            "requirement_key": "CH07-BEFORE:transport_literal",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E014@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH07-BEFORE:CH07-BEFORE:region",
+            "preflight_case_id": "CH07-BEFORE",
+            "notice_version_id": "96264b55-4205-4cd3-8c02-59eb0181c94d",
+            "requirement_key": "CH07-BEFORE:region",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": false,
+            "profile_refs": [
+              {
+                "kind": "company",
+                "field": "region",
+                "value": "전북특별자치도"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E015@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH07-BEFORE:CH07-BEFORE:code_review",
+            "preflight_case_id": "CH07-BEFORE",
+            "notice_version_id": "96264b55-4205-4cd3-8c02-59eb0181c94d",
+            "requirement_key": "CH07-BEFORE:code_review",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E014@000",
+              "E017"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    },
+    {
+      "case_id": "CH08-BEFORE",
+      "source_id": "01684863-000",
+      "profile_sha256": "f8fbd31d443a883bf2fe6c1a308c19f36df5ad57bbbc9347095edb13a3028b4f",
+      "expected_safe_overall": "insufficient_data",
+      "actual_overall": "insufficient_data",
+      "overall_match": true,
+      "full_notice_eligibility_asserted": false,
+      "result": {
+        "judgments": [
+          {
+            "judgment_key": "JUDG:CH08-BEFORE:CH08-BEFORE:processing_any:atom1",
+            "preflight_case_id": "CH08-BEFORE",
+            "notice_version_id": "96264b55-4205-4cd3-8c02-59eb0181c94d",
+            "requirement_key": "CH08-BEFORE:processing_any:atom1",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": true,
+            "profile_refs": [
+              {
+                "kind": "industry",
+                "field": "code",
+                "value": "1257"
+              },
+              {
+                "kind": "industry",
+                "field": "name",
+                "value": "1257"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E013@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH08-BEFORE:CH08-BEFORE:processing_any:atom2",
+            "preflight_case_id": "CH08-BEFORE",
+            "notice_version_id": "96264b55-4205-4cd3-8c02-59eb0181c94d",
+            "requirement_key": "CH08-BEFORE:processing_any:atom2",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E013@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH08-BEFORE:CH08-BEFORE:processing_any:atom3",
+            "preflight_case_id": "CH08-BEFORE",
+            "notice_version_id": "96264b55-4205-4cd3-8c02-59eb0181c94d",
+            "requirement_key": "CH08-BEFORE:processing_any:atom3",
+            "status": "UNSATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MISMATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족하지 못합니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E013@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH08-BEFORE:CH08-BEFORE:transport_literal",
+            "preflight_case_id": "CH08-BEFORE",
+            "notice_version_id": "96264b55-4205-4cd3-8c02-59eb0181c94d",
+            "requirement_key": "CH08-BEFORE:transport_literal",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E014@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH08-BEFORE:CH08-BEFORE:region",
+            "preflight_case_id": "CH08-BEFORE",
+            "notice_version_id": "96264b55-4205-4cd3-8c02-59eb0181c94d",
+            "requirement_key": "CH08-BEFORE:region",
+            "status": "SATISFIED",
+            "basis_type": "PROFILE",
+            "evidence_held": false,
+            "value_source": "stored_profile",
+            "evidence_status": "none",
+            "reason_code": "RULE_MATCH",
+            "unknown_reason": null,
+            "reason": "회사 프로필이 공고 조건을 충족합니다.",
+            "requires_evidence": false,
+            "profile_refs": [
+              {
+                "kind": "company",
+                "field": "region",
+                "value": "전북특별자치도"
+              }
+            ],
+            "requirement_evidence_keys": [
+              "E015@000"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          },
+          {
+            "judgment_key": "JUDG:CH08-BEFORE:CH08-BEFORE:code_review",
+            "preflight_case_id": "CH08-BEFORE",
+            "notice_version_id": "96264b55-4205-4cd3-8c02-59eb0181c94d",
+            "requirement_key": "CH08-BEFORE:code_review",
+            "status": "UNKNOWN",
+            "basis_type": "NONE",
+            "evidence_held": false,
+            "value_source": "none",
+            "evidence_status": "none",
+            "reason_code": "UNSUPPORTED_REQUIREMENT",
+            "unknown_reason": "requirement_uncertain",
+            "reason": "현재 자동 판정을 지원하지 않는 조건입니다.",
+            "requires_evidence": true,
+            "profile_refs": [],
+            "requirement_evidence_keys": [
+              "E014@000",
+              "E017"
+            ],
+            "rule_version": "qualification-rules-v0.2"
+          }
+        ],
+        "overall_status": "insufficient_data"
+      }
+    }
+  ],
+  "changes": [
+    {
+      "case_id": "CH01",
+      "same_profile": true,
+      "expected_reviewed_scope": [
+        "SATISFIED",
+        "SATISFIED"
+      ],
+      "actual_partial_overall": [
+        "insufficient_data",
+        "insufficient_data"
+      ],
+      "note": "These overall values include PARTIAL gating; do not equate them with the scoped transition. Text/metadata diff and removed-row UI require separate integration testing."
+    },
+    {
+      "case_id": "CH02",
+      "same_profile": true,
+      "expected_reviewed_scope": [
+        "UNSATISFIED",
+        "SATISFIED"
+      ],
+      "actual_partial_overall": [
+        "ineligible",
+        "insufficient_data"
+      ],
+      "note": "These overall values include PARTIAL gating; do not equate them with the scoped transition. Text/metadata diff and removed-row UI require separate integration testing."
+    },
+    {
+      "case_id": "CH03",
+      "same_profile": true,
+      "expected_reviewed_scope": [
+        "SATISFIED",
+        "SATISFIED"
+      ],
+      "actual_partial_overall": [
+        "insufficient_data",
+        "insufficient_data"
+      ],
+      "note": "These overall values include PARTIAL gating; do not equate them with the scoped transition. Text/metadata diff and removed-row UI require separate integration testing."
+    },
+    {
+      "case_id": "CH04",
+      "same_profile": true,
+      "expected_reviewed_scope": [
+        "UNSATISFIED",
+        "UNSATISFIED"
+      ],
+      "actual_partial_overall": [
+        "insufficient_data",
+        "insufficient_data"
+      ],
+      "note": "These overall values include PARTIAL gating; do not equate them with the scoped transition. Text/metadata diff and removed-row UI require separate integration testing."
+    },
+    {
+      "case_id": "CH05",
+      "same_profile": true,
+      "expected_reviewed_scope": [
+        "SATISFIED",
+        "SATISFIED"
+      ],
+      "actual_partial_overall": [
+        "insufficient_data",
+        "insufficient_data"
+      ],
+      "note": "These overall values include PARTIAL gating; do not equate them with the scoped transition. Text/metadata diff and removed-row UI require separate integration testing."
+    },
+    {
+      "case_id": "CH06",
+      "same_profile": true,
+      "expected_reviewed_scope": [
+        "UNSATISFIED",
+        "UNSATISFIED"
+      ],
+      "actual_partial_overall": [
+        "ineligible",
+        "ineligible"
+      ],
+      "note": "These overall values include PARTIAL gating; do not equate them with the scoped transition. Text/metadata diff and removed-row UI require separate integration testing."
+    },
+    {
+      "case_id": "CH07",
+      "same_profile": true,
+      "expected_reviewed_scope": [
+        "UNKNOWN",
+        "UNKNOWN"
+      ],
+      "actual_partial_overall": [
+        "insufficient_data",
+        "insufficient_data"
+      ],
+      "note": "These overall values include PARTIAL gating; do not equate them with the scoped transition. Text/metadata diff and removed-row UI require separate integration testing."
+    },
+    {
+      "case_id": "CH08",
+      "same_profile": true,
+      "expected_reviewed_scope": [
+        "UNKNOWN",
+        "UNKNOWN"
+      ],
+      "actual_partial_overall": [
+        "insufficient_data",
+        "insufficient_data"
+      ],
+      "note": "These overall values include PARTIAL gating; do not equate them with the scoped transition. Text/metadata diff and removed-row UI require separate integration testing."
+    }
+  ],
+  "not_independent_holdout": true
+}

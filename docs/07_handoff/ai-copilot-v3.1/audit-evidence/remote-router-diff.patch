@@ -1,0 +1,31 @@
+diff --git a/apps/api/app/copilot/router.py b/apps/api/app/copilot/router.py
+index f4a029f..97fc8d5 100644
+--- a/apps/api/app/copilot/router.py
++++ b/apps/api/app/copilot/router.py
+@@ -95,6 +95,18 @@ def resolve_chat_payload(
+     return payload, resolved
+ 
+ 
++def _sync_visible_targets(result: CopilotChatResponse) -> CopilotChatResponse:
++    """Keep conversation ordinals aligned with requirements actually rendered."""
++    if result.reply_context is None or result.presentation is None:
++        return result
++    result.reply_context.visible_requirement_keys = list(dict.fromkeys(
++        reason.requirement_key
++        for reason in result.presentation.reasons
++        if reason.requirement_key
++    ))[:100]
++    return result
++
++
+ @router.post("/chat", response_model=CopilotChatResponse)
+ def copilot_chat(
+     payload: CopilotChatRequest,
+@@ -113,6 +125,7 @@ def copilot_chat(
+         result = chat(db, payload)
+         if semantic_processing:
+             result = apply_product_narration(db, payload, result)
++            result = _sync_visible_targets(result)
+         return result
+     except QualificationJudgmentError as error:
+         raise ApiError(error.status_code, error.code, error.message) from error

@@ -1,0 +1,24 @@
+{
+  "notice_version_id": "synthetic-v1",
+  "spans": [
+    {
+      "span_id": "industry",
+      "document_id": "synthetic-doc-1",
+      "span_kind": "POSITIVE",
+      "quote": "업종코드 1468 등록 업체이어야 한다.",
+      "expected": {
+        "type": "INDUSTRY",
+        "operator": "MATCH",
+        "value": "1468",
+        "unit": null
+      }
+    },
+    {
+      "span_id": "unmapped",
+      "document_id": "synthetic-doc-1",
+      "span_kind": "POSITIVE",
+      "quote": "별도 협의에 따른 추가 요건을 확인한다.",
+      "expected": {}
+    }
+  ]
+}

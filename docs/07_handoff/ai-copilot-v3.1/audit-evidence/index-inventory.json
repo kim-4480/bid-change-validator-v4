@@ -1,0 +1,182 @@
+[
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\0637fccf-85e5-4539-9eca-caebebdf8e40\\manifest.json",
+    "sha256": "9E87DC0A04ED67340A2C347893927A5C3AD6CCD10FB71C359264F427A1C1EEB9",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "0637fccf-85e5-4539-9eca-caebebdf8e40",
+    "model": "text-embedding-3-small",
+    "records": 1126,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\1bec1ad5-e9e2-4fe9-a9d8-1ae5ef96a387\\manifest.json",
+    "sha256": "FD175C0DCC14617910947888DA23069FE1BFB01A4F05413353F7AA5DCD3E63D0",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "1bec1ad5-e9e2-4fe9-a9d8-1ae5ef96a387",
+    "model": "text-embedding-3-small",
+    "records": 79,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\28eee55f-4a2e-4ead-8425-8d543c4117a2\\manifest.json",
+    "sha256": "3C7B114861744FF3109E50C9F9351C2C461280C02CBB0F1A118F08F528C9176C",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "28eee55f-4a2e-4ead-8425-8d543c4117a2",
+    "model": "text-embedding-3-small",
+    "records": 299,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\32d17393-dba5-4527-add6-1693367c1d5f\\manifest.json",
+    "sha256": "864F308DDF52878DE259B5B74AADF4201759EDBE47E2CFBE17C0DF06B26F3B4F",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "32d17393-dba5-4527-add6-1693367c1d5f",
+    "model": "text-embedding-3-small",
+    "records": 357,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\3572f2d5-fc76-4fcc-b0cf-5486156f9f42\\manifest.json",
+    "sha256": "2338CF8AB58E312DD91ABD2CDBBD9AA4E37546C7FD35F80E90F0D26D375506BE",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "3572f2d5-fc76-4fcc-b0cf-5486156f9f42",
+    "model": "text-embedding-3-small",
+    "records": 542,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\41ccaf51-31d3-4682-98a9-7c4fc456b2fa\\manifest.json",
+    "sha256": "6A6D582269E0698876496177B965B51412151141D136DD7E8063C3B0FD6CA4CF",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "41ccaf51-31d3-4682-98a9-7c4fc456b2fa",
+    "model": "text-embedding-3-small",
+    "records": 153,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\41edcf38-d3cf-474f-9008-5b2924127d30\\manifest.json",
+    "sha256": "325C0CEFC6CD569A4CBF1873518AE8999946A791F4C23BD84F8C75ED31AF4DCF",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "41edcf38-d3cf-474f-9008-5b2924127d30",
+    "model": "text-embedding-3-small",
+    "records": 142,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\494a5542-1b3f-4289-86a4-d6a529dc0300\\manifest.json",
+    "sha256": "E4C39131399DE7D71D617CF05035608277FC9A5355F33D060E525302E3B5E80D",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "494a5542-1b3f-4289-86a4-d6a529dc0300",
+    "model": "text-embedding-3-small",
+    "records": 379,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\52c88bd6-24dd-48fc-92c7-f69cc82e82f3\\manifest.json",
+    "sha256": "6B8047002FA5C2AC8716073EB371ACBB6FDEFDBC37DB02729D56BF55E99A4EBD",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "52c88bd6-24dd-48fc-92c7-f69cc82e82f3",
+    "model": "text-embedding-3-small",
+    "records": 394,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\6484c63a-847e-44ca-b7b9-df7bcbebddd7\\manifest.json",
+    "sha256": "439D52E23D9165DB45A050C8D6537AF314C91D0838817DDC2BE2F70E1A1C01A1",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "6484c63a-847e-44ca-b7b9-df7bcbebddd7",
+    "model": "text-embedding-3-small",
+    "records": 768,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\65486a80-24a1-4764-bda6-f24351038e45\\manifest.json",
+    "sha256": "AEA8BD67C1AE669FB7DF10988D51171BD6BDD3F225B34365AE60336C530D8C87",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "65486a80-24a1-4764-bda6-f24351038e45",
+    "model": "text-embedding-3-small",
+    "records": 237,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\715fc1de-f355-48dd-912a-a3a616d13bd1\\manifest.json",
+    "sha256": "50A9CF6B6D70D89E1671A9C32F030AA259A68EA40216BCBBE58034610E52AC97",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "715fc1de-f355-48dd-912a-a3a616d13bd1",
+    "model": "text-embedding-3-small",
+    "records": 305,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\a556bd11-e1b4-4aaa-824a-6bc0a16d1b4f\\manifest.json",
+    "sha256": "A59C79CC99239F1A03BC87892524B38C352C6C29ACF12AF942E4ADBED5E05FA1",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "a556bd11-e1b4-4aaa-824a-6bc0a16d1b4f",
+    "model": "text-embedding-3-small",
+    "records": 477,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\b4eb41d3-eef6-4e2f-aa8f-d2f67f75f7ec\\manifest.json",
+    "sha256": "73F29D01FCCB7AA9E62100FB86FEC1115AD42DF5B2F5834E157F07D67850BF3D",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "b4eb41d3-eef6-4e2f-aa8f-d2f67f75f7ec",
+    "model": "text-embedding-3-small",
+    "records": 497,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\bcfda908-5dc9-4dbd-bec6-c59c5272e88f\\manifest.json",
+    "sha256": "5302C968DAA5501938F16C2AC45BE1F3A5D3271F4A3C6C9A8CEB62B1A51C0064",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "bcfda908-5dc9-4dbd-bec6-c59c5272e88f",
+    "model": "text-embedding-3-small",
+    "records": 268,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\e36f0630-8212-4c72-b525-401d2b160113\\manifest.json",
+    "sha256": "14494F8401C3815750250FC82E4DAB471BD9CB330FDCDEF3B4093F3CFC4A6F66",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "e36f0630-8212-4c72-b525-401d2b160113",
+    "model": "text-embedding-3-small",
+    "records": 143,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\ec21f6ab-d352-4c80-8507-5d47207f3113\\manifest.json",
+    "sha256": "166E35C797DEF45270065ADAE172D572A73F4EC15148B7C6B03616295158C2E6",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "ec21f6ab-d352-4c80-8507-5d47207f3113",
+    "model": "text-embedding-3-small",
+    "records": 302,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\f58dd098-0008-48e6-93ef-416c16fb64a4\\manifest.json",
+    "sha256": "3A372B60544A961670BCE8DF639FDC2DF3DC44424437CE9483C1D944913F72DA",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "f58dd098-0008-48e6-93ef-416c16fb64a4",
+    "model": "text-embedding-3-small",
+    "records": 92,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\fbc095ba-5d92-4461-a4cc-d436f5532c3b\\manifest.json",
+    "sha256": "06B681173B3D38CAFC3B986EA34E60A09931F94DCB17577DBE941B1C1E78E25B",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "fbc095ba-5d92-4461-a4cc-d436f5532c3b",
+    "model": "text-embedding-3-small",
+    "records": 74,
+    "index_exists": true
+  },
+  {
+    "path": "E:\\dev\\02_TeamProjects\\bid-change-validator\\data\\document-rag\\fedb6e79-ef66-41a8-ae30-c156a9604b7c\\manifest.json",
+    "sha256": "2D6342FA2A6459BCC76C0046C6FABD0870012C1E64EC190B78FBB09DD4EC4170",
+    "schema": "document-rag-manifest-v0.1",
+    "version": "fedb6e79-ef66-41a8-ae30-c156a9604b7c",
+    "model": "text-embedding-3-small",
+    "records": 138,
+    "index_exists": true
+  }
+]

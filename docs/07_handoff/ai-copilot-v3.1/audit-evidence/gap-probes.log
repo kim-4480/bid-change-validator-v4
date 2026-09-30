@@ -1,0 +1,6 @@
+Python: 3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]
+DB: loopback port 1 / audit_never_connect; Engine.connect and sockets blocked
+Fixtures: existing synthetic objects; model: injected fake extractor
+{"probe": "askable_false", "askable": false, "answer": "현재 저장된 판정은 참가 불가입니다. 추가로 답변해 판정을 갱신할 회사정보는 1건입니다.\n\n자동 판정에 포함되지 않은 항목은 참가자격 화면에서 원문과 함께 확인해 주세요."}
+{"probe": "manual_citation", "input_evidence_count": 1, "output_source_count": 0, "reason_refs": [[]]}
+{"probe": "contradictory_prose", "stored_summary_status": "ineligible", "accepted_conclusion": "참가 가능합니다."}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "qualification-real-storage-v1",
+  "dataset_id": "qualification-real-v0.1",
+  "snapshot_archive_sha256": "1029cabcc5a2ff6b072c60b85ca1eca82153a5bb08131d6e9cd37f6ba61d6600",
+  "snapshot_location": "exports/golden-candidates-2026-09-10",
+  "semantic_labels": [],
+  "cases": [
+    {
+      "path": "cases/G2/case.json",
+      "sha256": "6b1c26d37d5b88a3aafe6e63ff4c743e89f0594f3d6640a5148327b403d85884"
+    },
+    {
+      "path": "cases/C04/case.json",
+      "sha256": "254cf6e459f9d5c90c60b3c452d0560e1baa440108c77c47986f0ab9220deeb6"
+    },
+    {
+      "path": "cases/C01/case.json",
+      "sha256": "4526ceb17ccc19ee7170b95cdc5bf43ec774e053adda9921be6a48a797acfd93"
+    },
+    {
+      "path": "cases/C02/case.json",
+      "sha256": "59fbc080b9faeae910dbd5924322dcd6015ac4e9eb29bb1e4a47229417408ac6"
+    },
+    {
+      "path": "cases/C03/case.json",
+      "sha256": "684c10bff9a5dbed1103d532cd89f57bf3e21e18d60ebedbf14bc838ae87063b"
+    }
+  ]
+}
