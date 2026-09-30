@@ -13,6 +13,7 @@ DB 는 쓰지 않는다. 호출 수는 (공고 수 × 형식 2 × runs) 이다.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import itertools
 import json
 import os
@@ -83,7 +84,7 @@ def _run(case_id: str, label: str, doc: dict, run: int, extractor: OpenAIStructu
         "status": result.status,
         "requirement_count": len(requirements),
         "dropped": len(result.dropped_requirements),
-        "diagnostics": sorted({d.code for d in result.diagnostics}),
+        "diagnostics": dict(sorted(Counter(d.code for d in result.diagnostics).items())),
         "signatures": sorted(json.dumps(_signature(r), ensure_ascii=False) for r in requirements),
         "open_vocabulary_requirements": sum(
             1 for r in requirements
@@ -144,6 +145,7 @@ def main() -> None:
                 "errors": sum(1 for r in runs if r["case"] == case_id and r["format"] == label and "error" in r),
                 "statuses": [r["status"] for r in ok],
                 "requirement_counts": [r["requirement_count"] for r in ok],
+                "unmapped_counts": [r["diagnostics"].get("UNMAPPED_REQUIREMENT", 0) for r in ok],
                 "identical_sets": len({frozenset(s) for s in sig_sets}) == 1 if sig_sets else None,
                 "mean_pairwise_jaccard": round(sum(pair_scores) / len(pair_scores), 3) if pair_scores else None,
                 "open_vocabulary_share": [
