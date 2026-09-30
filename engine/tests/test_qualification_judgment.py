@@ -181,7 +181,11 @@ def test_partial_policy_keeps_any_of_logic_and_never_promotes_to_eligible():
 def test_performance_amount_cannot_use_unrelated_field_or_future_work():
     req = _requirement("amount", "PERFORMANCE_AMOUNT", operator=">=", value=100, scope={"experience_field": "해외진출"})
     profile = _profile(completeness=ProfileCompleteness(performances=True))
-    assert judge_requirements([req], profile, preflight_case_id="c", reference_date=REFERENCE_DATE).overall_status == "ineligible"
+    # 분야 이름은 통제 어휘가 없어 "다르다"를 확정할 수 없다(ADR 0001 문제 4). 충족으로 쓰지는 않되
+    # 미달로 단정하지도 않는다.
+    result = judge_requirements([req], profile, preflight_case_id="c", reference_date=REFERENCE_DATE)
+    assert result.judgments[0].status == "UNKNOWN"
+    assert result.overall_status == "insufficient_data"
     future = profile.performances[0].model_copy(update={"completed_at": date(2027, 1, 1), "fields": ["해외진출"]})
     profile = profile.model_copy(update={"performances": [future]})
     assert judge_requirements([req], profile, preflight_case_id="c", reference_date=REFERENCE_DATE).overall_status == "ineligible"
@@ -198,3 +202,32 @@ def test_judgment_exposes_human_readable_reason() -> None:
         reason_code="INSUFFICIENT_DATA",
     )
     assert judgment.reason == "판정에 필요한 회사 정보가 부족합니다."
+
+
+def test_open_vocabulary_mismatch_is_unknown_not_unsatisfied():
+    """같은 실적을 다른 말로 적은 회사를 미달로 판정하지 않는다 (골든 J06 조항)."""
+    req = _requirement(
+        "count", "PERFORMANCE_COUNT", operator=">=", value=2, period_months=24,
+        scope={"experience_field": "단체급식 운영"},
+    )
+    work = [
+        ProfilePerformanceFact(ref=f"p{i}", name=f"기관{i} 단체급식소 위탁운영", amount=1, completed_at=day,
+                               fields=["단체급식소 위탁운영"], verified=True)
+        for i, day in enumerate([date(2025, 6, 30), date(2026, 3, 31)])
+    ]
+    profile = _profile(completeness=ProfileCompleteness(performances=True)).model_copy(update={"performances": work})
+    judgment = judge_requirements([req], profile, preflight_case_id="c", reference_date=REFERENCE_DATE).judgments[0]
+    assert judgment.status == "UNKNOWN"
+
+
+def test_no_performance_in_period_is_still_unsatisfied():
+    """분야를 따지기 전에 기간 안 실적 자체가 없으면 미달이다 — 어휘 문제가 아니다."""
+    req = _requirement(
+        "count", "PERFORMANCE_COUNT", operator=">=", value=1, period_months=12,
+        scope={"experience_field": "단체급식 운영"},
+    )
+    old = ProfilePerformanceFact(ref="p", name="단체급식 운영", amount=1, completed_at=date(2020, 1, 1),
+                                 fields=["단체급식 운영"], verified=True)
+    profile = _profile(completeness=ProfileCompleteness(performances=True)).model_copy(update={"performances": [old]})
+    judgment = judge_requirements([req], profile, preflight_case_id="c", reference_date=REFERENCE_DATE).judgments[0]
+    assert judgment.status == "UNSATISFIED"

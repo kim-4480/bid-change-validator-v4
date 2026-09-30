@@ -275,7 +275,13 @@ def _performance_candidates(
     profile: CompanyProfileSnapshot,
     requirement: QualificationRequirement,
     reference_date: date,
-) -> tuple[list[ProfilePerformanceFact], bool]:
+) -> tuple[list[ProfilePerformanceFact], bool, bool]:
+    """기간 안의 실적 후보, 날짜가 모호한 실적 유무, 열린 어휘 때문에 빠진 실적 유무.
+
+    경험분야·발주처는 통제 어휘가 없는 자유 문자열이다(ADR 0001 문제 4). 기간 안의 실적이
+    문자열 비교로만 빠졌다면 "다르다"가 아니라 "같은지 모른다"이므로, 호출부는 그 경우
+    미달로 확정하지 않고 확인 필요로 돌린다.
+    """
     cutoff = (
         _subtract_months(reference_date, requirement.period_months)
         if requirement.period_months is not None
@@ -285,16 +291,17 @@ def _performance_candidates(
 
     candidates: list[ProfilePerformanceFact] = []
     has_ambiguous_date = False
+    vocabulary_unresolved = False
+    field = requirement.scope.get("experience_field")
     for item in profile.performances:
-        field = requirement.scope.get("experience_field")
+        vocabulary_ok = True
         if field and not any(_string_match(value, field) for value in [item.name, *item.fields]):
-            continue
-        if client_requirement:
+            vocabulary_ok = False
+        if vocabulary_ok and client_requirement:
             client_ok = _string_match(item.client_name or "", client_requirement)
             if not client_ok and _norm(client_requirement) == _norm("공공기관"):
                 client_ok = bool(item.client_institution_code) or "공공" in _norm(item.client_name)
-            if not client_ok:
-                continue
+            vocabulary_ok = client_ok
         if item.completed_at is not None:
             if item.completed_at > reference_date:
                 continue
@@ -306,13 +313,16 @@ def _performance_candidates(
             if earliest > reference_date or (cutoff is not None and latest < cutoff):
                 continue
             if latest > reference_date or (cutoff is not None and earliest < cutoff):
-                has_ambiguous_date = True
+                has_ambiguous_date = has_ambiguous_date or vocabulary_ok
                 continue
         else:
-            has_ambiguous_date = True
+            has_ambiguous_date = has_ambiguous_date or vocabulary_ok
+            continue
+        if not vocabulary_ok:
+            vocabulary_unresolved = True
             continue
         candidates.append(item)
-    return candidates, has_ambiguous_date
+    return candidates, has_ambiguous_date, vocabulary_unresolved
 
 
 # [재현 2026-09-13] 2026-07-01 광주·전남 행정통합으로 지역 이름에 위계가 생겼다.
@@ -579,11 +589,11 @@ def _judge_performance_amount(
     preflight_case_id: str,
     reference_date: date,
 ) -> Judgment:
-    candidates, has_ambiguous_date = _performance_candidates(
+    candidates, has_ambiguous_date, vocabulary_unresolved = _performance_candidates(
         profile, requirement, reference_date
     )
     if not candidates:
-        if has_ambiguous_date or not profile.completeness.performances:
+        if has_ambiguous_date or vocabulary_unresolved or not profile.completeness.performances:
             return _unknown(requirement, preflight_case_id)
         return _judgment(
             requirement=requirement,
@@ -609,7 +619,7 @@ def _judge_performance_amount(
     )
     if compared is None:
         return _unknown(requirement, preflight_case_id, unsupported=True)
-    if not compared and has_ambiguous_date:
+    if not compared and (has_ambiguous_date or vocabulary_unresolved):
         return _unknown(requirement, preflight_case_id)
     if aggregation == "UNSPECIFIED" and len(candidates) > 1:
         summed = sum(item.amount for item in candidates)
@@ -638,14 +648,14 @@ def _judge_performance_count(
     preflight_case_id: str,
     reference_date: date,
 ) -> Judgment:
-    candidates, has_ambiguous_date = _performance_candidates(
+    candidates, has_ambiguous_date, vocabulary_unresolved = _performance_candidates(
         profile, requirement, reference_date
     )
     observed = len(candidates)
     compared = _compare_number(observed, requirement.operator, requirement.value)
     if compared is None:
         return _unknown(requirement, preflight_case_id, unsupported=True)
-    if not compared and has_ambiguous_date:
+    if not compared and (has_ambiguous_date or vocabulary_unresolved):
         return _unknown(requirement, preflight_case_id)
     if not compared and not profile.completeness.performances:
         return _unknown(requirement, preflight_case_id)
@@ -671,7 +681,7 @@ def _judge_experience_field(
 ) -> Judgment:
     if requirement.operator not in {"MATCH", "="} or requirement.value is None:
         return _unknown(requirement, preflight_case_id, unsupported=True)
-    candidates, has_ambiguous_date = _performance_candidates(
+    candidates, has_ambiguous_date, vocabulary_unresolved = _performance_candidates(
         profile, requirement, reference_date
     )
     matched = next(
@@ -693,7 +703,8 @@ def _judge_experience_field(
             reason_code="RULE_MATCH",
             profile_refs=[_profile_ref("performance", "ref", matched.ref)],
         )
-    if has_ambiguous_date:
+    # 기간 안의 실적은 있는데 분야 이름이 문자열로 안 맞았다면 같은 분야인지 모르는 것이다.
+    if has_ambiguous_date or vocabulary_unresolved or candidates:
         return _unknown(requirement, preflight_case_id)
     if not profile.completeness.performances:
         return _unknown(requirement, preflight_case_id)
