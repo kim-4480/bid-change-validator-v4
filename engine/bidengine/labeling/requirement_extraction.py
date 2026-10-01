@@ -203,12 +203,31 @@ def _heading_text(chunk: dict[str, Any]) -> str:
     return text.splitlines()[0] if text else ""
 
 
+# 제목은 짧거나("3. 입찰참가자격"), 주제어로 시작해 쌍점으로 본문을 잇는다("3. 입찰 참가자격 : 다음
+# 조건을 모두 충족하는 자"). 본문 항목("1. … 입찰참가자격등록규정에 따라 … 완료한 자", "가. 입찰참가자는
+# … 숙지하여야 합니다")도 같은 낱말을 품지만 문장이다. 그것을 제목으로 보면 그 항목 하나만 자격 절이
+# 되고, 문서에 앵커가 생겼다는 이유로 키워드 보조 선택까지 꺼져 나머지 요건 항목이 통째로 빠진다
+# (2026-10-01 표본 R26BK01744796: 1~6번 중 1·5번만 선택).
+_HEADING_MAX_CHARS = 30
+_HEADING_KEYWORD_MAX_OFFSET = 10
+_HEADING_COLON_WINDOW = 12
+
+
 def _is_eligibility_section_anchor(chunk: dict[str, Any]) -> bool:
     rank = _label_rank(chunk)
     if rank is None:
         return False
     heading = _heading_text(chunk)
-    return any(keyword in heading for keyword in _SECTION_HEADER_KEYWORDS)
+    marker = _HEADING_MARKER_RE.match(heading)
+    title = heading[marker.end():].strip(" .．)") if marker else heading.strip()
+    hits = [(title.find(keyword), keyword) for keyword in _SECTION_HEADER_KEYWORDS if keyword in title]
+    if not hits:
+        return False
+    if len(title) <= _HEADING_MAX_CHARS:
+        return True
+    offset, keyword = min(hits)
+    tail = title[offset + len(keyword): offset + len(keyword) + _HEADING_COLON_WINDOW]
+    return offset <= _HEADING_KEYWORD_MAX_OFFSET and (":" in tail or "：" in tail)
 
 
 SelectionMode = str  # "anchored" | "keyword_fallback" | "whole_document"

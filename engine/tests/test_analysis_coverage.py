@@ -90,6 +90,25 @@ def test_selection_mode_reports_how_the_section_was_found():
     assert select_eligibility_chunks_with_mode(plain)[1] == "whole_document"
 
 
+def test_body_item_that_mentions_the_keyword_is_not_a_section_heading():
+    """본문 항목이 '입찰참가자격' 을 품었다고 제목이 되면, 그 항목만 절이 되고 나머지 요건이 빠진다."""
+    def chunk(index, label, text):
+        return {"chunk_id": str(index), "clause_label": label, "text": text, "source_blocks": []}
+
+    body_only = [
+        chunk(0, "1", "1. 지방계약 관계 법령과 국가종합전자조달시스템 입찰참가자격등록규정에 따라 전자입찰 참가등록을 완료한 자"),
+        chunk(1, "2", "2. 입찰공고일 전일부터 본점 소재지가 경상남도에 있는 자"),
+        chunk(2, "4", "4. 최근 5년 이내 설치 완료실적 누계가 400,000,000원 이상인 자"),
+        chunk(3, "5", "5. 지방계약 관계 법령에 따른 입찰참가자격 제한 또는 부정당업자 제재 중이 아닌 자"),
+    ]
+    selected, mode = select_eligibility_chunks_with_mode(body_only)
+    assert mode == "keyword_fallback"
+    assert [c["chunk_id"] for c in selected] == ["0", "1", "2", "3"]
+
+    with_colon = [chunk(0, "3", "3. 입찰 참가자격 : 다음 조건을 모두 충족하는 자로서 아래 각 호에 해당하는 업체"), chunk(1, "가", "가. 업종")]
+    assert select_eligibility_chunks_with_mode(with_colon)[1] == "anchored"
+
+
 def test_same_unmapped_clause_counts_once():
     clause = {"code": "UNMAPPED_REQUIREMENT", "raw": "건축(또는 토목건축)공사업 등록업체", "reason": "ALTERNATIVE_OR_EXCEPTION_RULE"}
     result = _result([clause, dict(clause, raw="건축(또는 토목건축)공사업  등록업체")])
