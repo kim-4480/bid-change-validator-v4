@@ -11,6 +11,8 @@
   2. 모델은 조항 목록을 보고 참가자격인 조항의 id 만 고른다. 원문을 쓰거나 경계를 바꿀 수 없다.
   3. 선택 = 코드 선택 ∪ 모델 선택. 모델이 고른 조항이 든 청크를 자격 절에 더한다.
   4. 선택 결과는 조항 원문의 해시로 기억한다. 같은 문장은 다시 돌려도, 다음 차수에서도 같은 결정을 받는다.
+     --memory union(기본)은 한 번이라도 고른 조항을 기억하고, first 는 첫 실행의 결정만 쓴다. 첫 실행이
+     덜 고르면 그 조항이 계속 빠져서(R26BK01744644) 합집합을 기본으로 둔다.
   5. 라벨링은 clause 방식 그대로다.
 
 방식 (--modes)
@@ -218,6 +220,7 @@ def main() -> None:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--selection-workers", type=int, default=2)
     parser.add_argument("--modes", nargs="+", default=list(MODES), choices=MODES)
+    parser.add_argument("--memory", choices=("union", "first"), default="union")
     parser.add_argument("--reuse", action="store_true", help="--out 의 호출 결과로 다시 계산만 한다")
     parser.add_argument("--resume", action="store_true", help="--out 에서 성공한 호출은 두고 빠진 것만 돈다")
     args = parser.parse_args()
@@ -243,14 +246,15 @@ def main() -> None:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps({"selections": selections, "runs": kept_runs}, ensure_ascii=False), encoding="utf-8")
 
-    # 기억: 조항 해시마다 첫 실행의 결정을 쓴다. 같은 문장은 어느 차수에서나 같은 결정이다.
+    # 기억: 같은 문장은 어느 차수에서나 같은 결정이다.
     by_body: dict[str, list[dict]] = {}
     for selection in selections:
         if "error" not in selection:
             by_body.setdefault(selection["body_key"], []).append(selection)
     remembered: set[str] = set()
     for group in by_body.values():
-        remembered.update(min(group, key=lambda s: s["run"])["picked"])
+        for selection in group if args.memory == "union" else [min(group, key=lambda s: s["run"])]:
+            remembered.update(selection["picked"])
 
     plans = {}
     for label, p in prepared.items():
