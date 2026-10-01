@@ -13,6 +13,12 @@
   4. 선택 결과는 조항 원문의 해시로 기억한다. 같은 문장은 다시 돌려도, 다음 차수에서도 같은 결정을 받는다.
   5. 라벨링은 clause 방식 그대로다.
 
+방식 (--modes)
+  - clause        : 코드 선택만 (지금의 clause 방식)
+  - hybrid        : 코드 선택 ∪ 모델 선택
+  - model_chunks  : 모델이 고른 조항이 든 청크만. 모델이 아무것도 고르지 않으면 코드 선택으로 돌아간다.
+  - model_clauses : 모델이 고른 조항만(같은 청크의 다른 조항도 뺀다)
+
 재는 것
   - 선택 일치도: 같은 문서로 선택 호출을 되풀이했을 때 고른 조항 집합이 얼마나 같은가(기억을 쓰지 않을 때의 흔들림).
   - 불일치: 모델만 고른 조항 / 코드만 고른 조항. 지금은 보이지 않는 누락과 과잉 선택이 여기 드러난다.
@@ -50,7 +56,7 @@ from bideval.notice_sample import SampleVersion, load_sample
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from sample_compare import summarize  # noqa: E402
 
-MODES = ("clause", "hybrid")
+MODES = ("clause", "hybrid", "model_chunks", "model_clauses")
 CLAUSE_PREVIEW_CHARS = 300   # 고르는 데는 조항 앞부분이면 된다
 SELECTION_BATCH_CHARS = 40_000
 
@@ -75,9 +81,12 @@ _local = threading.local()
 _original_selector = select_eligibility_chunks_with_mode
 
 
-def _selector_with_extra(chunks):
-    """코드 선택에, 이 스레드가 지정한 청크(모델이 고른 조항이 든 청크)를 더한다."""
+def _selector_for_thread(chunks):
+    """이 스레드가 지정한 대로 자격 절을 고른다 — 코드 선택에 더하거나(extra), 모델 선택으로 바꾼다(only)."""
     target, mode = _original_selector(chunks)
+    only = getattr(_local, "only_chunk_ids", None)
+    if only:
+        return [chunk for chunk in chunks if chunk["chunk_id"] in only], mode
     extra = getattr(_local, "extra_chunk_ids", None)
     if not extra:
         return target, mode
@@ -85,7 +94,15 @@ def _selector_with_extra(chunks):
     return [chunk for chunk in chunks if chunk["chunk_id"] in wanted], mode
 
 
-clause_labeling.select_eligibility_chunks_with_mode = _selector_with_extra
+def _clauses_for_thread(chunks):
+    """model_clauses: 모델이 고른 조항만 남긴다. 조항 id 는 원래 번호를 그대로 둔다."""
+    clauses = enumerate_clauses(chunks)
+    keep = getattr(_local, "only_clause_hashes", None)
+    return [clause for clause in clauses if _hash(clause.text) in keep] if keep else clauses
+
+
+clause_labeling.select_eligibility_chunks_with_mode = _selector_for_thread
+clause_labeling.enumerate_clauses = _clauses_for_thread
 
 
 def _documents(version: SampleVersion) -> list[QualificationDocumentInput]:
@@ -159,9 +176,12 @@ def _select(prepared: Prepared, model: str, run: int) -> dict:
             "seconds": round(time.monotonic() - started, 1)}
 
 
-def _extract(version: SampleVersion, mode: str, model: str, run: int, extra_chunk_ids: set[str]) -> dict:
+def _extract(version: SampleVersion, mode: str, model: str, run: int, plan: dict) -> dict:
+    """plan: extra(코드가 놓친 청크) · model_chunks(모델이 고른 조항이 든 청크) · model_hashes(고른 조항)."""
     started = time.monotonic()
-    _local.extra_chunk_ids = extra_chunk_ids if mode == "hybrid" else None
+    _local.extra_chunk_ids = plan["extra"] if mode == "hybrid" else None
+    _local.only_chunk_ids = plan["model_chunks"] if mode in {"model_chunks", "model_clauses"} else None
+    _local.only_clause_hashes = plan["model_hashes"] if mode == "model_clauses" and plan["model_chunks"] else None
     try:
         result = analyze_qualification_documents(
             QualificationAnalysisInput(notice_id=version.label, notice_version_id=f"{version.label}-{mode}-{run}",
@@ -173,7 +193,7 @@ def _extract(version: SampleVersion, mode: str, model: str, run: int, extra_chun
     except Exception as error:  # noqa: BLE001
         return {"version": version.label, "mode": mode, "model": model, "run": run, "error": repr(error)[:300]}
     finally:
-        _local.extra_chunk_ids = None
+        _local.extra_chunk_ids = _local.only_chunk_ids = _local.only_clause_hashes = None
     return {
         "version": version.label, "mode": mode, "model": model, "run": run,
         "seconds": round(time.monotonic() - started, 1),
@@ -197,8 +217,9 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=6)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--selection-workers", type=int, default=2)
+    parser.add_argument("--modes", nargs="+", default=list(MODES), choices=MODES)
     parser.add_argument("--reuse", action="store_true", help="--out 의 호출 결과로 다시 계산만 한다")
-    parser.add_argument("--resume", action="store_true", help="--out 에서 성공한 선택과 clause 실행은 두고 나머지만 다시 돈다")
+    parser.add_argument("--resume", action="store_true", help="--out 에서 성공한 호출은 두고 빠진 것만 돈다")
     args = parser.parse_args()
 
     notices, changed = load_sample(args.sample)
@@ -211,7 +232,7 @@ def main() -> None:
 
     saved = json.loads(args.out.read_text(encoding="utf-8")) if args.reuse or args.resume else {"selections": [], "runs": []}
     selections = [s for s in saved["selections"] if args.reuse or "error" not in s]
-    kept_runs = [r for r in saved["runs"] if args.reuse or (r["mode"] == "clause" and "error" not in r)]
+    kept_runs = [r for r in saved["runs"] if args.reuse or "error" not in r]
     runs = kept_runs
     if not args.reuse:
         done = {(s["body_key"], s["run"]) for s in selections}
@@ -231,13 +252,17 @@ def main() -> None:
     for group in by_body.values():
         remembered.update(min(group, key=lambda s: s["run"])["picked"])
 
-    extra = {label: {chunk for digest in remembered & set(p.chunk_of_hash) for chunk in p.chunk_of_hash[digest]}
-             - p.code_chunk_ids for label, p in prepared.items()}
+    plans = {}
+    for label, p in prepared.items():
+        hashes = remembered & set(p.chunk_of_hash)
+        model_chunks = {chunk for digest in hashes for chunk in p.chunk_of_hash[digest]}
+        plans[label] = {"extra": model_chunks - p.code_chunk_ids, "model_chunks": model_chunks, "model_hashes": hashes}
+    extra = {label: plan["extra"] for label, plan in plans.items()}
 
     if not args.reuse:
         done_runs = {(r["version"], r["mode"], r["run"]) for r in kept_runs}
-        jobs = [(versions[label], mode, args.model, run, extra[label])
-                for label in versions for mode in MODES for run in range(args.runs)
+        jobs = [(versions[label], mode, args.model, run, plans[label])
+                for label in versions for mode in args.modes for run in range(args.runs)
                 if (label, mode, run) not in done_runs]
         print(f"labeling_calls={len(jobs)}")
         with ThreadPoolExecutor(max_workers=args.workers) as pool:
@@ -268,6 +293,9 @@ def main() -> None:
         agreement += [_jac(a, b) for a, b in itertools.combinations(sets, 2)]
 
     summary = summarize(runs, changed_labels, MODES)
+    for key, row in summary.items():
+        mine = [r for r in runs if "error" not in r and f"{r['model']}/{r['mode']}" == key]
+        row["target_chunks_mean"] = round(st.mean(r["target_chunks"] for r in mine), 1)
     selection_summary = {
         "selection_calls": len(selections),
         "selection_errors": sum("error" in s for s in selections),
