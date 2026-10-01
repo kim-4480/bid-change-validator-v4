@@ -96,6 +96,8 @@ def test_name_alternatives_inside_the_value_span_become_any_of():
 def test_sido_names_are_a_closed_vocabulary():
     assert sido_names("해당 연도 제도 정도 [충청남도] 또는 [세 종특별시] 강원도") == ["충청남도", "세종특별자치시", "강원특별자치도"]
     assert value_name_alternatives("정보통신공사업") is None
+    assert value_name_alternatives("진공또는원심농축기 세부품명번호 4110481601") is None   # 품명 안의 '또는'
+    assert value_name_alternatives("진공또는원심농축기") is None
 
 
 def test_polarity_is_asked_once_per_clause_and_remembered():

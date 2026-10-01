@@ -314,7 +314,9 @@ def value_name_alternatives(value: str) -> list[str] | None:
     """
     text = " ".join((value or "").split())
     text = re.sub(r"\s*([()（）,，])\s*", r"\1", text)
-    if "또는" not in text:
+    # '또는' 이 낱말로 서 있을 때만 대안이다. "진공또는원심농축기" 는 품명 하나다. 숫자가 든 값(업종코드·
+    # 세부품명번호)은 코드 경로의 몫이라 여기서 이름으로 쪼개지 않는다.
+    if not re.search(r"(?:\s|\()또는\s", text) or re.search(r"[0-9]{4}", text):
         return None
     paren = list(_PAREN_ALTERNATION_RE.finditer(text))
     if len(paren) == 1 and "또는" not in _PAREN_ALTERNATION_RE.sub(" ", text):
