@@ -175,6 +175,25 @@ def unsafe_clause_reason(raw: str) -> str | None:
     return None
 
 
+def guard_reasons(raw: str) -> list[str]:
+    """unsafe_clause_reason 과 같은 규칙으로, 걸리는 사유를 **전부** 돌려준다(첫 사유만이 아니라).
+
+    맥락 가드(context_guard)가 낱말 사유 하나를 풀고 나서 다른 사유가 남는지 봐야 해서 필요하다.
+    """
+    has_code = bool(_INDUSTRY_CODE_HINT_RE.search(re.sub(r"\s+", "", raw or "")))
+    collapsed_raw = " ".join((raw or "").split())
+    reasons: list[str] = []
+    if not has_code and _NARA_MARKET_PROCEDURAL_RE.search(collapsed_raw):
+        reasons.append("LEGAL_PROCEDURAL_RULE")
+    text = strip_decorations(raw)
+    for pattern, code in _COMPLEX_PATTERNS:
+        if code == "LEGAL_PROCEDURAL_RULE" and has_code:
+            continue
+        if code not in reasons and re.search(pattern, text):
+            reasons.append(code)
+    return reasons
+
+
 # ---------------------------------------------------------------------------
 # 구조를 보는 가드
 #

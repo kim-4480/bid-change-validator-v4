@@ -17,6 +17,7 @@ callers may still override the normalizer in tests or experiments.
 from __future__ import annotations
 
 import os
+from collections.abc import MutableMapping
 
 from collections.abc import Callable
 from typing import Any
@@ -31,6 +32,7 @@ from bidengine.normalization import normalize_value as default_normalize_value
 from bidengine.labeling.code_salvage import exception_guarded_codes, salvage_missing_industry_slots
 from bidengine.judgment.clause_safety import GUARD_ASSESSED, GUARD_REASON_EXCEPTION
 from bidengine.labeling.clause_labeling import extract_clause_slots
+from bidengine.labeling.clause_polarity import attach_clause_polarity
 from bidengine.labeling.requirement_extraction import StructuredExtractor, extract_legacy_slots
 from bidengine.ports import IndustryNameResolver
 
@@ -116,6 +118,8 @@ def analyze_qualification_documents(
     max_chunk_chars: int = 1800,
     industry_resolver: IndustryNameResolver | None = None,
     extraction_mode: str | None = None,
+    polarity_guard: bool | None = None,
+    polarity_memory: MutableMapping[str, str] | None = None,
 ) -> RequirementAnalysisResult:
     """Run one qualification Requirement analysis without touching Backend state."""
     document_ids = [document.document_id for document in analysis_input.documents]
@@ -150,6 +154,17 @@ def analyze_qualification_documents(
         normalize_value=normalize_value,
     )
 
+    # 맥락 가드(실험 중): 조항마다 극성을 모델에게 물어 슬롯에 붙인다. 붙은 슬롯은 낱말 가드 대신
+    # context_guard 로 판단된다. 지정하지 않으면 BIDENGINE_POLARITY_GUARD(on | off, 기본 off)를 본다.
+    use_polarity = (
+        polarity_guard if polarity_guard is not None
+        else os.getenv("BIDENGINE_POLARITY_GUARD", "off").strip().lower() == "on"
+    )
+    if use_polarity:
+        attach_clause_polarity(
+            normalized_slots, structured_extract=structured_extract, memory=polarity_memory, max_retry=max_retry
+        )
+
     canonicalized = canonicalize_validated_slots(
         normalized_slots,
         notice_version_id=analysis_input.notice_version_id,
@@ -174,8 +189,13 @@ def analyze_qualification_documents(
         target_chunks = [chunk for chunk in chunks if chunk.get("chunk_id") in target_ids]
         salvaged = salvage_missing_industry_slots(reached, target_chunks)
         if salvaged:
+            salvaged = _normalize_extracted_slots(salvaged, normalize_value=normalize_value)
+            if use_polarity:
+                attach_clause_polarity(
+                    salvaged, structured_extract=structured_extract, memory=polarity_memory, max_retry=max_retry
+                )
             extra = canonicalize_validated_slots(
-                _normalize_extracted_slots(salvaged, normalize_value=normalize_value),
+                salvaged,
                 notice_version_id=analysis_input.notice_version_id,
                 source_type="NOTICE_DOCUMENT",
                 key_prefix="REQ-S",

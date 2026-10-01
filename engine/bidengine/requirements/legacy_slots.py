@@ -14,6 +14,7 @@ from typing import Any
 from bidengine.contracts import QualificationRequirement, RequirementOperator, RequirementType
 from bidengine.ports import IndustryNameResolver
 from bidengine.judgment.clause_safety import GUARD_ASSESSED, assess_clause, strip_decorations, unsafe_clause_reason
+from bidengine.judgment.context_guard import decide as decide_context
 from bidengine.judgment.rules import _COMPANY_SIZE_ALIASES
 from bidengine.requirements.deduplicate import _INDUSTRY_NAME_VALUE_RE, _REGISTRATION_ACT_VALUE_RE
 
@@ -281,6 +282,57 @@ _REGION_ONLY_RE = re.compile(
 )
 
 
+# 시·도는 닫힌 어휘다. 조항에서 이름을 세면 '또는' 이 지역끼리의 대안인지(이름이 둘 이상) 주소 서류에 대한
+# 부연인지(이름이 하나) 코드가 가를 수 있다. "…도" 로 끝나는 낱말(연도·제도·정도)을 지역으로 읽지 않도록
+# 이름을 직접 적는다.
+_SIDO_RE = re.compile(
+    r"(?:서울|전남광주통합)특별시|(?:부산|대구|인천|광주|대전|울산)광역시|세종특별(?:자치)?시"
+    r"|(?:강원|전북|제주)특별자치도|경기도|강원도|충청북도|충청남도|전라북도|전라남도|경상북도|경상남도|제주도"
+)
+_SIDO_ALIASES = {
+    "강원도": "강원특별자치도", "전라북도": "전북특별자치도", "제주도": "제주특별자치도", "세종특별시": "세종특별자치시",
+}
+# 목록에 없는 시·도 이름이 남아 있는지 본다. 이 접미사는 지역 이름에만 쓰인다.
+_UNKNOWN_SIDO_RE = re.compile(r"특별자치시|특별자치도|특별시|광역시")
+
+
+def sido_names(text: str) -> list[str]:
+    """글에 나오는 시·도 이름(나온 순서, 중복 없이). PDF 가 낱말 안에서 줄을 바꾸므로 공백을 걷고 읽는다."""
+    compact = _compact(text or "")
+    names = list(dict.fromkeys(_SIDO_ALIASES.get(name, name) for name in _SIDO_RE.findall(compact)))
+    if _UNKNOWN_SIDO_RE.search(_SIDO_RE.sub(" ", compact)):
+        # 아는 이름을 걷어내고도 시·도 접미사가 남았다. 모르는 지역을 하나로 세어, 관계를 모르는 채로
+        # 한 지역만 확정하는 일을 막는다.
+        names.append("미상 시·도")
+    return names
+
+
+def value_name_alternatives(value: str) -> list[str] | None:
+    """값 구간 안에서 '또는' 으로 나열된 이름들. "건축공사업(또는 토목건축공사업)" → 두 이름. 아니면 None.
+
+    조항 전체가 아니라 모델이 값으로 짚은 구간만 본다 — 구간 밖의 '또는' 은 이 값의 대안이 아니다.
+    """
+    text = " ".join((value or "").split())
+    text = re.sub(r"\s*([()（）,，])\s*", r"\1", text)
+    if "또는" not in text:
+        return None
+    paren = list(_PAREN_ALTERNATION_RE.finditer(text))
+    if len(paren) == 1 and "또는" not in _PAREN_ALTERNATION_RE.sub(" ", text):
+        match = paren[0]
+        tail = re.sub(r"^(?:으로|로|을|를|에|의|이|가)$", "", match.group("tail"))
+        alternatives = [a.strip() for a in re.split(r"\s*[,，]\s*|\s*또는\s*", match.group("alts")) if a.strip()]
+        names = [match.group("head") + tail] + [alt + tail for alt in alternatives]
+    elif not paren:
+        names = [_clean_name(part) for part in _ALTERNATION_SPLIT_RE.split(text)]
+    else:
+        return None
+    if len(names) < 2 or any(not name or len(name) > 40 for name in names):
+        return None
+    if len({_compact(name) for name in names}) != len(names):
+        return None
+    return names
+
+
 def _region_names(match: re.Match[str]) -> list[str]:
     names = re.findall(_REGION_NAME, match.group("regions"))
     return list(dict.fromkeys(names))
@@ -414,7 +466,18 @@ def adapt_legacy_slot(
     # 남겼다. 어느 필드에 담겼는지는 모델 마음이라 가드는 둘을 합쳐서 본다. 요건에 실제로
     # 저장되는 raw 는 그대로(raw=raw) — 가드 판단에만 쓴다.
     registration_name = (slot.get("등록인증_raw") or "").strip()
-    unsafe_reason = unsafe_clause_reason(f"{raw} {registration_name}" if registration_name else raw)
+    guard_text = f"{raw} {registration_name}" if registration_name else raw
+    unsafe_reason = unsafe_clause_reason(guard_text)
+    # 조항의 극성이 붙어 있으면(clause_polarity) 낱말 가드를 맥락으로 다시 판단한다. 붙어 있지 않으면
+    # 아래는 전부 예전 그대로다.
+    context = decide_context(
+        guard_text,
+        slot.get("_clause_polarity"),
+        exclusion_representable=slot_type == "기업규모요건" and bool(_SIZE_EXCLUSION_RE.search(raw)),
+    )
+    if context.action == "ABSTAIN":
+        return [], [{"code": "UNMAPPED_REQUIREMENT", "raw": raw, "reason": context.reason}]
+    guard_lifted = context.action == "KEEP"
     alternation = (
         industry_code_alternation(raw)
         if unsafe_reason == "ALTERNATIVE_OR_EXCEPTION_RULE"
@@ -435,7 +498,7 @@ def adapt_legacy_slot(
         return _region_requirements(
             raw, regions_only, notice_version_id=notice_version_id, key_prefix=key_prefix
         ), [{"code": "REGION_ALTERNATION", "raw": raw, "regions": list(regions_only)}]
-    if unsafe_reason and alternation is None and names is None:
+    if unsafe_reason and alternation is None and names is None and not guard_lifted:
         return [], [{"code": "UNMAPPED_REQUIREMENT", "raw": raw, "reason": unsafe_reason}]
     diagnostics: list[dict[str, Any]] = []
     requirements: list[QualificationRequirement] = []
@@ -481,6 +544,11 @@ def adapt_legacy_slot(
         # 가드 평가를 구조에 새긴다. 판정기·askability 는 이 표시가 있는 요건의 raw 를 다시
         # 읽지 않는다 — ANY_OF 로 담은 '또는' 을 판정기가 또 막던 문제(J14)가 여기서 끝난다.
         assessment = assess_clause(raw, group_operator=str(group_operator))
+        complexity = assessment.complexity
+        if guard_lifted:
+            # 극성으로 가드를 푼 요건이다. 판정기는 raw 를 다시 읽지 않는다(scope.guard). 무엇으로 정했는지 남긴다.
+            complexity = "simple"
+            scope = {**(scope or {}), "guard_basis": context.basis}
         if isinstance(value, str):
             value = normalize_value_text(value, req_type=req_type)
         if req_type == "STAFF" and scope and isinstance(scope.get("role"), str):
@@ -504,10 +572,24 @@ def adapt_legacy_slot(
                 unit=unit,
                 period_months=period_months,
                 scope={**(scope or {}), "guard": GUARD_ASSESSED},
-                condition_complexity=assessment.complexity,
+                condition_complexity=complexity,
                 raw=raw,
             )
         )
+
+    def lifted_name_alternatives(value: str) -> list[QualificationRequirement] | None:
+        """가드를 푼 조항에서 값 구간이 이름의 대안("A(또는 B)")이면 ANY_OF 묶음으로 담는다."""
+        alternatives = value_name_alternatives(value) if guard_lifted else None
+        if alternatives is None:
+            return None
+        built, extra = _registration_alternation_requirements(
+            raw, alternatives, notice_version_id=notice_version_id, key_prefix=key_prefix,
+            industry_resolver=industry_resolver,
+        )
+        diagnostics.extend(extra)
+        return [
+            item.model_copy(update={"scope": {**item.scope, "guard_basis": context.basis}}) for item in built
+        ]
 
     if alternation is not None:
         # 관계를 줄이지 않고 그대로 담는다 — 코드 하나가 요건 하나, 묶음은 ANY_OF.
@@ -607,7 +689,10 @@ def adapt_legacy_slot(
 
     elif slot_type == "업종요건":
         industry = (slot.get("업종_raw") or "").strip()
-        if industry_codes:
+        alternatives_built = lifted_name_alternatives(industry) if not industry_codes else None
+        if alternatives_built is not None:
+            requirements.extend(alternatives_built)
+        elif industry_codes:
             add("INDUSTRY", "INDUSTRY", operator="MATCH", value=next(iter(industry_codes)), scope={"industry_name": industry} if industry else {})
         elif industry:
             add("INDUSTRY", "INDUSTRY", operator="MATCH", value=industry)
@@ -619,8 +704,24 @@ def adapt_legacy_slot(
         # 있다. 판정은 포함 비교라 통과하지만 값이 달라져 실행마다 요건 지문이 갈렸다. 지역명은
         # 행정구역 이름이지 문장이 아니다 — 꼬리를 뗀다.
         region = _REGION_TAIL_RE.sub("", (slot.get("지역_raw") or "").strip()).strip()
-        if region:
-            add("REGION", "REGION", operator="MATCH", value=region)
+        span_regions = sido_names(region) if guard_lifted else []
+        clause_regions = sido_names(raw) if guard_lifted else []
+        if len(span_regions) >= 2 and "미상 시·도" not in span_regions and not re.search(r"및|과\s|와\s", region):
+            # 값 구간에 시·도가 둘 이상 나열됐다 — 지역끼리의 대안이다("충청남도 또는 세종특별시").
+            requirements.extend(
+                item.model_copy(update={"scope": {**item.scope, "guard_basis": context.basis}})
+                for item in _region_requirements(
+                    raw, span_regions, notice_version_id=notice_version_id, key_prefix=key_prefix
+                )
+            )
+            diagnostics.append({"code": "REGION_ALTERNATION", "raw": raw, "regions": list(span_regions)})
+        elif len(clause_regions) >= 2:
+            # 조항에는 시·도가 여럿인데 값 구간은 그것을 다 담지 않았다. 관계를 모르는 채로 하나만 확정하면
+            # 다른 지역의 회사를 미달로 만든다.
+            diagnostics.append({"code": "UNMAPPED_REGION", "raw": raw, "reason": "REGION_RELATION_UNCLEAR"})
+        elif region:
+            known = [name for name in span_regions if name != "미상 시·도"]
+            add("REGION", "REGION", operator="MATCH", value=known[0] if len(span_regions) == 1 and known else region)
         else:
             diagnostics.append({"code": "UNMAPPED_REGION", "raw": raw})
 
@@ -662,7 +763,10 @@ def adapt_legacy_slot(
             or _REGISTRATION_ACT_VALUE_RE.fullmatch(_squash_name(name))
         )
         size_alias = company_size_alias(name) if is_company_size_certificate_name(name) else None
-        if industry_codes and (slot_type == "등록요건" or looks_like_industry):
+        alternatives_built = lifted_name_alternatives(name) if not industry_codes and not size_alias else None
+        if alternatives_built is not None:
+            requirements.extend(alternatives_built)
+        elif industry_codes and (slot_type == "등록요건" or looks_like_industry):
             add("INDUSTRY", "INDUSTRY", operator="MATCH", value=next(iter(industry_codes)), scope={"kind": kind, "industry_name": name})
         elif size_alias:
             # [재현 2026-09-15] "소기업·소상공인확인서" 는 인증이 아니라 회사 규모의 증빙 서류다.
