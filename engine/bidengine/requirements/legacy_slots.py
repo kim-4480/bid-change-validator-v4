@@ -203,24 +203,53 @@ def _clean_name(part: str) -> str:
 # 대안 등록 요건 뒤에 붙은 지역 조건 — "…공사업 등록업체로서 입찰공고일 전일부터 계약체결일까지
 # 주된 영업소의 소재지를 경상남도에 둔 업체"(C03 실측). 이 꼬리 하나만 떼어 지역 요건으로 담고,
 # 앞부분은 대안 묶음으로 연다. 둘은 AND 다. 꼬리 모양이 이것과 정확히 맞을 때만 뗀다.
+# 행정구역(시·도) 이름. 지역은 닫힌 어휘라 '또는' 으로 나열돼도 각 이름을 그대로 비교할 수 있다.
+_REGION_NAME = r"[가-힣]{2,}?(?:특별자치시|특별자치도|특별시|광역시|도)"
+_REGION_LIST = rf"(?P<regions>{_REGION_NAME}(?:\s*(?:또는|,|，|·|ㆍ)\s*{_REGION_NAME})*)"
+_REGION_PREDICATE = (
+    r"\s*(?:내|안|지역)?\s*에?\s*(?:둔|두고\s*있는|있는|소재한|소재하는|위치한)\s*(?:업체|자|사업자)\s*[.。]?\s*$"
+)
 _REGION_CONDITION_RE = re.compile(
     r"\s*(?:으로서|로서|이며|이고|이면서)\s*"
     r"(?:[^.。]*?까지\s*)?"  # 기간 단서("입찰공고일 전일부터 계약체결일까지")
     r"(?:주된\s*영업소|본점|본사|주\s*사무소)(?:의)?\s*소재지(?:를|가|는)?\s*"
-    r"(?P<region>[가-힣]{2,}?(?:특별자치시|특별자치도|특별시|광역시|도))\s*(?:내|안)?\s*에?\s*"
-    r"(?:둔|두고\s*있는|있는|소재한|위치한)\s*(?:업체|자|사업자)\s*[.。]?\s*$"
+    + _REGION_LIST + _REGION_PREDICATE
+)
+# 지역 요건만으로 된 문장 — "본점 소재지가 서울특별시 또는 경기도에 있는 업체".
+_REGION_ONLY_RE = re.compile(
+    r"^(?:[0-9]+\)|[가-힣]\.|[-ㅇ○□■·])?\s*"
+    r"(?:[^.。]*?까지\s*)?"
+    r"(?:(?:주된\s*영업소|본점|본사|주\s*사무소)(?:의)?\s*)?(?:소재지|주소지)?(?:를|가|는|이)?\s*"
+    + _REGION_LIST + _REGION_PREDICATE
 )
 
 
-def registration_alternation_with_region(raw: str) -> tuple[list[str], str | None] | None:
-    """대안 이름 목록과, 문장 끝에 붙은 지역 조건(있으면). 안전하게 못 읽으면 None."""
+def _region_names(match: re.Match[str]) -> list[str]:
+    names = re.findall(_REGION_NAME, match.group("regions"))
+    return list(dict.fromkeys(names))
+
+
+def region_alternation(raw: str) -> list[str] | None:
+    """지역 요건만으로 된 문장의 지역 이름들. 둘 이상이면 대안(OR)이다. 아니면 None."""
+    collapsed = " ".join((raw or "").split())
+    if _EXCEPTION_WORDS_RE.search(collapsed) or _EXCLUSION_RE.search(collapsed):
+        return None
+    match = _REGION_ONLY_RE.search(collapsed)
+    if match is None:
+        return None
+    names = _region_names(match)
+    return names if len(names) >= 2 else None
+
+
+def registration_alternation_with_region(raw: str) -> tuple[list[str], list[str]] | None:
+    """대안 이름 목록과, 문장 끝에 붙은 지역 조건의 지역 이름들(없으면 빈 목록)."""
     collapsed = " ".join((raw or "").split())
     match = _REGION_CONDITION_RE.search(collapsed)
     if match is None:
         names = registration_alternation(raw)
-        return (names, None) if names else None
+        return (names, []) if names else None
     names = registration_alternation(collapsed[: match.start()])
-    return (names, match.group("region")) if names else None
+    return (names, _region_names(match)) if names else None
 
 
 def registration_alternation(raw: str) -> list[str] | None:
@@ -339,7 +368,16 @@ def adapt_legacy_slot(
         if unsafe_reason == "ALTERNATIVE_OR_EXCEPTION_RULE" and alternation is None
         else None
     )
-    names, attached_region = alternatives if alternatives else (None, None)
+    names, attached_regions = alternatives if alternatives else (None, [])
+    regions_only = (
+        region_alternation(raw)
+        if unsafe_reason == "ALTERNATIVE_OR_EXCEPTION_RULE" and alternation is None and names is None
+        else None
+    )
+    if regions_only is not None:
+        return _region_requirements(
+            raw, regions_only, notice_version_id=notice_version_id, key_prefix=key_prefix
+        ), [{"code": "REGION_ALTERNATION", "raw": raw, "regions": list(regions_only)}]
     if unsafe_reason and alternation is None and names is None:
         return [], [{"code": "UNMAPPED_REQUIREMENT", "raw": raw, "reason": unsafe_reason}]
     diagnostics: list[dict[str, Any]] = []
@@ -367,7 +405,7 @@ def adapt_legacy_slot(
     if names is not None:
         return _registration_alternation_requirements(
             raw, names, notice_version_id=notice_version_id, key_prefix=key_prefix,
-            industry_resolver=industry_resolver, region=attached_region,
+            industry_resolver=industry_resolver, regions=attached_regions,
         )
     if slot_type in {"업종요건", "등록요건"} and len(industry_codes) > 1 and alternation is None:
         return [], [{"code": "UNMAPPED_INDUSTRY", "raw": raw, "reason": "복수 업종코드의 관계를 확인해야 합니다."}]
@@ -631,7 +669,7 @@ def _registration_alternation_requirements(
     notice_version_id: str,
     key_prefix: str,
     industry_resolver: IndustryNameResolver | None,
-    region: str | None = None,
+    regions: list[str] | None = None,
 ) -> tuple[list[QualificationRequirement], list[dict[str, Any]]]:
     """대안 이름마다 원자 하나, 묶음은 ANY_OF. 지역 조건이 붙었으면 별도 묶음(AND)으로 하나 더. 업종 마스터에 정확히 있는 이름은 코드로 담는다.
 
@@ -660,25 +698,36 @@ def _registration_alternation_requirements(
                 raw=raw,
             )
         )
-    if region:
-        requirements.append(
-            QualificationRequirement(
-                requirement_key=f"{key_prefix}-REGION",
-                requirement_group_key=f"{key_prefix}-REGION-GROUP",
-                group_operator="ALL_OF",
-                notice_version_id=notice_version_id,
-                type="REGION",
-                operator="MATCH",
-                value=region,
-                scope={"guard": GUARD_ASSESSED},
-                condition_complexity="simple",
-                raw=raw,
-            )
+    if regions:
+        requirements.extend(
+            _region_requirements(raw, regions, notice_version_id=notice_version_id, key_prefix=key_prefix)
         )
     return requirements, [{
         "code": "REGISTRATION_ALTERNATION",
         "raw": raw,
         "names": list(names),
         "resolved_codes": resolved,
-        **({"region": region} if region else {}),
+        **({"regions": list(regions)} if regions else {}),
     }]
+
+
+def _region_requirements(
+    raw: str, regions: list[str], *, notice_version_id: str, key_prefix: str
+) -> list[QualificationRequirement]:
+    """지역 하나면 단독 요건, 둘 이상이면 ANY_OF 묶음. 어느 쪽이든 다른 묶음과는 AND 다."""
+    operator = "ANY_OF" if len(regions) > 1 else "ALL_OF"
+    return [
+        QualificationRequirement(
+            requirement_key=f"{key_prefix}-REGION" + (f"-{index}" if len(regions) > 1 else ""),
+            requirement_group_key=f"{key_prefix}-REGION-GROUP",
+            group_operator=operator,
+            notice_version_id=notice_version_id,
+            type="REGION",
+            operator="MATCH",
+            value=region,
+            scope={"guard": GUARD_ASSESSED},
+            condition_complexity="simple",
+            raw=raw,
+        )
+        for index, region in enumerate(regions, start=1)
+    ]

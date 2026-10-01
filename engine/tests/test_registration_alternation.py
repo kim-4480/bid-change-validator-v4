@@ -19,6 +19,7 @@ from bidengine.requirements.legacy_slots import (
     adapt_legacy_slot,
     labelled_industry_codes,
     registration_alternation,
+    region_alternation,
     registration_alternation_with_region,
 )
 
@@ -141,7 +142,7 @@ C03_WITH_REGION = ("가. 건설산업기본법령에 의한 건축(또는 토목
 
 
 def test_attached_region_is_split_into_its_own_requirement():
-    assert registration_alternation_with_region(C03_WITH_REGION) == (["건축공사업", "토목건축공사업"], "경상남도")
+    assert registration_alternation_with_region(C03_WITH_REGION) == (["건축공사업", "토목건축공사업"], ["경상남도"])
     reqs, _ = adapt_legacy_slot(_slot(C03_WITH_REGION), notice_version_id="v", key_prefix="R",
                                 industry_resolver=DictResolver())
     alternatives = [r for r in reqs if r.group_operator == "ANY_OF"]
@@ -151,9 +152,17 @@ def test_attached_region_is_split_into_its_own_requirement():
     assert region[0].requirement_group_key != alternatives[0].requirement_group_key
 
 
-def test_region_is_not_split_when_it_is_itself_an_alternative():
+def test_attached_region_alternatives_become_their_own_any_of_group():
     raw = "건축(또는 토목건축)공사업 등록업체로서 주된 영업소의 소재지를 경상남도 또는 부산광역시에 둔 업체"
-    assert registration_alternation_with_region(raw) is None
+    assert registration_alternation_with_region(raw) == (["건축공사업", "토목건축공사업"], ["경상남도", "부산광역시"])
+    reqs, _ = adapt_legacy_slot(_slot(raw), notice_version_id="v", key_prefix="R", industry_resolver=DictResolver())
+    groups = {}
+    for r in reqs:
+        groups.setdefault(r.requirement_group_key, []).append((r.type, r.value, r.group_operator))
+    assert sorted(groups.values()) == [
+        [("INDUSTRY", "0002", "ANY_OF"), ("INDUSTRY", "0003", "ANY_OF")],
+        [("REGION", "경상남도", "ANY_OF"), ("REGION", "부산광역시", "ANY_OF")],
+    ]
 
 
 @pytest.mark.parametrize(
@@ -205,3 +214,45 @@ def test_code_in_registration_name_field_becomes_industry_code():
     }
     reqs, _ = adapt_legacy_slot(slot, notice_version_id="v", key_prefix="R")
     assert [(r.type, r.value) for r in reqs] == [("INDUSTRY", "1468")]
+
+
+
+# ── 지역 단독 문장의 '또는' ───────────────────────────────────────────────────
+
+@pytest.mark.parametrize(
+    ("raw", "regions"),
+    [
+        ("본점 소재지가 서울특별시 또는 경기도에 있는 업체", ["서울특별시", "경기도"]),
+        ("주된 영업소의 소재지를 부산광역시, 울산광역시 또는 경상남도에 둔 업체", ["부산광역시", "울산광역시", "경상남도"]),
+        ("입찰공고일 전일부터 계약체결일까지 본점 소재지가 전라남도 또는 광주광역시에 소재한 자", ["전라남도", "광주광역시"]),
+    ],
+)
+def test_region_only_alternatives(raw, regions):
+    assert region_alternation(raw) == regions
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "본점 소재지가 서울특별시에 있는 업체",  # 하나뿐 — 기존 지역 경로의 몫
+        "서울특별시 또는 경기도에 소재한 업체는 참가할 수 없음",  # 배제
+        "본점이 서울특별시 또는 경기도에 있는 업체로서 시공능력평가액 100억 이상",  # 다른 조건
+    ],
+)
+def test_region_only_is_not_opened_when_unsafe_or_single(raw):
+    assert region_alternation(raw) is None
+
+
+@pytest.mark.parametrize(
+    ("company_region", "expected"),
+    [("경기도", "SATISFIED"), ("서울특별시", "SATISFIED"), ("인천광역시", "UNSATISFIED")],
+)
+def test_region_any_of_is_satisfied_by_one_region(company_region, expected):
+    slot = {"유형": "지역요건", "raw": "본점 소재지가 서울특별시 또는 경기도에 있는 업체", "지역_raw": "서울특별시 또는 경기도"}
+    reqs, diags = adapt_legacy_slot(slot, notice_version_id="v", key_prefix="R")
+    assert [d["code"] for d in diags] == ["REGION_ALTERNATION"]
+    profile = CompanyProfileSnapshot(company_id="c", region_name=company_region)
+    result = judge_requirements(reqs, profile, preflight_case_id="c", reference_date=date(2026, 9, 1),
+                                coverage_complete=True)
+    group = "SATISFIED" if result.overall_status == "eligible" else "UNSATISFIED"
+    assert group == expected
