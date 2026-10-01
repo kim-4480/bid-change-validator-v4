@@ -85,9 +85,20 @@ def _tidy_punctuation(match: re.Match[str]) -> str:
     return after + " "
 
 
+# 이름·역할 값 앞의 법령 인용("건설기술진흥법에 의한 …")과 등록 이름 뒤의 서술부("…로 신고 및
+# 실적이 등록되어 있는 자")는 이름이 아니다. 조항 단위 추출에서 남은 흔들림이 거의 이것이었다 —
+# 같은 조항에서 모델이 값을 어디까지 잘라 오느냐(2026-10-01 실측).
+_LEADING_STATUTE_RE = re.compile(r"^[^,，]*?(?:법|법령|법률|시행령|규정|고시)\s*에\s*(?:의한|따른|따라|의거한?)\s+")
+_REGISTRATION_PREDICATE_TAIL_RE = re.compile(r"(?<=[가-힣)])\s*(?:으로|로)\s*(?:신고|등록)\S*(?:\s.*)?$")
+
+
 def normalize_value_text(value: str, *, req_type: str) -> str:
-    """값의 표기를 하나로 맞춘다. 뜻을 바꾸는 글자는 건드리지 않고 공백만 다룬다."""
+    """값의 표기를 하나로 맞춘다. 공백, 이름 앞 법령 인용, 등록 이름 뒤 서술부만 다룬다."""
     text = " ".join(str(value).split())
+    if req_type in {"REGISTRATION_CERTIFICATION", "STAFF"}:
+        text = _LEADING_STATUTE_RE.sub("", text)
+    if req_type == "REGISTRATION_CERTIFICATION":
+        text = _REGISTRATION_PREDICATE_TAIL_RE.sub("", text)
     text = _SPACE_AROUND_PUNCT_RE.sub(_tidy_punctuation, text)
     text = " ".join(text.split())
     if req_type == "REGISTRATION_CERTIFICATION":
@@ -472,6 +483,8 @@ def adapt_legacy_slot(
         assessment = assess_clause(raw, group_operator=str(group_operator))
         if isinstance(value, str):
             value = normalize_value_text(value, req_type=req_type)
+        if req_type == "STAFF" and scope and isinstance(scope.get("role"), str):
+            scope = {**scope, "role": normalize_value_text(scope["role"], req_type="STAFF")}
         if req_type == "REGISTRATION_CERTIFICATION" and isinstance(value, str) and is_generic_registration_name(value):
             diagnostics.append({
                 "code": "UNMAPPED_REGISTRATION_CERTIFICATION",

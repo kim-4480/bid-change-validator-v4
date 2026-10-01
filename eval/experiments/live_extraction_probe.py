@@ -30,6 +30,7 @@ from bidengine.providers.openai import OpenAIStructuredExtractor
 from bideval.master_vocabulary import CsvIndustryNameResolver
 
 ROOT = Path(__file__).resolve().parents[2]
+MODE = "legacy"
 REAL = ROOT / "eval" / "golden" / "qualification-real-v0.1"
 OPEN_VOCAB_KEYS = ("experience_field", "role", "client_requirement", "issuer")
 
@@ -74,7 +75,8 @@ def _run(case_id: str, label: str, doc: dict, run: int, extractor: OpenAIStructu
     started = time.monotonic()
     try:
         result = analyze_qualification_documents(
-            analysis_input, structured_extract=extractor, industry_resolver=CsvIndustryNameResolver()
+            analysis_input, structured_extract=extractor, industry_resolver=CsvIndustryNameResolver(),
+            extraction_mode=MODE,
         )
     except Exception as error:  # noqa: BLE001 - 한 실행의 실패가 전체를 멈추면 안 된다
         return {"case": case_id, "format": label, "run": run, "error": repr(error)[:300]}
@@ -117,10 +119,13 @@ def main() -> None:
     parser.add_argument("--out", type=Path)
     parser.add_argument("--only", nargs="*", help="case id 목록")
     parser.add_argument("--model", help="OPENAI_MODEL_DEFAULT 대신 쓸 모델")
+    parser.add_argument("--mode", choices=["legacy", "clause"], default="legacy", help="추출 방식")
     args = parser.parse_args()
     if not os.getenv("OPENAI_API_KEY"):
         raise SystemExit("OPENAI_API_KEY 가 필요합니다.")
 
+    global MODE
+    MODE = args.mode
     pairs = [p for p in _pairs() if not args.only or p[0] in args.only]
     jobs = [
         (case_id, label, doc, run)
@@ -163,7 +168,7 @@ def main() -> None:
         row["native_vs_pdf_mean_jaccard"] = round(sum(cross) / len(cross), 3) if cross else None
         summary.append(row)
 
-    report = {"model": extractors[0].model, "runs_per_format": args.runs, "summary": summary, "runs": runs}
+    report = {"model": extractors[0].model, "mode": MODE, "runs_per_format": args.runs, "summary": summary, "runs": runs}
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

@@ -28,6 +28,7 @@ from bidengine.document.chunking import chunk_source_blocks
 from bidengine.normalization import normalize_value as default_normalize_value
 from bidengine.labeling.code_salvage import exception_guarded_codes, salvage_missing_industry_slots
 from bidengine.judgment.clause_safety import GUARD_ASSESSED, GUARD_REASON_EXCEPTION
+from bidengine.labeling.clause_labeling import extract_clause_slots
 from bidengine.labeling.requirement_extraction import StructuredExtractor, extract_legacy_slots
 from bidengine.ports import IndustryNameResolver
 
@@ -112,6 +113,7 @@ def analyze_qualification_documents(
     max_retry: int = 1,
     max_chunk_chars: int = 1800,
     industry_resolver: IndustryNameResolver | None = None,
+    extraction_mode: str = "legacy",
 ) -> RequirementAnalysisResult:
     """Run one qualification Requirement analysis without touching Backend state."""
     document_ids = [document.document_id for document in analysis_input.documents]
@@ -128,7 +130,10 @@ def analyze_qualification_documents(
             target_chunk_ids=[],
         )
 
-    extraction = extract_legacy_slots(
+    # "clause": 조항 경계와 원문을 코드가 정하고 모델은 조항마다 라벨만 붙인다(S3, 실험 중).
+    # "legacy": 자격 절 본문을 통째로 주고 모델이 경계와 원문까지 정한다(현재 기본값).
+    extract = extract_clause_slots if extraction_mode == "clause" else extract_legacy_slots
+    extraction = extract(
         chunks,
         structured_extract=structured_extract,
         max_retry=max_retry,

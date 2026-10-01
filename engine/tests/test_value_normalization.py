@@ -53,3 +53,28 @@ def test_size_conjunction_is_a_closed_set_under_exclusion(size, expected):
     )
     profile = CompanyProfileSnapshot(company_id="c", company_size=size)
     assert judge_requirement(req, profile, preflight_case_id="c", reference_date=date(2026, 9, 1)).status == expected
+
+
+@pytest.mark.parametrize(
+    ("value", "req_type", "expected"),
+    [
+        # 조항 단위 추출에서 같은 조항의 값이 이렇게 갈렸다(2026-10-01 실측)
+        ("소프트웨어사업자로 신고 및 실적이 등록되어 있는 자", "REGISTRATION_CERTIFICATION", "소프트웨어사업자"),
+        ("소프트웨어사업자로 신고 및 실적이 등록", "REGISTRATION_CERTIFICATION", "소프트웨어사업자"),
+        ("건설기술진흥법에 의한 건축분야 고급기술자 이상의 자격소지자", "STAFF", "건축분야 고급기술자 이상의 자격소지자"),
+        # 이름 자체는 건드리지 않는다
+        ("소프트웨어사업", "REGISTRATION_CERTIFICATION", "소프트웨어사업"),
+        ("ISO 9001", "REGISTRATION_CERTIFICATION", "ISO 9001"),
+    ],
+)
+def test_statute_prefix_and_registration_predicate_are_not_part_of_the_name(value, req_type, expected):
+    assert normalize_value_text(value, req_type=req_type) == expected
+
+
+def test_staff_role_in_scope_is_normalized_with_the_value():
+    slot = {"유형": "인력요건", "raw": "건설기술진흥법에 의한 건축분야 고급기술자 이상의 자격소지자",
+            "인력역할_raw": "건설기술진흥법에 의한 건축분야 고급기술자 이상의 자격소지자"}
+    reqs, _ = adapt_legacy_slot(slot, notice_version_id="v", key_prefix="R")
+    assert {(r.value, r.scope.get("role")) for r in reqs} == {
+        ("건축분야 고급기술자 이상의 자격소지자", "건축분야 고급기술자 이상의 자격소지자")
+    }
