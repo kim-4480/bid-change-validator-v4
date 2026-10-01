@@ -26,7 +26,7 @@ import statistics as st
 from collections import Counter, defaultdict
 from pathlib import Path
 
-NEUTRAL_REASONS = {"common", "conditional"}
+NEUTRAL_REASONS = {"common", "conditional", "detail"}
 
 
 def _norm(value: object) -> str:

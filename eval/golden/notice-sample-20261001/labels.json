@@ -10,7 +10,8 @@
     "excluded.subjective": "'이행할 수 있는 업체' 처럼 프로필로 판정할 수 없는 서술. 요건으로 뽑으면 오답이다.",
     "excluded.not_requirement": "요건이 아닌 안내 문장. 요건으로 뽑으면 오답이다.",
     "excluded.product": "납품 물품에 대한 조건. 회사 자격으로 뽑으면 오답이다.",
-    "core.exclusion": "exclusion=true 인 core 는 배제 조건이다. 배제로 담겨야(scope.restriction=EXCLUDE) 찾은 것이고, 같은 값을 요구로 확정하면 뜻이 뒤집힌 확정(inverted)이다."
+    "core.exclusion": "exclusion=true 인 core 는 배제 조건이다. 배제로 담겨야(scope.restriction=EXCLUDE) 찾은 것이고, 같은 값을 요구로 확정하면 뜻이 뒤집힌 확정(inverted)이다.",
+    "excluded.detail": "core 요건에 딸린 세부(실적의 인정 분야 등). 따로 요건으로 나와도 오답으로 세지 않는다."
   },
   "notices": {
     "R26BK01744796-000": {
@@ -63,6 +64,20 @@
           "phrase": "생산시설과 기술인력",
           "types": [
             "STAFF"
+          ]
+        },
+        {
+          "reason": "detail",
+          "phrase": "벌꿀을 원료로 하는",
+          "types": [
+            "EXPERIENCE_FIELD"
+          ]
+        },
+        {
+          "reason": "detail",
+          "phrase": "인정실적",
+          "types": [
+            "EXPERIENCE_FIELD"
           ]
         }
       ]
