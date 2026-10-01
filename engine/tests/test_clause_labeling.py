@@ -103,6 +103,39 @@ def test_paragraphs_without_markers_become_separate_clauses():
     assert clauses[-1].endswith("※ 단, 공동수급의 경우 구성원 모두 해당")  # 단서는 앞 조항에 붙는다
 
 
+def _one_chunk(*lines):
+    return [{"chunk_id": "K", "text": chr(10).join(lines)}]
+
+
+def test_sentence_children_under_a_heading_become_separate_clauses():
+    clauses = [c.text for c in enumerate_clauses(_one_chunk(
+        "가. 공통자격",
+        "- 사업자등록증상 소프트웨어 개발·공급업을 영위하고 소프트웨어사업자(업종코드 1468)로 나라장",
+        "터에 등록한 자",
+        "- 「중소기업기본법」에 따른 중소기업자로서 유효한 중소기업 확인서를 소지한 자",
+    ))]
+    assert len(clauses) == 3
+    assert clauses[1].endswith("터에 등록한 자")          # 줄바꿈으로 이어진 줄은 같은 조항이다
+    assert clauses[2].startswith("- 「중소기업기본법」")
+
+
+def test_children_stay_with_an_umbrella_that_states_alternatives():
+    clauses = enumerate_clauses(_one_chunk(
+        "가. 다음 중 하나에 해당하는 자",
+        "- 「소프트웨어 진흥법」에 따른 소프트웨어사업자로 나라장터에 등록한 자",
+        "- 「정보통신공사업법」에 따른 정보통신공사업을 등록한 자",
+    ))
+    assert len(clauses) == 1   # 나누면 '하나만' 이 사라진다
+
+
+def test_line_ending_in_poham_is_not_a_sentence_end():
+    clauses = enumerate_clauses(_one_chunk(
+        "4. 최근 5년 이내 벌꿀 농축설비 또는 벌꿀 농축공정이 포함",
+        "된 가공 생산라인의 완료실적 누계가 400,000,000원 이상인 자",
+    ))
+    assert len(clauses) == 1
+
+
 def test_mode_is_taken_from_environment_when_not_given(monkeypatch):
     calls = []
 

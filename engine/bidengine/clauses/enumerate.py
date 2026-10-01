@@ -9,6 +9,10 @@
   - 항목 기호(1. / 가. / 1) / 가) / (1) / ① / ㅇ ○ □ ■ ▶ …)로 시작하는 줄이 새 조항이다.
   - 단서 줄("※ 단, …", "- 다만 …")과 하위 항목 줄("- 소프트웨어사업(1468)")은 앞 조항에 붙는다.
     단서가 조항에 남아야 안전 가드가 보고, 우산 문장과 하위 줄은 한 조항이어야 뜻이 산다.
+  - 하위 항목이 그 자체로 완결된 문장("- … 로 나라장터에 등록한 자")이면 독립 조항이다. 제목 아래에
+    요건 문장을 여러 줄 늘어놓은 공고는 한 조항에 조건이 일곱 개씩 묶여 요건으로 풀리지 않았다
+    (2026-10-01 표본 R26BK01744644 "가. 공통자격"). 우산 문장이 "다음 중 하나" 처럼 대안 관계를
+    말하면 나누지 않는다 — 나누면 '하나만 갖추면 된다' 가 사라져 모두 필수가 된다.
   - 단서가 아닌 주석 줄("※ 자격제한 : …")은 독립 조항이다.
   - 기호 없는 줄은 앞 줄이 문장 끝으로 끝났으면 새 조항(HWP 문단), 아니면 앞 조항에 잇는다
     (PDF 줄바꿈). 항목 기호 없이 문단만으로 쓴 공고가 있다(C02 실측).
@@ -39,7 +43,12 @@ _PROVISO_RE = re.compile(r"^\s*(?:[※＊*·•\-–—☞]\s*)?(?:단\s*[,.]|�
 _CHILD_RE = re.compile(r"^\s*[\-–—·•]\s*\S")
 # 문장이 끝난 줄. HWP·HWPX 는 줄이 곧 문단이지만 PDF 는 문장 중간에서도 줄을 바꾼다. 앞 줄이
 # 문장 끝으로 끝났을 때만 기호 없는 줄을 새 조항으로 본다.
-_SENTENCE_END_RE = re.compile(r"(?:[.。]|다|함|음|임|것|자|업체|사업자|기업|법인)\s*[)\]]?\s*$")
+# "포함" 은 문장 끝이 아니다 — "… 농축공정이 포함 / 된 생산라인의 … 400,000,000원 이상인 자" 가 둘로
+# 갈라져 금액이 뒤 조항에만 남았다(2026-10-01 표본 R26BK01744796).
+_SENTENCE_END_RE = re.compile(r"(?:[.。]|다|(?<!포)함|음|임|것|자|업체|사업자|기업|법인)\s*[)\]]?\s*$")
+# 하위 항목들 사이의 관계가 대안임을 말하는 우산 문장.
+_ALTERNATIVE_UMBRELLA_RE = re.compile(r"(?:중|가운데)\s*(?:하나|어느|1\s*개|택)|어느\s*하나|택\s*1|택일|각\s*호의\s*(?:1|어느)")
+_SENTENCE_CHILD_MIN_CHARS = 30
 
 
 @dataclass
@@ -71,13 +80,38 @@ def enumerate_clauses(chunks: list[dict[str, Any]]) -> list[Clause]:
                     )
                 )
 
-        for line in _lines(chunk.get("text") or ""):
-            if current and _starts_new_clause(line, current[-1]):
+        lines = _lines(chunk.get("text") or "")
+        split_children = True  # 지금 우산 문장 아래의 문장형 하위 항목을 나눌 것인가
+        for index, line in enumerate(lines):
+            is_child = bool(_CHILD_RE.match(line)) and not _PROVISO_RE.match(line)
+            if current and is_child:
+                if not _CHILD_RE.match(current[0]):
+                    # 우산 문장 바로 아래의 첫 하위 항목에서 정한다.
+                    split_children = not _ALTERNATIVE_UMBRELLA_RE.search(" ".join(current))
+                starts = split_children and _is_sentence_item(lines, index)
+            else:
+                starts = bool(current) and _starts_new_clause(line, current[-1])
+            if starts:
                 flush()
                 current = []
             current.append(line)
         flush()
     return clauses
+
+
+def _begins_item(line: str) -> bool:
+    return bool(_ITEM_MARKER_RE.match(line) or _CHILD_RE.match(line) or _PROVISO_RE.match(line)) or line.lstrip().startswith(
+        ("※", "＊", "☞")
+    )
+
+
+def _is_sentence_item(lines: list[str], index: int) -> bool:
+    """index 에서 시작하는 하위 항목(이어지는 줄 포함)이 완결된 문장인가."""
+    end = index + 1
+    while end < len(lines) and not _begins_item(lines[end]):
+        end += 1
+    text = " ".join(lines[index:end])
+    return len(text) >= _SENTENCE_CHILD_MIN_CHARS and bool(_SENTENCE_END_RE.search(lines[end - 1]))
 
 
 def _starts_new_clause(line: str, previous: str) -> bool:
