@@ -307,6 +307,19 @@ def sido_names(text: str) -> list[str]:
     return names
 
 
+def excluded_company_sizes(raw: str) -> list[str]:
+    """참여를 막는 문장에 적힌 기업 규모. 대기업·중견기업뿐일 때만 돌려준다.
+
+    규모 낱말은 닫힌 어휘다. 모델이 조항을 배제로 읽었고 참여 제한 서술이 있으면, 유형을 뭐라고 붙였든
+    코드가 '그 규모는 참여할 수 없다' 로 담을 수 있다. 중소기업·소기업이 섞인 문장은 무엇을 막는지
+    낱말만으로 알 수 없어 건드리지 않는다. 법령 이름(「중소기업기본법」) 속 낱말은 세지 않는다.
+    """
+    if not _SIZE_EXCLUSION_RE.search(raw):
+        return []
+    words = list(dict.fromkeys(_SIZE_WORD_RE.findall(_compact(strip_decorations(raw)))))
+    return words if words and set(words) <= {"대기업", "중견기업"} else []
+
+
 def value_name_alternatives(value: str) -> list[str] | None:
     """값 구간 안에서 '또는' 으로 나열된 이름들. "건축공사업(또는 토목건축공사업)" → 두 이름. 아니면 None.
 
@@ -318,6 +331,8 @@ def value_name_alternatives(value: str) -> list[str] | None:
     # 세부품명번호)은 코드 경로의 몫이라 여기서 이름으로 쪼개지 않는다.
     if not re.search(r"(?:\s|\()또는\s", text) or re.search(r"[0-9]{4}", text):
         return None
+    if _SIZE_WORD_RE.search(text):
+        return None  # "소기업 또는 소상공인확인서" 는 이름의 대안이 아니라 기업 규모다
     paren = list(_PAREN_ALTERNATION_RE.finditer(text))
     if len(paren) == 1 and "또는" not in _PAREN_ALTERNATION_RE.sub(" ", text):
         match = paren[0]
@@ -472,14 +487,33 @@ def adapt_legacy_slot(
     unsafe_reason = unsafe_clause_reason(guard_text)
     # 조항의 극성이 붙어 있으면(clause_polarity) 낱말 가드를 맥락으로 다시 판단한다. 붙어 있지 않으면
     # 아래는 전부 예전 그대로다.
+    excluded_sizes = excluded_company_sizes(raw) if slot.get("_clause_polarity") == "EXCLUSION" else []
     context = decide_context(
         guard_text,
         slot.get("_clause_polarity"),
-        exclusion_representable=slot_type == "기업규모요건" and bool(_SIZE_EXCLUSION_RE.search(raw)),
+        exclusion_representable=bool(excluded_sizes)
+        or (slot_type == "기업규모요건" and bool(_SIZE_EXCLUSION_RE.search(raw))),
     )
     if context.action == "ABSTAIN":
         return [], [{"code": "UNMAPPED_REQUIREMENT", "raw": raw, "reason": context.reason}]
     guard_lifted = context.action == "KEEP"
+    if guard_lifted and excluded_sizes and slot_type != "기업규모요건":
+        # 모델이 배제로 읽은 조항에 대기업·중견기업 참여 제한이 적혀 있다. 유형이 무엇으로 붙었든 닫힌 낱말로 담는다.
+        value = " 및 ".join(excluded_sizes)
+        return [
+            QualificationRequirement(
+                requirement_key=f"{key_prefix}-COMPANY_SIZE",
+                requirement_group_key=f"{key_prefix}-GROUP",
+                group_operator="ALL_OF",
+                notice_version_id=notice_version_id,
+                type="COMPANY_SIZE",
+                operator="MATCH",
+                value=company_size_alias(value) or value,
+                scope={"restriction": "EXCLUDE", "guard": GUARD_ASSESSED, "guard_basis": context.basis},
+                condition_complexity="simple",
+                raw=raw,
+            )
+        ], [{"code": "COMPANY_SIZE_EXCLUSION_FROM_CLAUSE", "raw": raw, "sizes": list(excluded_sizes)}]
     alternation = (
         industry_code_alternation(raw)
         if unsafe_reason == "ALTERNATIVE_OR_EXCEPTION_RULE"
@@ -765,6 +799,9 @@ def adapt_legacy_slot(
             or _REGISTRATION_ACT_VALUE_RE.fullmatch(_squash_name(name))
         )
         size_alias = company_size_alias(name) if is_company_size_certificate_name(name) else None
+        if guard_lifted and size_alias is None and "확인서" in _compact(name) and _SIZE_WORD_RE.search(name):
+            # "소기업 또는 소상공인확인서", "유효한 중소기업·소상공인 확인서" — 꾸밈말이 붙어도 규모의 증빙이다.
+            size_alias = company_size_alias(name)
         alternatives_built = lifted_name_alternatives(name) if not industry_codes and not size_alias else None
         if alternatives_built is not None:
             requirements.extend(alternatives_built)

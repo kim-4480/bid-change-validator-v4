@@ -109,6 +109,25 @@ def test_body_item_that_mentions_the_keyword_is_not_a_section_heading():
     assert select_eligibility_chunks_with_mode(with_colon)[1] == "anchored"
 
 
+def test_statute_citation_at_line_start_does_not_end_the_section():
+    """PDF 가 "…시행령｣⏎제12조 및 동법 …" 으로 줄을 바꾸면 인용이 조문 제목처럼 보인다. 절은 이어져야 한다."""
+    def chunk(index, label, text):
+        return {"chunk_id": str(index), "clause_label": label, "text": text, "source_blocks": []}
+
+    chunks = [
+        chunk(0, "2", "2. 입찰참가자격"),
+        chunk(1, "가", "가. ｢국가를 당사자로 하는 계약에 관한 법률 시행령｣"),
+        chunk(2, "제12조", "제12조 및 동법 시행규칙 제14조의 요건을 갖추고 소프트웨어사업자(업종코드:1468)로 등록한자"),
+        chunk(3, "나", "나. 중ㆍ소기업 또는 소상공인으로서 확인서를 소지한 자"),
+        chunk(4, "3", "3. 입찰 진행사항"),
+    ]
+    selected, mode = select_eligibility_chunks_with_mode(chunks)
+    assert mode == "anchored"
+    assert [c["chunk_id"] for c in selected] == ["0", "1", "2", "3"]
+    real_article = [chunk(0, "2", "2. 입찰참가자격"), chunk(1, "가", "가. 업종"), chunk(2, "제5조", "제5조(입찰보증금) 면제")]
+    assert [c["chunk_id"] for c in select_eligibility_chunks_with_mode(real_article)[0]] == ["0", "1"]
+
+
 def test_same_unmapped_clause_counts_once():
     clause = {"code": "UNMAPPED_REQUIREMENT", "raw": "건축(또는 토목건축)공사업 등록업체", "reason": "ALTERNATIVE_OR_EXCEPTION_RULE"}
     result = _result([clause, dict(clause, raw="건축(또는 토목건축)공사업  등록업체")])

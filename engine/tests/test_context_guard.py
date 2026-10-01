@@ -69,6 +69,21 @@ def test_size_exclusion_stays_representable():
     assert requirements and requirements[0].scope.get("restriction") == "EXCLUDE"
 
 
+def test_excluded_large_companies_are_captured_whatever_type_the_model_gave():
+    raw = "바. 본 사업은 20억원 미만인 사업으로 「소프트웨어 진흥법」 제48조에 따라 대기업 및 중견기업은 입찰 참가 불가"
+    requirements, _ = _adapt({"유형": "기타요건", "raw": raw}, "EXCLUSION")
+    assert [(r.type, r.scope.get("restriction")) for r in requirements] == [("COMPANY_SIZE", "EXCLUDE")]
+    assert "대기업" in str(requirements[0].value) and "중견기업" in str(requirements[0].value)
+    mixed = "「중소기업기본법」에 따른 중소기업이 아닌 자는 참여할 수 없음"
+    assert _adapt({"유형": "기타요건", "raw": mixed}, "EXCLUSION")[0] == []   # 무엇을 막는지 낱말만으로 알 수 없다
+
+
+def test_size_certificate_names_are_company_size_not_name_alternatives():
+    raw = "마. 소기업 및 소상공인으로서 「중소기업 범위 및 확인에 관한 규정」에 따라 발급된 소기업 또는 소상공인확인서를 소지한 업체이어야 합니다."
+    requirements, _ = _adapt({"유형": "인증요건", "raw": raw, "등록인증_raw": "소기업 또는 소상공인확인서"}, "POSITIVE")
+    assert [(r.type, r.value) for r in requirements] == [("COMPANY_SIZE", "소기업")]
+
+
 def test_two_regions_in_the_value_span_are_alternatives():
     requirements, _ = _adapt(
         {"유형": "지역요건", "raw": TWO_REGION_CLAUSE, "지역_raw": "[충청남도] 또는 [세종특별시]"}, "POSITIVE"

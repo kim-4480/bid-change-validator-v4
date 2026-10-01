@@ -170,12 +170,25 @@ _MARKER_RANK = {
 }
 
 
+# 줄머리에 온 법령 인용. PDF 는 "…시행령｣⏎제12조 및 동법 시행규칙 제14조의 …" 처럼 문장 한가운데서 줄을
+# 바꾼다. 청커는 그 줄을 "제12조" 라는 조문 제목으로 읽고, 조문은 최상위 위계라 자격 절이 거기서 끝났다
+# (2026-10-02 표본 R26BK01736181: "2. 입찰참가자격" 의 가~차 항목 중 첫 줄만 선택). 조문 번호 뒤가 인용을
+# 잇는 말이면 제목이 아니라 본문이다.
+_CITATION_CONTINUATION_RE = re.compile(
+    r"^\s*(?:및|와|과|또는|내지|부터|에\s|의\s|에서|에따|의규정|제\s*\d+\s*(?:항|호)|[,，]|\(이하)"
+)
+
+
 def _label_rank(chunk: dict[str, Any]) -> int | None:
     """항목 기호의 위계. 낮을수록 상위. 기호가 없으면 None."""
     label = str(chunk.get("clause_label") or "").strip()
     if not label:
         return None
     marker = _HEADING_MARKER_RE.match(_heading_text(chunk))
+    if marker and marker.lastgroup == "article" and _CITATION_CONTINUATION_RE.match(
+        _heading_text(chunk)[marker.end():]
+    ):
+        return None
     if marker:
         if marker.lastgroup == "dotted":
             # 숫자 절 안에서 점 하나마다 한 단계 깊어진다. 한글 항목(가.)보다
