@@ -1,3 +1,6 @@
 -r requirements.txt
 httpx==0.28.1
 pytest==9.1.1
+# 엔진·측정 패키지(저장소 루트에서 설치한다). Docker 이미지는 requirements.txt 만 쓰고 엔진을 따로 넣는다.
+-e engine
+-e eval

@@ -49,7 +49,7 @@ Python 3.12, Node 22, pnpm 10, PostgreSQL 16이 필요합니다.
 
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate
-pip install -r apps/api/requirements-dev.txt -e engine -e eval
+pip install -r apps/api/requirements-dev.txt   # 저장소 루트에서. 엔진·측정 패키지(-e engine -e eval) 포함
 ```
 
 ### 테스트
