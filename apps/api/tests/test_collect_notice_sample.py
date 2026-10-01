@@ -37,7 +37,9 @@ class FakeClient:
             items = [_item("R1", "000"), _item("R2", "000", docs=False), _item("R3", "000")]
             items[0]["stdNtceDocUrl"] = "https://example.test/R1-std"  # 확장자 없는 표준공고문
         elif name == "CHANGED":
-            items = [_item("C1", "001")]
+            items = [_item("C2", "000"), _item("C1", "001")]
+        elif bid_notice_no == "C2":  # 차수가 하나뿐인 변경공고
+            items = [_item("C2", "000")]
         else:  # NOTICE_NUMBER — 모든 차수
             items = [_item(bid_notice_no, "000"), _item(bid_notice_no, "001")]
         return SimpleNamespace(items=items, total_count=len(items), page_size=page_size)
@@ -76,9 +78,15 @@ def test_collector_writes_blocks_and_manifest(tmp_path, monkeypatch):
     assert not list(tmp_path.rglob("*.pdf"))                                    # 원본은 남기지 않는다
     assert "표준공고문" in filenames                                              # 확장자를 꾸며 붙이지 않는다
     assert any(d["name"] == "표준공고문" for d in manifest["notices"][0]["documents"])
+    unselected = {(u["notice_no"], u["kind"], u["reason"]): u["versions"] for u in manifest["unselected"]}
+    assert set(unselected) == {("R2", "registered", "no_documents"), ("C2", "changed", "single_version")}
+    assert unselected[("R2", "registered", "no_documents")] == [{"order": "000", "dir": None, "documents": []}]
+    kept = unselected[("C2", "changed", "single_version")][0]                   # 기준 밖 후보도 추출 결과를 남긴다
+    assert (tmp_path / kept["dir"] / kept["documents"][0]["blocks"]).is_file()
     referenced = {n["dir"] for n in manifest["notices"]} | {v["dir"] for c in manifest["changed"] for v in c["versions"]}
+    referenced |= {v["dir"] for versions in unselected.values() for v in versions if v["dir"]}
     on_disk = {p.name for p in tmp_path.iterdir() if p.is_dir()}
-    assert on_disk == referenced                                                # 탈락 후보 디렉터리가 남지 않는다
+    assert on_disk == referenced                                                # manifest 에 없는 디렉터리는 없다
     assert "R2-000" not in on_disk
 
 

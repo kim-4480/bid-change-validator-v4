@@ -14,6 +14,7 @@
   - 변경공고: 최근 변경된 공고 --changed 건의 **모든 차수**. 차수 쌍으로 차수 비교(S4)를 잰다.
 
 남기는 것은 추출한 텍스트 블록(JSON)과 출처 정보뿐이다. 원본 파일은 저장하지 않는다.
+표본 기준에 들지 못한 후보도 버리지 않고 manifest 의 unselected 에 사유와 함께 남긴다.
 """
 from __future__ import annotations
 
@@ -69,7 +70,7 @@ def _download(session: requests.Session, url: str) -> bytes:
 
 
 def _version_documents(session: requests.Session, item: dict[str, Any]) -> list[dict[str, Any]]:
-    """한 차수의 관련 문서를 받아 추출한다. 파일은 쓰지 않는다 — 채택된 차수만 _write_version 이 쓴다."""
+    """한 차수의 관련 문서를 받아 추출한다. 파일은 쓰지 않는다 — _write_version 이 쓴다."""
     saved = []
     for doc in _documents(item):
         name = doc["name"]
@@ -99,7 +100,7 @@ def _version_documents(session: requests.Session, item: dict[str, Any]) -> list[
 
 
 def _write_version(out: Path, directory: str, documents: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """채택된 차수의 블록 파일을 쓰고 manifest 용 문서 목록을 돌려준다. 탈락 후보는 디스크에 남지 않는다."""
+    """한 차수의 블록 파일을 쓰고 manifest 용 문서 목록을 돌려준다."""
     version_dir = out / directory
     version_dir.mkdir(exist_ok=True)
     listed = []
@@ -111,6 +112,20 @@ def _write_version(out: Path, directory: str, documents: list[dict[str, Any]]) -
 
 def _has_notice_document(documents: list[dict[str, Any]]) -> bool:
     return any("공고" in d["name"] for d in documents)
+
+
+def _keep_unselected(manifest: dict[str, Any], out: Path, *, kind: str, reason: str, notice_no: str | None,
+                     business_type: BusinessType, title: str | None, versions: list[dict[str, Any]]) -> None:
+    """표본 기준에 들지 못한 후보도 블록 파일을 쓰고 사유와 함께 manifest 에 남긴다.
+
+    기준(공고 문서 유무, 차수 2개 이상)은 이 비교 실험의 것이다. 실제 입력은 그 기준을 가리지 않으므로
+    걸러진 쪽의 추출 결과도 버리지 않는다. 받은 문서가 없는 차수는 디렉터리를 만들지 않고 dir 를 비운다.
+    """
+    kept = [{"order": v["order"], "dir": v["dir"] if v["documents"] else None,
+             "documents": _write_version(out, v["dir"], v["documents"]) if v["documents"] else []}
+            for v in versions]
+    manifest["unselected"].append({"kind": kind, "reason": reason, "notice_no": notice_no,
+                                   "business_type": business_type.name, "title": title, "versions": kept})
 
 
 def _items(client: G2BClient, business_type: BusinessType, inquiry: NoticeInquiryType, start, end, limit) -> list[dict]:
@@ -140,7 +155,8 @@ def main() -> None:
     end = datetime.now(KST)
     start = end - timedelta(days=args.days)
     args.out.mkdir(parents=True, exist_ok=True)
-    manifest: dict[str, Any] = {"collected_at": end.isoformat(), "window_days": args.days, "notices": [], "changed": []}
+    manifest: dict[str, Any] = {"collected_at": end.isoformat(), "window_days": args.days, "notices": [], "changed": [],
+                                "unselected": []}
     types = [BusinessType[name] for name in args.business_types]
 
     # 등록공고 — 업무 종류를 돌아가며 고른다.
@@ -153,9 +169,13 @@ def main() -> None:
             notice_no, order = item.get("bidNtceNo"), item.get("bidNtceOrd") or "000"
             print(f"[{business_type.name}] 탐색 {notice_no}-{order} {item.get('bidNtceNm', '')[:40]}")
             documents = _version_documents(session, item)
-            if not _has_notice_document(documents):
-                continue
             directory = f"{notice_no}-{order}"
+            if not _has_notice_document(documents):
+                _keep_unselected(manifest, args.out, kind="registered",
+                                 reason="no_notice_document" if documents else "no_documents",
+                                 notice_no=notice_no, business_type=business_type, title=item.get("bidNtceNm"),
+                                 versions=[{"order": order, "dir": directory, "documents": documents}])
+                continue
             manifest["notices"].append({"notice_no": notice_no, "order": order, "business_type": business_type.name,
                                         "title": item.get("bidNtceNm"), "dir": directory,
                                         "documents": _write_version(args.out, directory, documents)})
@@ -172,22 +192,32 @@ def main() -> None:
                 continue
             history = client.fetch_page(business_type=business_type, inquiry_type=NoticeInquiryType.NOTICE_NUMBER,
                                         page_number=1, page_size=50, bid_notice_no=notice_no).items
-            versions = []
+            fetched = []
             for version in sorted(history, key=lambda v: v.get("bidNtceOrd") or ""):
                 order = version.get("bidNtceOrd") or "000"
-                documents = _version_documents(session, version)
-                if _has_notice_document(documents):
-                    versions.append({"order": order, "dir": f"{notice_no}-{order}", "documents": documents})
+                fetched.append({"order": order, "dir": f"{notice_no}-{order}",
+                                "documents": _version_documents(session, version)})
+            versions = [v for v in fetched if _has_notice_document(v["documents"])]
+            rest = [v for v in fetched if not _has_notice_document(v["documents"])]
+            common = {"notice_no": notice_no, "business_type": business_type, "title": item.get("bidNtceNm")}
             if len(versions) >= 2:
                 print(f"[CHANGED {business_type.name}] {notice_no} 차수 {[v['order'] for v in versions]}")
                 for version in versions:
                     version["documents"] = _write_version(args.out, version["dir"], version["documents"])
                 manifest["changed"].append({"notice_no": notice_no, "business_type": business_type.name,
                                             "title": item.get("bidNtceNm"), "versions": versions})
+                if rest:
+                    _keep_unselected(manifest, args.out, kind="changed_version",
+                                     reason="version_without_notice_document", versions=rest, **common)
+            else:
+                _keep_unselected(manifest, args.out, kind="changed",
+                                 reason="single_version" if len(fetched) < 2 else "versions_without_notice_document",
+                                 versions=fetched, **common)
             time.sleep(0.5)
 
     (args.out / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"등록공고 {len(manifest['notices'])}건, 변경공고 {len(manifest['changed'])}건 → {args.out}")
+    print(f"등록공고 {len(manifest['notices'])}건, 변경공고 {len(manifest['changed'])}건, "
+          f"기준 밖 후보 {len(manifest['unselected'])}건 → {args.out}")
 
 
 if __name__ == "__main__":

@@ -28,7 +28,7 @@ python eval/experiments/collect_notice_sample.py --days 7 --notices 12 --changed
 - 변경공고: 최근 변경된 공고 `--changed` 건의 **모든 차수**. 차수 비교(S4) 검증에 쓴다.
 - 남는 것은 텍스트 블록(JSON)과 출처(URL·파일 해시)뿐이다. 원본 파일은 저장하지 않는다.
 - 변경공고는 "차수 2개 이상, 각 차수에 공고 문서"를 만족해야 채택된다. 7일 창에서 모자라면 `--days 14` 처럼 늘린다.
-- 채택된 차수의 블록 파일만 디스크에 쓴다. 탐색 로그(`탐색 …`)는 채택이 아니라 후보 기록이다.
+- 기준에 들지 못한 후보도 블록 파일을 남기고 `manifest.json` 의 `unselected` 에 사유(`single_version`, `no_documents` 등)와 함께 적는다. 비교 러너는 `notices`·`changed` 만 읽는다. 탐색 로그(`탐색 …`)는 채택이 아니라 후보 기록이다.
 - 결과 디렉터리를 커밋·push 한다.
 
 ## 2. 비교 (OpenAI 접속이 되는 곳)
