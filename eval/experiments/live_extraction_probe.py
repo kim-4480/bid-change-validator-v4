@@ -116,6 +116,7 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--out", type=Path)
     parser.add_argument("--only", nargs="*", help="case id 목록")
+    parser.add_argument("--model", help="OPENAI_MODEL_DEFAULT 대신 쓸 모델")
     args = parser.parse_args()
     if not os.getenv("OPENAI_API_KEY"):
         raise SystemExit("OPENAI_API_KEY 가 필요합니다.")
@@ -127,7 +128,7 @@ def main() -> None:
         for label, doc in (("native", native), ("pdf", pdf))
         for run in range(args.runs)
     ]
-    extractors = [OpenAIStructuredExtractor() for _ in range(args.workers)]
+    extractors = [OpenAIStructuredExtractor(model=args.model) for _ in range(args.workers)]
     print(f"model={extractors[0].model} temperature={extractors[0].temperature} seed={extractors[0].seed} calls={len(jobs)}")
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         futures = [
