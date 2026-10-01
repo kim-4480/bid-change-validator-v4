@@ -4,8 +4,8 @@
 (2026-10-01 확인). 이 스크립트를 로컬에서 돌려 결과 디렉터리를 커밋하면, 비교 러너
 (live_extraction_probe.py --sample, diff_probe.py --sample)가 그것을 읽는다.
 
-    # 저장소 루트에서, apps/api 의존성이 설치된 환경으로
-    export G2B_SERVICE_KEY=...
+    # 저장소 루트에서, apps/api 의존성이 설치된 환경으로. 키는 환경변수 또는 .env 의
+    # G2B_SERVICE_KEY 를 읽는다(퍼센트 인코딩된 키도 그대로 두면 된다).
     PYTHONPATH=$PWD python eval/experiments/collect_notice_sample.py \
         --days 7 --notices 12 --changed 6 --out eval/golden/notice-sample-20261001
 
@@ -21,7 +21,6 @@ import argparse
 import hashlib
 import io
 import json
-import os
 import re
 import sys
 import time
@@ -31,6 +30,7 @@ from typing import Any
 
 import requests
 
+from apps.api.app.config import Settings
 from apps.api.app.schemas import BusinessType, NoticeInquiryType
 from apps.api.app.services.document_extraction import extract_document
 from apps.api.app.services.g2b import KST, G2BClient
@@ -41,6 +41,19 @@ EXTRACTABLE = re.compile(r"\.(hwp|hwpx|pdf|docx)$", re.IGNORECASE)
 # 표준공고문 외에 자격 조항이 흔히 들어 있는 첨부. 나머지(서식·도면·내역서)는 받지 않는다.
 RELEVANT_NAME = re.compile(r"공고|제안요청|과업|규격|설명서|지시서|유의서")
 MAX_BYTES = 30 * 1024 * 1024
+
+
+def _service_key() -> str:
+    """앱과 같은 방식으로 키를 읽는다 — 환경변수가 없으면 저장소 루트의 .env, 퍼센트 인코딩은 푼다.
+
+    공공데이터포털이 주는 키는 퍼센트 인코딩된 형태라 .env 에도 그렇게 들어 있다. 그대로 requests
+    params 에 넣으면 '%' 가 '%25' 로 다시 인코딩돼 인증이 실패한다(앱은 config.decoded_g2b_service_key
+    로 풀어 쓴다). 데스크톱 세션 점검에서 찾았다(2026-10-01).
+    """
+    key = Settings().decoded_g2b_service_key
+    if not key:
+        raise SystemExit("G2B_SERVICE_KEY 가 없습니다. 환경변수나 저장소 루트의 .env 에 넣어 주세요.")
+    return key
 
 
 def _download(session: requests.Session, url: str) -> bytes:
@@ -110,7 +123,7 @@ def main() -> None:
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
 
-    client = G2BClient(os.environ["G2B_SERVICE_KEY"], BASE_URL)
+    client = G2BClient(_service_key(), BASE_URL)
     session = requests.Session()
     end = datetime.now(KST)
     start = end - timedelta(days=args.days)

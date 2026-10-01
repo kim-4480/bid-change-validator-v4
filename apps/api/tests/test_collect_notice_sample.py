@@ -26,8 +26,10 @@ def _item(no, order, *, docs=True):
 
 
 class FakeClient:
-    def __init__(self, *_args):
-        pass
+    keys: list[str] = []
+
+    def __init__(self, service_key, *_args):
+        FakeClient.keys.append(service_key)
 
     def fetch_page(self, *, business_type, inquiry_type, page_number, page_size, bid_notice_no=None, **_):
         name = inquiry_type.name
@@ -68,3 +70,18 @@ def test_collector_writes_blocks_and_manifest(tmp_path, monkeypatch):
     blocks = json.loads((tmp_path / first["dir"] / first["documents"][0]["blocks"]).read_text(encoding="utf-8"))
     assert blocks[0]["text"].startswith("3. 입찰참가자격")
     assert not list(tmp_path.rglob("*.pdf"))                                    # 원본은 남기지 않는다
+
+
+def test_percent_encoded_key_is_decoded_once(monkeypatch, tmp_path):
+    """공공데이터포털 키는 퍼센트 인코딩돼 있다. 그대로 넘기면 requests 가 다시 인코딩해 인증이 실패한다."""
+    monkeypatch.chdir(tmp_path)  # 저장소 .env 를 읽지 않게
+    monkeypatch.setenv("G2B_SERVICE_KEY", "abc%2Bdef%3D%3D")
+    assert collector._service_key() == "abc+def=="
+
+
+def test_missing_key_stops_with_a_message(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("G2B_SERVICE_KEY", raising=False)
+    import pytest
+    with pytest.raises(SystemExit, match="G2B_SERVICE_KEY"):
+        collector._service_key()

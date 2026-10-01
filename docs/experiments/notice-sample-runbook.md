@@ -4,14 +4,24 @@
 
 ## 1. 표본 수집 (로컬 PC)
 
+수집 단계는 `apps/api` 의존성만 있으면 된다(`bidengine`·`bideval` 은 2단계에서만 쓴다). 인증키는 환경변수 `G2B_SERVICE_KEY` 또는 **저장소 루트의 `.env`** 에서 읽고, 공공데이터포털이 주는 퍼센트 인코딩 형태를 스크립트가 한 번 풀어 쓴다(인코딩된 키를 그대로 두면 된다).
+
+Git Bash / macOS / Linux:
+
 ```bash
-# 저장소 루트, apps/api 의존성과 엔진이 설치된 환경
-pip install -r apps/api/requirements-dev.txt -e engine -e eval
-export G2B_SERVICE_KEY=...        # 공공데이터포털 인증키
-export PYTHONPATH=$PWD
-python eval/experiments/collect_notice_sample.py \
+pip install -r apps/api/requirements-dev.txt
+PYTHONPATH=$PWD python eval/experiments/collect_notice_sample.py \
     --days 7 --notices 12 --changed 6 \
     --out eval/golden/notice-sample-$(date +%Y%m%d)
+```
+
+Windows PowerShell (`python3` 은 스토어 스텁이라 `python` 을 쓴다):
+
+```powershell
+pip install -r apps/api/requirements-dev.txt
+$env:PYTHONPATH = (Get-Location).Path
+python eval/experiments/collect_notice_sample.py --days 7 --notices 12 --changed 6 `
+    --out "eval/golden/notice-sample-$(Get-Date -Format yyyyMMdd)"
 ```
 
 - 등록공고: 용역·물품·공사에서 공고문(HWP/HWPX/PDF/DOCX)이 추출되는 공고 `--notices` 건.
@@ -20,6 +30,8 @@ python eval/experiments/collect_notice_sample.py \
 - 결과 디렉터리를 커밋·push 한다.
 
 ## 2. 비교 (OpenAI 접속이 되는 곳)
+
+이 단계는 엔진·측정 패키지가 필요하다: `pip install -e engine -e eval`.
 
 ```bash
 python eval/experiments/sample_compare.py \
