@@ -84,6 +84,21 @@ def test_size_certificate_names_are_company_size_not_name_alternatives():
     assert [(r.type, r.value) for r in requirements] == [("COMPANY_SIZE", "소기업")]
 
 
+def test_large_company_is_never_a_positive_size_requirement():
+    raw = "< 대기업인 소프트웨어 사업자의 참여가능 사업금액의 하한 > 매출액 8천억원 이상인 대기업 80억원 이상"
+    for polarity in (None, "POSITIVE"):
+        requirements, diagnostics = _adapt({"유형": "기업규모요건", "raw": raw, "기업규모_raw": "대기업"}, polarity)
+        assert requirements == []
+        assert diagnostics[0]["reason"] == "LARGE_ONLY_SIZE_REQUIREMENT"
+
+
+def test_size_words_in_one_clause_are_a_union_not_two_requirements():
+    raw = "나. 중소기업 및 소상공인으로서 확인서를 소지한 자"
+    for span in ("중소기업", "소상공인"):
+        requirements, _ = _adapt({"유형": "기업규모요건", "raw": raw, "기업규모_raw": span})
+        assert [(r.type, r.value) for r in requirements] == [("COMPANY_SIZE", "중소기업")]
+
+
 def test_two_regions_in_the_value_span_are_alternatives():
     requirements, _ = _adapt(
         {"유형": "지역요건", "raw": TWO_REGION_CLAUSE, "지역_raw": "[충청남도] 또는 [세종특별시]"}, "POSITIVE"

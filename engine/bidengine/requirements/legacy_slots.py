@@ -834,7 +834,24 @@ def adapt_legacy_slot(
 
     elif slot_type == "기업규모요건":
         company_size = (slot.get("기업규모_raw") or "").strip()
-        if company_size:
+        size_exclusion = bool(_SIZE_EXCLUSION_RE.search(raw))
+        clause_words = set(_SIZE_WORD_RE.findall(_size_text(raw)))
+        span_words = set(_SIZE_WORD_RE.findall(_size_text(company_size)))
+        large_words = {"대기업", "중견기업"}
+        if company_size and not size_exclusion and span_words and span_words <= large_words:
+            # 대기업·중견기업 "이어야 한다" 는 참가자격은 없다. 참여 하한 금액표나 배제 문장의 일부를 요구로
+            # 읽은 것이다(2026-10-02 표본 R26BK01736181: 대기업 참여 하한 표가 '대기업 필수' 로 확정됐다).
+            # 확정하면 중소기업이 미달이 된다 — 뜻이 뒤집힌 확정이라 확인 필요로 둔다.
+            diagnostics.append({"code": "UNMAPPED_COMPANY_SIZE", "raw": raw, "reason": "LARGE_ONLY_SIZE_REQUIREMENT"})
+        elif (
+            company_size and not size_exclusion and len(clause_words) > 1
+            and not (clause_words & large_words) and company_size_alias(raw)
+        ):
+            # 한 조항에 규모 낱말이 여럿이면("중소기업 또는 소상공인") 합집합이 요건이다. 모델이 낱말마다 슬롯을
+            # 따로 내면 둘 다 필수(ALL_OF)가 되어 중기업이 '소상공인' 에서 떨어진다. 조항 전체의 합집합으로
+            # 값을 정하면 두 슬롯이 같은 요건이 되어 중복으로 접힌다.
+            add("COMPANY_SIZE", "COMPANY_SIZE", operator="MATCH", value=company_size_alias(raw))
+        elif company_size:
             # 이어 붙인 규모 낱말("중·소기업·소상공인")은 판정기의 alias 표에 없어 문자열
             # 비교로 떨어진다 — 합집합이 한 낱말과 같으면 그 낱말로 정규화한다(위 주석).
             add(
