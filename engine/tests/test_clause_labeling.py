@@ -101,3 +101,19 @@ def test_paragraphs_without_markers_become_separate_clauses():
     exclusion = next(text for text in clauses if text.startswith("※ 자격제한"))
     assert "응모할 수 없으며\n자격심사 후라도" in exclusion  # 문장 중간 줄바꿈은 이어 붙인다
     assert clauses[-1].endswith("※ 단, 공동수급의 경우 구성원 모두 해당")  # 단서는 앞 조항에 붙는다
+
+
+def test_mode_is_taken_from_environment_when_not_given(monkeypatch):
+    calls = []
+
+    def recorder(system, body, schema):
+        calls.append(schema["name"])
+        return {"clauses": []} if schema["name"] == "clause_labels" else {"requirements": []}
+
+    doc = QualificationAnalysisInput(notice_id="n", notice_version_id="v",
+                                     documents=[QualificationDocumentInput(document_id="d", extracted_blocks=[{"text": SECTION}])])
+    monkeypatch.setenv("BIDENGINE_EXTRACTION_MODE", "clause")
+    analyze_qualification_documents(doc, structured_extract=recorder)
+    monkeypatch.setenv("BIDENGINE_EXTRACTION_MODE", "legacy")
+    analyze_qualification_documents(doc, structured_extract=recorder)
+    assert calls == ["clause_labels", "eligibility_slots"]

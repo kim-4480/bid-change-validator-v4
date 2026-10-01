@@ -32,7 +32,11 @@ def evaluate_case(case, *, structured_extract=None):
                 raise ValueError("evaluation context differs from Core context")
             calls += 1
             return structured_extract(system, body, schema)
-        result = analyze_qualification_documents(case.analysis_input, structured_extract=observed)
+        # 이 측정기는 legacy 추출의 입력 계약(build_extraction_body)을 검증한다. 배포 설정이 조항
+        # 방식이어도 같은 것을 재야 하므로 방식을 고정한다. 조항 방식은 experiments/ 러너가 잰다.
+        result = analyze_qualification_documents(
+            case.analysis_input, structured_extract=observed, extraction_mode="legacy"
+        )
         if result.target_chunk_ids != [c["chunk_id"] for c in selected]:
             raise ValueError("evaluation selection differs from Core selection")
         if chunks and not calls:

@@ -54,3 +54,40 @@ def test_reordered_positional_keys_match_conditions_before_keys():
     changes = diff_requirements([a, b], [b.model_copy(update={"requirement_key": "REQ-1"}), a.model_copy(update={"requirement_key": "REQ-2"})])
     assert all(item.change_type == "UNCHANGED" for item in changes)
     assert {(item.baseline_key, item.current_key) for item in changes} == {("REQ-1", "REQ-2"), ("REQ-2", "REQ-1")}
+
+
+def _alt(key, value, raw="건설엔지니어링업(종합) 또는 건설엔지니어링업(설계·사업관리-일반)로 등록한 자"):
+    return QualificationRequirement(
+        requirement_key=key, requirement_group_key="G", group_operator="ANY_OF", notice_version_id="v",
+        type="INDUSTRY", operator="MATCH", value=value, scope={"guard": "assessed"}, raw=raw,
+    )
+
+
+def test_alternatives_in_one_clause_are_unchanged_even_when_keys_shift():
+    """한 조항의 대안 묶음 — 같은 자리 요건이 여럿이다. 추출 순서 키가 바뀌어도 변경 없음이다."""
+    baseline = [_alt("R-001-ALT-1", "4966"), _alt("R-001-ALT-2", "4967")]
+    current = [_alt("R-003-ALT-1", "4967"), _alt("R-003-ALT-2", "4966")]
+    changes = diff_requirements(baseline, current)
+    assert [c.change_type for c in changes] == ["UNCHANGED", "UNCHANGED"]
+
+
+def test_one_alternative_replaced_in_same_clause_is_modified():
+    baseline = [_alt("A1", "4966"), _alt("A2", "4967")]
+    current = [_alt("B1", "4966"), _alt("B2", "4969")]
+    kinds = sorted(c.change_type for c in diff_requirements(baseline, current))
+    assert kinds == ["MODIFIED", "UNCHANGED"]
+
+
+def test_renumbered_item_is_unchanged():
+    """G2 실측: 앞 항목(강원도 본점)이 빠져 "4) …1169" 가 "3) …1169" 가 됐다. 번호는 내용이 아니다."""
+    clause = " 「국가종합전자조달시스템 입찰참가자격등록규정」에 의하여 학술·연구용역(업종코드:1169)으로 등록한 자"
+    before = _alt("A", "1169", raw="4)" + clause)
+    after = _alt("B", "1169", raw="3)" + clause)
+    assert [c.change_type for c in diff_requirements([before], [after])] == ["UNCHANGED"]
+
+
+def test_descriptive_industry_name_span_does_not_make_a_change():
+    clause = "4) 학술·연구용역(업종코드:1169)으로 경쟁입찰 참가자격을 등록한 자"
+    before = _alt("A", "1169", raw=clause).model_copy(update={"scope": {"industry_name": "학술·연구용역(업종코드:1169)", "guard": "assessed"}})
+    after = _alt("B", "1169", raw=clause).model_copy(update={"scope": {"industry_name": "학술·연구용역(업종코드:1169)으로 경쟁입찰 참가자격을 등록한 자", "guard": "assessed"}})
+    assert [c.change_type for c in diff_requirements([before], [after])] == ["UNCHANGED"]

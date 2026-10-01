@@ -16,6 +16,8 @@ callers may still override the normalizer in tests or experiments.
 
 from __future__ import annotations
 
+import os
+
 from collections.abc import Callable
 from typing import Any
 
@@ -113,7 +115,7 @@ def analyze_qualification_documents(
     max_retry: int = 1,
     max_chunk_chars: int = 1800,
     industry_resolver: IndustryNameResolver | None = None,
-    extraction_mode: str = "legacy",
+    extraction_mode: str | None = None,
 ) -> RequirementAnalysisResult:
     """Run one qualification Requirement analysis without touching Backend state."""
     document_ids = [document.document_id for document in analysis_input.documents]
@@ -132,7 +134,11 @@ def analyze_qualification_documents(
 
     # "clause": 조항 경계와 원문을 코드가 정하고 모델은 조항마다 라벨만 붙인다(S3, 실험 중).
     # "legacy": 자격 절 본문을 통째로 주고 모델이 경계와 원문까지 정한다(현재 기본값).
-    extract = extract_clause_slots if extraction_mode == "clause" else extract_legacy_slots
+    # 지정하지 않으면 BIDENGINE_EXTRACTION_MODE 를 본다. 전환은 배포 설정으로 한다.
+    mode = extraction_mode or os.getenv("BIDENGINE_EXTRACTION_MODE", "legacy")
+    if mode not in {"legacy", "clause"}:
+        raise ValueError(f"알 수 없는 추출 방식: {mode}")
+    extract = extract_clause_slots if mode == "clause" else extract_legacy_slots
     extraction = extract(
         chunks,
         structured_extract=structured_extract,
