@@ -78,6 +78,11 @@ def _version_documents(session: requests.Session, item: dict[str, Any]) -> list[
             continue
         try:
             payload = _download(session, doc["url"])
+            digest = hashlib.sha256(payload).hexdigest()
+            # 표준공고문은 대개 첨부 공고문과 같은 파일이다. 한 차수에 같은 파일을 두 번 실으면
+            # 분석 입력의 문서 id 가 겹쳐 엔진이 거부한다.
+            if any(d["source_file_sha256"] == digest for d in saved):
+                continue
             # 표준공고문은 확장자 없이 온다. 이름을 그대로 넘겨 형식을 내용(매직바이트)으로 가리게 한다 —
             # ".pdf" 를 붙이면 HWP·HWPX 표준공고문이 PDF 로 읽혀 전부 실패했다(데스크톱 수집 54/54).
             result = extract_document(io.BytesIO(payload), filename=name, content_type=None)
@@ -86,7 +91,6 @@ def _version_documents(session: requests.Session, item: dict[str, Any]) -> list[
             continue
         if not result.blocks:
             continue
-        digest = hashlib.sha256(payload).hexdigest()
         saved.append({
             "name": name,
             "document_order": doc["document_order"],

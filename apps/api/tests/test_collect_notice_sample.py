@@ -36,6 +36,7 @@ class FakeClient:
         if name == "REGISTERED":
             items = [_item("R1", "000"), _item("R2", "000", docs=False), _item("R3", "000")]
             items[0]["stdNtceDocUrl"] = "https://example.test/R1-std"  # 확장자 없는 표준공고문
+            items[2]["stdNtceDocUrl"] = "https://example.test/R3-std"  # 첨부 공고문과 같은 파일
         elif name == "CHANGED":
             items = [_item("C2", "000"), _item("C1", "001")]
         elif bid_notice_no == "C2":  # 차수가 하나뿐인 변경공고
@@ -50,7 +51,7 @@ def test_collector_writes_blocks_and_manifest(tmp_path, monkeypatch):
 
     def fake_download(_session, url):
         downloaded.append(url)
-        return b"%PDF fake " + url.encode()
+        return b"%PDF fake " + url.replace("R3-std", "R3-000.pdf").encode()
 
     filenames = []
 
@@ -78,6 +79,8 @@ def test_collector_writes_blocks_and_manifest(tmp_path, monkeypatch):
     assert not list(tmp_path.rglob("*.pdf"))                                    # 원본은 남기지 않는다
     assert "표준공고문" in filenames                                              # 확장자를 꾸며 붙이지 않는다
     assert any(d["name"] == "표준공고문" for d in manifest["notices"][0]["documents"])
+    assert len(manifest["notices"][0]["documents"]) == 2
+    assert len(manifest["notices"][1]["documents"]) == 1                        # 같은 파일은 한 번만 싣는다
     unselected = {(u["notice_no"], u["kind"], u["reason"]): u["versions"] for u in manifest["unselected"]}
     assert set(unselected) == {("R2", "registered", "no_documents"), ("C2", "changed", "single_version")}
     assert unselected[("R2", "registered", "no_documents")] == [{"order": "000", "dir": None, "documents": []}]
