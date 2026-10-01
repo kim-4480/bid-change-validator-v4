@@ -455,6 +455,25 @@ def _judge_region(
     )
 
 
+_SIZE_WORDS_RE = re.compile(r"중견기업|대기업|중소기업|소기업|소상공인")
+_SIZE_FILLER_RE = re.compile(r"[\s,，·ㆍ/]|및|와|과|또는|이나|자")
+
+
+def _company_size_set(value: str) -> set[str] | None:
+    """규모 낱말과 이음말로만 된 값이면 허용 규모의 합집합. 다른 글자가 섞이면 None.
+
+    "대기업 및 중견기업" 은 별칭표에 없지만 닫힌 낱말 둘의 합집합이다. 문자열 비교로 떨어지면
+    배제(EXCLUDE) 요건에서 중견기업 회사가 충족으로 나온다.
+    """
+    words = _SIZE_WORDS_RE.findall(value)
+    if not words or _SIZE_FILLER_RE.sub("", _SIZE_WORDS_RE.sub("", value)):
+        return None
+    allowed: set[str] = set()
+    for word in words:
+        allowed |= _COMPANY_SIZE_ALIASES[word]
+    return allowed
+
+
 def _judge_company_size(
     requirement: QualificationRequirement,
     profile: CompanyProfileSnapshot,
@@ -467,7 +486,7 @@ def _judge_company_size(
         return _unknown(requirement, preflight_case_id, unsupported=True)
 
     expected_text = str(requirement.value).strip()
-    allowed = _COMPANY_SIZE_ALIASES.get(expected_text)
+    allowed = _COMPANY_SIZE_ALIASES.get(expected_text) or _company_size_set(expected_text)
     matched = observed in allowed if allowed is not None else _string_match(observed, expected_text)
 
     # "대기업 및 중견기업 참여 제한" names the sizes barred from bidding, so being

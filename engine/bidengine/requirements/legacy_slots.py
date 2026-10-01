@@ -59,6 +59,52 @@ _LABELLED_CODE_RE = re.compile(
 )
 
 
+# ── 값 정규화 ─────────────────────────────────────────────────────────────────
+#
+# [실측 2026-10-01] 같은 조항의 값이 실행마다 표기만 달랐다 — "엔지니어링 사업자" ↔
+# "엔지니어링사업자", "( 세부품명 : X , Y )" ↔ "(세부품명: X, Y)", "대기업 및 중견기업" ↔
+# "대기업 및 중견기업 참여 제한". 판정은 대부분 공백을 무시하지만 차수 비교(decision_payload)는
+# 값을 그대로 보므로 표기 차이가 '수정됨' 이 된다. 값은 표기 하나로 맞춘다. 원문은 raw 에 있다.
+_SPACE_AROUND_PUNCT_RE = re.compile(r"\s*([(\[{])\s*|\s*([)\]}])|\s+([,，:：])|([,，:：])(?=\S)")
+_HANGUL_GAP_RE = re.compile(r"(?<=[가-힣])\s+(?=[가-힣])")
+# 등록·면허 이름으로 쓸 수 없는 낱말. 모델이 "신고 및 실적이 등록" 을 쪼개 "실적" 만 값으로
+# 낼 때가 있다(gpt-6-luna 2/3). 이것은 요건이 아니라 쪼개다 남은 조각이다.
+_GENERIC_REGISTRATION_WORDS = {
+    "실적", "등록", "신고", "자격", "인증", "면허", "허가", "업체", "사업자", "증명서", "확인서", "등록증",
+}
+
+
+def _tidy_punctuation(match: re.Match[str]) -> str:
+    opening, closing, before, after = match.groups()
+    if opening:
+        return opening
+    if closing:
+        return closing
+    if before:
+        return before
+    return after + " "
+
+
+def normalize_value_text(value: str, *, req_type: str) -> str:
+    """값의 표기를 하나로 맞춘다. 뜻을 바꾸는 글자는 건드리지 않고 공백만 다룬다."""
+    text = " ".join(str(value).split())
+    text = _SPACE_AROUND_PUNCT_RE.sub(_tidy_punctuation, text)
+    text = " ".join(text.split())
+    if req_type == "REGISTRATION_CERTIFICATION":
+        # 등록·면허 이름은 띄어쓰기가 표기마다 다르다("엔지니어링 사업자"). 한글 사이 공백을 없앤다.
+        text = _HANGUL_GAP_RE.sub("", text)
+    return text
+
+
+def is_generic_registration_name(value: str) -> bool:
+    return re.sub(r"[\s()·ㆍ,]", "", value or "") in _GENERIC_REGISTRATION_WORDS
+
+
+def strip_size_restriction(value: str) -> str:
+    """"대기업 및 중견기업 참여 제한" → "대기업 및 중견기업". 배제 뜻은 scope.restriction 이 든다."""
+    return " ".join(_SIZE_EXCLUSION_RE.sub(" ", value or "").split())
+
+
 def labelled_industry_codes(text: str) -> set[str]:
     """'업종코드' 라벨 바로 뒤의 네 자리 코드. 숫자 사이 공백은 무시하고 다른 글자는 허용하지 않는다."""
     return {re.sub(r"\s+", "", m.group("code")) for m in _LABELLED_CODE_RE.finditer(text or "")}
@@ -424,6 +470,15 @@ def adapt_legacy_slot(
         # 가드 평가를 구조에 새긴다. 판정기·askability 는 이 표시가 있는 요건의 raw 를 다시
         # 읽지 않는다 — ANY_OF 로 담은 '또는' 을 판정기가 또 막던 문제(J14)가 여기서 끝난다.
         assessment = assess_clause(raw, group_operator=str(group_operator))
+        if isinstance(value, str):
+            value = normalize_value_text(value, req_type=req_type)
+        if req_type == "REGISTRATION_CERTIFICATION" and isinstance(value, str) and is_generic_registration_name(value):
+            diagnostics.append({
+                "code": "UNMAPPED_REGISTRATION_CERTIFICATION",
+                "raw": raw,
+                "reason": f"'{value}' 는 등록·면허 이름으로 쓸 수 없는 낱말입니다.",
+            })
+            return
         requirements.append(
             QualificationRequirement(
                 requirement_key=f"{key_prefix}-{suffix}",
@@ -630,7 +685,9 @@ def adapt_legacy_slot(
                 "COMPANY_SIZE",
                 "COMPANY_SIZE",
                 operator="MATCH",
-                value=company_size_alias(company_size) or company_size,
+                value=company_size_alias(strip_size_restriction(company_size))
+                or strip_size_restriction(company_size)
+                or company_size,
                 scope={"restriction": "EXCLUDE"}
                 if _SIZE_EXCLUSION_RE.search(raw)
                 else {},
@@ -692,7 +749,7 @@ def _registration_alternation_requirements(
                 notice_version_id=notice_version_id,
                 type="INDUSTRY" if code is not None else "REGISTRATION_CERTIFICATION",
                 operator="MATCH",
-                value=code if code is not None else name,
+                value=code if code is not None else normalize_value_text(name, req_type="REGISTRATION_CERTIFICATION"),
                 scope={"guard": GUARD_ASSESSED, **({"source_name": name} if code else {"kind": "REGISTRATION"})},
                 condition_complexity="simple",
                 raw=raw,
