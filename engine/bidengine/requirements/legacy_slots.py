@@ -51,6 +51,19 @@ def _compact(text: str) -> str:
     return re.sub(r"\s+", "", text or "")
 
 
+# PDF 추출은 숫자 사이에 공백을 끼운다("업종코드 : 1 4 6 8"). 숫자 넷 사이에 **공백만** 있고
+# 다른 글자가 없으면 같은 코드다. 하이픈·점 같은 글자가 끼거나 숫자가 다섯 이상이면 코드로
+# 보지 않는다.
+_LABELLED_CODE_RE = re.compile(
+    r"업\s*종\s*코\s*드\s*[:：]?\s*(?P<code>[0-9](?:\s*[0-9]){3})(?!\s*[0-9])"
+)
+
+
+def labelled_industry_codes(text: str) -> set[str]:
+    """'업종코드' 라벨 바로 뒤의 네 자리 코드. 숫자 사이 공백은 무시하고 다른 글자는 허용하지 않는다."""
+    return {re.sub(r"\s+", "", m.group("code")) for m in _LABELLED_CODE_RE.finditer(text or "")}
+
+
 # 회사 규모 낱말도 닫힌 어휘다 — 소상공인·소기업·중소기업·중견기업·대기업 다섯 개뿐이고,
 # 판정기는 이 다섯 낱말을 열쇠로 허용 규모 집합을 찾는다(`_COMPANY_SIZE_ALIASES`).
 #
@@ -187,6 +200,29 @@ def _clean_name(part: str) -> str:
     return text.strip(" ,")
 
 
+# 대안 등록 요건 뒤에 붙은 지역 조건 — "…공사업 등록업체로서 입찰공고일 전일부터 계약체결일까지
+# 주된 영업소의 소재지를 경상남도에 둔 업체"(C03 실측). 이 꼬리 하나만 떼어 지역 요건으로 담고,
+# 앞부분은 대안 묶음으로 연다. 둘은 AND 다. 꼬리 모양이 이것과 정확히 맞을 때만 뗀다.
+_REGION_CONDITION_RE = re.compile(
+    r"\s*(?:으로서|로서|이며|이고|이면서)\s*"
+    r"(?:[^.。]*?까지\s*)?"  # 기간 단서("입찰공고일 전일부터 계약체결일까지")
+    r"(?:주된\s*영업소|본점|본사|주\s*사무소)(?:의)?\s*소재지(?:를|가|는)?\s*"
+    r"(?P<region>[가-힣]{2,}?(?:특별자치시|특별자치도|특별시|광역시|도))\s*(?:내|안)?\s*에?\s*"
+    r"(?:둔|두고\s*있는|있는|소재한|위치한)\s*(?:업체|자|사업자)\s*[.。]?\s*$"
+)
+
+
+def registration_alternation_with_region(raw: str) -> tuple[list[str], str | None] | None:
+    """대안 이름 목록과, 문장 끝에 붙은 지역 조건(있으면). 안전하게 못 읽으면 None."""
+    collapsed = " ".join((raw or "").split())
+    match = _REGION_CONDITION_RE.search(collapsed)
+    if match is None:
+        names = registration_alternation(raw)
+        return (names, None) if names else None
+    names = registration_alternation(collapsed[: match.start()])
+    return (names, match.group("region")) if names else None
+
+
 def registration_alternation(raw: str) -> list[str] | None:
     """'또는' 으로 갈린 등록·면허 **이름** 목록. 안전하게 대안으로 읽을 수 없으면 None."""
     collapsed = " ".join((raw or "").split())
@@ -298,11 +334,12 @@ def adapt_legacy_slot(
         if unsafe_reason == "ALTERNATIVE_OR_EXCEPTION_RULE"
         else None
     )
-    names = (
-        registration_alternation(raw)
+    alternatives = (
+        registration_alternation_with_region(raw)
         if unsafe_reason == "ALTERNATIVE_OR_EXCEPTION_RULE" and alternation is None
         else None
     )
+    names, attached_region = alternatives if alternatives else (None, None)
     if unsafe_reason and alternation is None and names is None:
         return [], [{"code": "UNMAPPED_REQUIREMENT", "raw": raw, "reason": unsafe_reason}]
     diagnostics: list[dict[str, Any]] = []
@@ -315,6 +352,11 @@ def adapt_legacy_slot(
         code for group in _INDUSTRY_CODE_RE.findall(_compact(raw))
         for code in re.findall(r"[0-9]{4}", group)
     }
+    if not industry_codes and registration_name:
+        # 모델이 코드를 raw 가 아니라 등록 이름 필드에 담을 때가 있다 — "소프트웨어사업(컴퓨터
+        # 관련서비스사업, 업종코드: 1468)"(C01 실측, HWPX·PDF 양쪽). raw 만 읽으면 같은 조항이
+        # 실행에 따라 업종코드(닫힌 비교)와 등록 이름(확인 필요)을 오간다.
+        industry_codes = labelled_industry_codes(registration_name)
     if not industry_codes:
         # "업종코드 : 1450" 뿐 아니라 "폐기물수집·운반업(1227)" 처럼 업종명 뒤 괄호에
         # 바로 적는 공고가 많다. 업종명이 앞에 붙어 있을 때만 읽는다 — 그냥 네 자리
@@ -325,7 +367,7 @@ def adapt_legacy_slot(
     if names is not None:
         return _registration_alternation_requirements(
             raw, names, notice_version_id=notice_version_id, key_prefix=key_prefix,
-            industry_resolver=industry_resolver,
+            industry_resolver=industry_resolver, region=attached_region,
         )
     if slot_type in {"업종요건", "등록요건"} and len(industry_codes) > 1 and alternation is None:
         return [], [{"code": "UNMAPPED_INDUSTRY", "raw": raw, "reason": "복수 업종코드의 관계를 확인해야 합니다."}]
@@ -589,8 +631,9 @@ def _registration_alternation_requirements(
     notice_version_id: str,
     key_prefix: str,
     industry_resolver: IndustryNameResolver | None,
+    region: str | None = None,
 ) -> tuple[list[QualificationRequirement], list[dict[str, Any]]]:
-    """대안 이름마다 원자 하나, 묶음은 ANY_OF. 업종 마스터에 정확히 있는 이름은 코드로 담는다.
+    """대안 이름마다 원자 하나, 묶음은 ANY_OF. 지역 조건이 붙었으면 별도 묶음(AND)으로 하나 더. 업종 마스터에 정확히 있는 이름은 코드로 담는다.
 
     코드로 담긴 대안은 닫힌 비교(업종코드 일치)로 판정되고, 코드가 없는 이름은 등록·면허
     이름 비교로 판정된다 — 이름이 안 맞으면 미달이 아니라 확인 필요다. 묶음은 대안 중
@@ -617,9 +660,25 @@ def _registration_alternation_requirements(
                 raw=raw,
             )
         )
+    if region:
+        requirements.append(
+            QualificationRequirement(
+                requirement_key=f"{key_prefix}-REGION",
+                requirement_group_key=f"{key_prefix}-REGION-GROUP",
+                group_operator="ALL_OF",
+                notice_version_id=notice_version_id,
+                type="REGION",
+                operator="MATCH",
+                value=region,
+                scope={"guard": GUARD_ASSESSED},
+                condition_complexity="simple",
+                raw=raw,
+            )
+        )
     return requirements, [{
         "code": "REGISTRATION_ALTERNATION",
         "raw": raw,
         "names": list(names),
         "resolved_codes": resolved,
+        **({"region": region} if region else {}),
     }]

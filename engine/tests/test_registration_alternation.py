@@ -15,7 +15,12 @@ from bidengine.judgment.rules import (
     ProfileIndustryFact,
     judge_requirements,
 )
-from bidengine.requirements.legacy_slots import adapt_legacy_slot, registration_alternation
+from bidengine.requirements.legacy_slots import (
+    adapt_legacy_slot,
+    labelled_industry_codes,
+    registration_alternation,
+    registration_alternation_with_region,
+)
 
 C04_ENGINEERING = ("1) 「건설기술진흥법」에 의한 건설엔지니어링업(종합) 또는 건설엔지니어링업(설계․사업관리-일반) "
                    "또는 건설엔지니어링업(설계․사업관리-건설사업관리)로 등록한 자")
@@ -56,14 +61,14 @@ def test_real_alternatives_are_opened(raw, names):
         # 이름 말고 인원·확인 조건이 섞였다
         "3)「전력기술관리법」에 따라 종합설계업을 등록한 자 이거나 특급기술자 3인 이상을 보유한 전력시설물 설계업자로 "
         "시‧도지사에게 확인을 받은 자 또는 전력시설물 공사 감리업의 등록을 한 자",
-        # 지역 조건이 같은 문장에 붙었다 — 떼어 담기 전까지는 열지 않는다
-        "가. 건설산업기본법령에 의한 건축(또는 토목건축)공사업 등록업체로서 주된 영업소의 소재지를 경상남도에 둔 업체",
+        # 지역 조건 뒤에 다른 조건이 더 붙었다
+        "건축(또는 토목건축)공사업 등록업체로서 주된 영업소의 소재지를 경상남도에 둔 업체로서 시공능력평가액 100억 이상인 업체",
         # 사람의 자격(대표자 또는 위임받은 자)
         "다. 참가자격 : 건설기술진흥법에 의한 건축분야 고급기술자 이상의 자격소지자로서 대표자 또는 대표자의 위임을 받은 자",
         # 예외 단서
         "건축공사업 또는 토목건축공사업으로 등록한 자. 다만 공동수급의 경우 구성원 모두 등록하여야 한다",
     ],
-    ids=["exclusion", "payment", "staff-mixed", "region-mixed", "person", "exception"],
+    ids=["exclusion", "payment", "staff-mixed", "region-plus-more", "person", "exception"],
 )
 def test_unsafe_or_is_not_opened(raw):
     assert registration_alternation(raw) is None
@@ -128,3 +133,75 @@ def test_name_alternatives_are_matched_against_registered_industries():
 def test_clauses_with_industry_codes_are_left_to_the_code_path():
     raw = "폐기물중간처분업(업종코드 : 1257) 또는 폐기물종합재활용업(업종코드 : 6786) 등록업체"
     assert registration_alternation(raw) is None
+
+
+
+C03_WITH_REGION = ("가. 건설산업기본법령에 의한 건축(또는 토목건축)공사업 등록업체로서 입찰공고일 전일부터 "
+                   "계약체결일까지 주된 영업소의 소재지를 경상남도에 둔 업체")
+
+
+def test_attached_region_is_split_into_its_own_requirement():
+    assert registration_alternation_with_region(C03_WITH_REGION) == (["건축공사업", "토목건축공사업"], "경상남도")
+    reqs, _ = adapt_legacy_slot(_slot(C03_WITH_REGION), notice_version_id="v", key_prefix="R",
+                                industry_resolver=DictResolver())
+    alternatives = [r for r in reqs if r.group_operator == "ANY_OF"]
+    region = [r for r in reqs if r.type == "REGION"]
+    assert [r.value for r in alternatives] == ["0002", "0003"]
+    assert [(r.value, r.group_operator) for r in region] == [("경상남도", "ALL_OF")]
+    assert region[0].requirement_group_key != alternatives[0].requirement_group_key
+
+
+def test_region_is_not_split_when_it_is_itself_an_alternative():
+    raw = "건축(또는 토목건축)공사업 등록업체로서 주된 영업소의 소재지를 경상남도 또는 부산광역시에 둔 업체"
+    assert registration_alternation_with_region(raw) is None
+
+
+@pytest.mark.parametrize(
+    ("region", "industries", "expected"),
+    [
+        ("경상남도", [ProfileIndustryFact(code="0003", name="토목건축공사업")], "eligible"),
+        ("부산광역시", [ProfileIndustryFact(code="0003", name="토목건축공사업")], "ineligible"),
+        ("경상남도", [ProfileIndustryFact(code="0001", name="토목공사업")], "ineligible"),
+    ],
+    ids=["both-held", "wrong-region", "no-alternative"],
+)
+def test_alternatives_and_region_are_both_required(region, industries, expected):
+    reqs, _ = adapt_legacy_slot(_slot(C03_WITH_REGION), notice_version_id="v", key_prefix="R",
+                                industry_resolver=DictResolver())
+    profile = CompanyProfileSnapshot(
+        company_id="c", region_name=region, industries=industries,
+        completeness=ProfileCompleteness(industries=True, certifications=True),
+    )
+    result = judge_requirements(reqs, profile, preflight_case_id="c", reference_date=date(2026, 9, 1),
+                                coverage_complete=True)
+    assert result.overall_status == expected
+
+
+# ── PDF 의 벌어진 업종코드 ─────────────────────────────────────────────────────
+
+@pytest.mark.parametrize(
+    ("text", "codes"),
+    [
+        ("업종코드 : 1 4 6 8 )", {"1468"}),
+        ("업종코드: 1468", {"1468"}),
+        ("업종코드: 14 68", {"1468"}),
+        ("업\n종코드: 5898", {"5898"}),
+        ("업종코드 : 1 4 6 8 0", set()),   # 다섯 자리
+        ("업종코드 : 1-4-6-8", set()),     # 숫자 사이에 다른 글자
+        ("업종코드 : 1.4.6.8", set()),
+        ("2026년 1 4 6 8", set()),         # 라벨 없음
+    ],
+)
+def test_spaced_digits_after_label_are_one_code_only_when_separated_by_spaces(text, codes):
+    assert labelled_industry_codes(text) == codes
+
+
+def test_code_in_registration_name_field_becomes_industry_code():
+    """C01 실측: 코드가 raw 가 아니라 등록 이름 필드에, 그것도 벌어진 채로 왔다."""
+    slot = {
+        "유형": "등록요건",
+        "raw": "ㅇ 「 국가종합전자조달시스템 입찰참가자격등록규정 」 에 의하여 나라장터 (G2B) 에 다음 분야의 입찰참가자격을 전자입찰서 제출마감일 전일까지 등록한 자",
+        "등록인증_raw": "소프트웨어사업 ( 컴퓨터관련서비스사업 , 업종코드 : 1 4 6 8 )",
+    }
+    reqs, _ = adapt_legacy_slot(slot, notice_version_id="v", key_prefix="R")
+    assert [(r.type, r.value) for r in reqs] == [("INDUSTRY", "1468")]
