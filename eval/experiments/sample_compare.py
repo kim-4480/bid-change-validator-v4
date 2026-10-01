@@ -88,11 +88,11 @@ def _change_set(a: dict, b: dict) -> frozenset:
     )
 
 
-def summarize(runs: list[dict], changed_labels: list[list[str]]) -> dict:
+def summarize(runs: list[dict], changed_labels: list[list[str]], modes: tuple[str, ...] = MODES) -> dict:
     ok = [r for r in runs if "error" not in r]
     out = {}
     for model in sorted({r["model"] for r in ok}):
-        for mode in MODES:
+        for mode in modes:
             mine = [r for r in ok if r["model"] == model and r["mode"] == mode]
             if not mine:
                 continue
