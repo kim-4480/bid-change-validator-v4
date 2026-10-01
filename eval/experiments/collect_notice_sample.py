@@ -68,7 +68,8 @@ def _download(session: requests.Session, url: str) -> bytes:
         return data.getvalue()
 
 
-def _version_documents(session: requests.Session, item: dict[str, Any], out_dir: Path) -> list[dict[str, Any]]:
+def _version_documents(session: requests.Session, item: dict[str, Any]) -> list[dict[str, Any]]:
+    """한 차수의 관련 문서를 받아 추출한다. 파일은 쓰지 않는다 — 채택된 차수만 _write_version 이 쓴다."""
     saved = []
     for doc in _documents(item):
         name = doc["name"]
@@ -76,25 +77,36 @@ def _version_documents(session: requests.Session, item: dict[str, Any], out_dir:
             continue
         try:
             payload = _download(session, doc["url"])
-            result = extract_document(io.BytesIO(payload), filename=name if "." in name else f"{name}.pdf",
-                                      content_type=None)
+            # 표준공고문은 확장자 없이 온다. 이름을 그대로 넘겨 형식을 내용(매직바이트)으로 가리게 한다 —
+            # ".pdf" 를 붙이면 HWP·HWPX 표준공고문이 PDF 로 읽혀 전부 실패했다(데스크톱 수집 54/54).
+            result = extract_document(io.BytesIO(payload), filename=name, content_type=None)
         except Exception as error:  # noqa: BLE001 - 한 문서 실패가 표본 전체를 멈추면 안 된다
             print(f"    skip {name}: {type(error).__name__}", file=sys.stderr)
             continue
         if not result.blocks:
             continue
         digest = hashlib.sha256(payload).hexdigest()
-        blocks_path = out_dir / f"{digest[:16]}.blocks.json"
-        blocks_path.write_text(json.dumps(result.blocks, ensure_ascii=False), encoding="utf-8")
         saved.append({
             "name": name,
             "document_order": doc["document_order"],
             "extractor": result.extractor,
             "source_url": doc["url"],
             "source_file_sha256": digest,
-            "blocks": blocks_path.name,
+            "blocks": f"{digest[:16]}.blocks.json",
+            "_blocks": result.blocks,
         })
     return saved
+
+
+def _write_version(out: Path, directory: str, documents: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """채택된 차수의 블록 파일을 쓰고 manifest 용 문서 목록을 돌려준다. 탈락 후보는 디스크에 남지 않는다."""
+    version_dir = out / directory
+    version_dir.mkdir(exist_ok=True)
+    listed = []
+    for doc in documents:
+        (version_dir / doc["blocks"]).write_text(json.dumps(doc["_blocks"], ensure_ascii=False), encoding="utf-8")
+        listed.append({key: value for key, value in doc.items() if key != "_blocks"})
+    return listed
 
 
 def _has_notice_document(documents: list[dict[str, Any]]) -> bool:
@@ -139,14 +151,14 @@ def main() -> None:
             if taken >= per_type or len(manifest["notices"]) >= args.notices:
                 break
             notice_no, order = item.get("bidNtceNo"), item.get("bidNtceOrd") or "000"
-            print(f"[{business_type.name}] {notice_no}-{order} {item.get('bidNtceNm', '')[:40]}")
-            notice_dir = args.out / f"{notice_no}-{order}"
-            notice_dir.mkdir(exist_ok=True)
-            documents = _version_documents(session, item, notice_dir)
+            print(f"[{business_type.name}] 탐색 {notice_no}-{order} {item.get('bidNtceNm', '')[:40]}")
+            documents = _version_documents(session, item)
             if not _has_notice_document(documents):
                 continue
+            directory = f"{notice_no}-{order}"
             manifest["notices"].append({"notice_no": notice_no, "order": order, "business_type": business_type.name,
-                                        "title": item.get("bidNtceNm"), "dir": notice_dir.name, "documents": documents})
+                                        "title": item.get("bidNtceNm"), "dir": directory,
+                                        "documents": _write_version(args.out, directory, documents)})
             taken += 1
             time.sleep(0.5)
 
@@ -163,13 +175,13 @@ def main() -> None:
             versions = []
             for version in sorted(history, key=lambda v: v.get("bidNtceOrd") or ""):
                 order = version.get("bidNtceOrd") or "000"
-                version_dir = args.out / f"{notice_no}-{order}"
-                version_dir.mkdir(exist_ok=True)
-                documents = _version_documents(session, version, version_dir)
+                documents = _version_documents(session, version)
                 if _has_notice_document(documents):
-                    versions.append({"order": order, "dir": version_dir.name, "documents": documents})
+                    versions.append({"order": order, "dir": f"{notice_no}-{order}", "documents": documents})
             if len(versions) >= 2:
                 print(f"[CHANGED {business_type.name}] {notice_no} 차수 {[v['order'] for v in versions]}")
+                for version in versions:
+                    version["documents"] = _write_version(args.out, version["dir"], version["documents"])
                 manifest["changed"].append({"notice_no": notice_no, "business_type": business_type.name,
                                             "title": item.get("bidNtceNm"), "versions": versions})
             time.sleep(0.5)

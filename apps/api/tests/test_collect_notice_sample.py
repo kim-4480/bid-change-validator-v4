@@ -35,6 +35,7 @@ class FakeClient:
         name = inquiry_type.name
         if name == "REGISTERED":
             items = [_item("R1", "000"), _item("R2", "000", docs=False), _item("R3", "000")]
+            items[0]["stdNtceDocUrl"] = "https://example.test/R1-std"  # 확장자 없는 표준공고문
         elif name == "CHANGED":
             items = [_item("C1", "001")]
         else:  # NOTICE_NUMBER — 모든 차수
@@ -49,7 +50,10 @@ def test_collector_writes_blocks_and_manifest(tmp_path, monkeypatch):
         downloaded.append(url)
         return b"%PDF fake " + url.encode()
 
+    filenames = []
+
     def fake_extract(source, *, filename, content_type):
+        filenames.append(filename)
         return SimpleNamespace(extractor="FAKE", blocks=[{"block_index": 0, "text": f"3. 입찰참가자격 {filename}"}])
 
     monkeypatch.setattr(collector, "G2BClient", FakeClient)
@@ -70,6 +74,12 @@ def test_collector_writes_blocks_and_manifest(tmp_path, monkeypatch):
     blocks = json.loads((tmp_path / first["dir"] / first["documents"][0]["blocks"]).read_text(encoding="utf-8"))
     assert blocks[0]["text"].startswith("3. 입찰참가자격")
     assert not list(tmp_path.rglob("*.pdf"))                                    # 원본은 남기지 않는다
+    assert "표준공고문" in filenames                                              # 확장자를 꾸며 붙이지 않는다
+    assert any(d["name"] == "표준공고문" for d in manifest["notices"][0]["documents"])
+    referenced = {n["dir"] for n in manifest["notices"]} | {v["dir"] for c in manifest["changed"] for v in c["versions"]}
+    on_disk = {p.name for p in tmp_path.iterdir() if p.is_dir()}
+    assert on_disk == referenced                                                # 탈락 후보 디렉터리가 남지 않는다
+    assert "R2-000" not in on_disk
 
 
 def test_percent_encoded_key_is_decoded_once(monkeypatch, tmp_path):
