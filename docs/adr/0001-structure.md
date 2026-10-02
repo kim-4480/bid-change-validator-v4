@@ -30,8 +30,8 @@
 ## 강제 장치
 
 1. CODEOWNERS (레포가 Public이거나 유료 플랜이 되면 브랜치 보호로 필수 승인 전환)
-2. CI zone guard: 한 PR이 두 영역 이상을 건드리면 실패 (`cross-zone` 라벨 예외)
-3. import 경계: Python `import-linter`, TS `dependency-cruiser`
+2. CI zone guard: 한 PR이 두 영역 이상을 건드리면 실패 (`cross-zone` 라벨 예외, develop → main 통합 PR 제외)
+3. import 경계: `engine/tests/test_engine_boundary.py` (엔진이 `apps`·`sqlalchemy`·`fastapi` 등을 import하면 실패). TS 쪽 `dependency-cruiser`는 FE 구조 정리 때 추가한다.
 
 ## 실행 순서
 
@@ -46,3 +46,45 @@
 | S6 | 통제 어휘 카탈로그 |
 
 각 단계는 S0 기준선 대비 수치를 PR에 첨부한다.
+
+## 이관 1단계 결과 (2026-09-30)
+
+3차 `develop` 112a8e3의 파일을 커밋 이력 없이 옮겼다. 동작은 바꾸지 않았고, 옮기기 전과 후의 수치가 같다.
+
+| 검증 | 3차 | 4차 |
+| --- | --- | --- |
+| 백엔드 테스트 | 924 통과 | 924 통과 (engine 284 + eval 46 + api 594) |
+| 골든 회귀 | 일치 110 / 보류 28 / 잘못된 확정 0 | 결과 JSON 동일 (실행 시각 제외) |
+| copilot v3.1 검증 | 339 통과 | 339 통과 |
+| 웹 | test·tsc·build 통과 | 동일 |
+
+### 옮긴 위치
+
+| 3차 | 4차 |
+| --- | --- |
+| `apps/api/app/ai/{contracts,extensions,evaluation_contracts}.py`, `normalization/`, `providers/`, `clause_review/` | `engine/bidengine/` 같은 이름 |
+| `ai/qualification/extraction/{backend_blocks,chunking}.py` | `bidengine/document/` |
+| `ai/qualification/extraction/{requirement_extraction,notice_requirements,code_salvage}.py` | `bidengine/labeling/` |
+| `ai/qualification/extraction/{analysis_pipeline,analysis_result}.py` | `bidengine/pipeline/` |
+| `ai/qualification/canonical/` | `bidengine/requirements/` |
+| `ai/qualification/grounding/` | `bidengine/grounding/` |
+| `qualification/rules/judgment.py` | `bidengine/judgment/rules.py` |
+| `qualification/rules/{askability,clause_safety}.py` | `bidengine/judgment/` |
+| `qualification/rules/requirement_diff.py` | `bidengine/diff/` |
+| `document_rag/{answer,store,retrieval,readiness,langchain_pipeline}.py` | `bidengine/rag/` |
+| `ai/quality_eval/`, `scripts/validate_real_golden_dataset.py` | `eval/bideval/` |
+| `samples/golden/` | `eval/golden/` |
+| `scripts/{run_golden_regression,run_extraction_recall,check_extraction_determinism}.py` | `eval/runners/` |
+| `scripts/*copilot_v31*`, `scripts/ci_copilot_integration.sh` | `eval/runners/copilot/` |
+| `scripts/build_standard_clauses.py` | `engine/scripts/` |
+| `scripts/collect_code_master*.py` | `db/scripts/` |
+| API 없이 도는 테스트 30개 | `engine/tests/`, `eval/tests/` |
+
+### 이번 단계에서 결정과 다르게 남긴 것
+
+- **copilot은 아직 `apps/api/app/copilot/`에 있다.** 모든 모듈이 API 스키마(`*_schemas.py`)와 ORM(`models.py`)에 이어져 있어 엔진으로 옮기면 경계가 깨진다. `ports.py`로 DB 접근을 뒤집은 뒤 옮긴다. 소유는 LLM.
+- **`document_rag/service.py`, `services/document_extraction.py`는 API에 남겼다.** 둘 다 SQLAlchemy를 쓴다. 문서 추출은 S2(문서 모델)에서 엔진 `document/`로 다시 쓴다.
+- **`qualification/{analysis,judgment,ask_back,matching,revalidation}.py`는 API에 남겼다.** DB를 읽고 쓰는 서비스 계층이고, 엔진을 호출한다.
+- **docker-compose는 루트에 남겼다.** 사용법(`docker compose up`)을 바꾸지 않기 위해서다. API 이미지는 루트를 빌드 컨텍스트로 쓰고 엔진을 함께 설치한다.
+- **eval 실행기 일부(`run_extraction_recall`, `check_extraction_determinism`)는 여전히 운영 DB를 읽는다.** S0에서 eval 전용 DB로 바꾼다(문제 8).
+- **`docs/`는 3차 스냅샷이다.** 문서 안의 경로는 3차 기준이다.

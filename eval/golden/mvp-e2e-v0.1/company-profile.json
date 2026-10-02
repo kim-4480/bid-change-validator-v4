@@ -1,0 +1,48 @@
+{
+  "fixture_version": "mvp-golden-v0.1",
+  "company": {
+    "name": "Gyuniverse Demo Systems",
+    "business_registration_number": null,
+    "region_code": "11",
+    "region_name": "서울특별시",
+    "company_size": "SMALL",
+    "industries": [
+      {
+        "code": "0001",
+        "name": "데모 업종",
+        "verified": true
+      }
+    ],
+    "staff": {
+      "total_count": 8,
+      "verified": true,
+      "roles": [
+        {"role_name": "PM", "headcount": 2, "verified": true},
+        {"role_name": "개발", "headcount": 5, "verified": true}
+      ]
+    },
+    "performances": [
+      {
+        "name": "공공기관 정보시스템 구축",
+        "client_name": "데모 공공기관",
+        "amount": 500000000,
+        "started_at": "2026-01-01",
+        "completed_at": "2026-06-30",
+        "fields": ["공공기관 정보시스템 구축"],
+        "verified": true
+      }
+    ],
+    "certifications": []
+  },
+  "fixture_only_profile_completeness": {
+    "region": true,
+    "company_size": true,
+    "staff": true,
+    "performances": true,
+    "certifications": false
+  },
+  "notes": [
+    "fixture_only_profile_completeness is not a current production Company schema field.",
+    "An empty certification list must not be interpreted as confirmed non-possession while certifications completeness=false."
+  ]
+}

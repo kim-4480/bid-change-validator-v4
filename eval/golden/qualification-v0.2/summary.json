@@ -1,0 +1,54 @@
+{
+  "fixture": "fixture_bundle.json",
+  "fixture_sha256": "552eb031612e5004efc67adbaeb0f015fad73de714e807014c4cf61d391efe9c",
+  "review_status": "DRAFT_NOT_APPROVED",
+  "note": "기대값은 독립 검토자 승인 전 초안. 이 파일의 숫자는 '팀 표준 판정값'이 아니라 회귀 기준선이다.",
+  "baseline": {
+    "code_reference": "31ec928",
+    "measured_on": "2026-09-13",
+    "case_count": 40,
+    "row_count": 138,
+    "match": 110,
+    "safe_abstention": 28,
+    "wrong_determinate": 0,
+    "overall_match": 37
+  },
+  "history": [
+    {
+      "code_reference": "993e5cf",
+      "date": "2026-09-12",
+      "match": 104,
+      "safe_abstention": 34,
+      "wrong_determinate": 0,
+      "overall_match": 36,
+      "note": "골든셋 v0.2 최초 실행"
+    },
+    {
+      "code_reference": "31ec928",
+      "date": "2026-09-13",
+      "match": 110,
+      "safe_abstention": 28,
+      "wrong_determinate": 0,
+      "overall_match": 37,
+      "note": "#128 안전 가드 장식 벗기기 후"
+    }
+  ],
+  "gate": {
+    "wrong_determinate_must_be": 0,
+    "match_must_be_at_least": 110
+  },
+  "fixture_history": [
+    {
+      "date": "2026-09-15",
+      "fixture_sha256": "552eb031612e5004efc67adbaeb0f015fad73de714e807014c4cf61d391efe9c",
+      "note": "raw 4건을 골든 작성자가 준 문구로 갱신 (J18:academic, J19:amount, J20:single_amount, J21:single_amount). 기대값·값·기간은 변경 없음. 셋은 공고 원문과 일치. J20 은 원문의 '민자 또는 민간 기업이 발주한' 중 '또는 민간 기업이 발주한' 이 여전히 빠져 있다 — 원문 그대로 넣으면 안전 가드가 '또는' 을 요건 대안으로 읽어 UNKNOWN 을 내고 일치가 110→109 로 떨어진다. 가드가 발주처 나열의 '또는' 을 구분하지 못하는 문제이며, 가드를 고친 뒤 J20 raw 를 원문대로 맞춘다."
+    }
+  ],
+  "known_raw_mismatches": [
+    {
+      "requirement_key": "J20:single_amount",
+      "reason": "원문에 '또는 민간 기업이 발주한' 이 있으나 raw 에 없음. 원문대로 넣으면 안전 가드(ALTERNATIVE_OR_EXCEPTION_RULE) 에 걸림.",
+      "blocked_by": "clause_safety.unsafe_clause_reason"
+    }
+  ]
+}

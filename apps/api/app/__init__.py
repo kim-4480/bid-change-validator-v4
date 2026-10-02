@@ -1,0 +1,1 @@
+"""Bid change validator API."""

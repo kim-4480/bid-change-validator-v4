@@ -1,0 +1,43 @@
+{
+  "model": "gpt-5.6-luna",
+  "prices": {
+    "input_per_million": 0.2,
+    "output_per_million": 1.2,
+    "url": "https://developers.openai.com/api/docs/models/gpt-5.6-luna"
+  },
+  "max_usd": 0.1,
+  "mode": "verifier",
+  "usage_cost_upper_usd": 0.0011002,
+  "not_an_invoice": true,
+  "unknown_usage_policy": "charge maximum input/output per attempted call",
+  "head": "0c6968400a26f30ce1e1121a9afd752667b4ca97",
+  "fixture_sha256": "d70d87c2b5717f4954f410f63a3c99dbe8dd4ebe7170ddc0a7d6287145d44912",
+  "source_sha256": {
+    "apps\\api\\app\\copilot\\actions.py": "9fb66b9847c2552bf5d6a447260033e427085b0a9da02bc1df6a8e278a17cd51",
+    "apps\\api\\app\\copilot\\answer_validation.py": "ab59d73207ab8dd224a70d662210e0dbe3203d841c5fd9ab3c655a6234c862bc",
+    "apps\\api\\app\\copilot\\chat.py": "bd04775aab647e236b09c3dff8dc61830ec49af015a8c767c61e122d4a7dfe8f",
+    "apps\\api\\app\\copilot\\context.py": "4f74899bc23bace9223fbbbeea89f19c13ab8490f6541749c5b3d025b943189b",
+    "apps\\api\\app\\copilot\\contracts.py": "d287f79a163dfeab7b24011f18a3c9b760c996d92f3ee8f1eacab4a241373bad",
+    "apps\\api\\app\\copilot\\conversation_state.py": "a1cd9dd9a3aae64d4c13d5e7cd20bfce9aafc4ee69913f22ab799792d87084c9",
+    "apps\\api\\app\\copilot\\document_qa.py": "61e32c6d6980a5eb8f9489ba0e45173d00f99958a5d0463514f6213a27e5d7c5",
+    "apps\\api\\app\\copilot\\intent_resolver.py": "dbb7917c99a3cfdfd480ff79357e581ec3258d879b4a4dff0bb3bde362e7b793",
+    "apps\\api\\app\\copilot\\model_gateway.py": "855f70f1a7393de9638fa900215ae2fdb97505df5e990d0c7a9b9b9888164ec6",
+    "apps\\api\\app\\copilot\\narration.py": "d6c405f6f95e1d0c5a26368e928b26f4f07a6c31f012aa03ab3c7b9a007e71e8",
+    "apps\\api\\app\\copilot\\orchestration.py": "f794321bbbba1bdc0c67ac963b41e92b9166636c2315888952739e2dd9884cb6",
+    "apps\\api\\app\\copilot\\presentation.py": "3d7636d96ccd13fe231f04dcc4c95fee52edccfbe00c324373a93539f34cafc0",
+    "apps\\api\\app\\copilot\\product_tools.py": "3c1dc7ecf97dfe3157ad28b6d8b016f56f979960b37e95d92807c3c2fadc113e",
+    "apps\\api\\app\\copilot\\router.py": "a743c5f520135d31c885cab434cf7577c0d7f221530bfdabc2dbfd8d73c585be",
+    "apps\\api\\app\\copilot\\semantic_router.py": "b50ef47f3e2d88a60fefbd3e57e04abfbca7f1d192d6dfeba4d2f406b5863710",
+    "apps\\api\\app\\copilot\\source_map.py": "9b8e9f0555264a792d3c8f33c24600a09c8f8fb0448786b340bf3751c9b70e7d",
+    "apps\\api\\app\\copilot\\tool_adapters.py": "c96b6e976a08b2668b90ac5c76e9a8157af16133904719549f570ea7153fd278",
+    "apps\\api\\app\\copilot\\v31_contracts.py": "8990a988d18c592f75b88d5cca4575d1754655c5e8ad9293a63a823d38f5d252",
+    "apps\\api\\app\\copilot\\__init__.py": "973f14ac713b182c5d01e18a9ea29b71699e0bf7b6c6ccaff2c67a9ea244d2e0"
+  },
+  "started_utc": "20260913T193059Z",
+  "finished_utc": "2026-09-13T19:31:07.228129+00:00",
+  "not_run": [
+    "live DB",
+    "reviewed Golden Core",
+    "human usability evaluation"
+  ]
+}

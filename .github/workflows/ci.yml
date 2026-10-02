@@ -1,0 +1,128 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  engine:
+    name: engine (DB 없이)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: engine/pyproject.toml
+      - name: Install engine
+        run: python -m pip install -e engine pytest
+      - name: Engine tests (경계 검사 포함)
+        working-directory: engine
+        run: python -m pytest -q tests
+
+  eval:
+    name: eval (골든 게이트)
+    runs-on: ubuntu-latest
+    env:
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            engine/pyproject.toml
+            eval/pyproject.toml
+      - name: Install engine and eval
+        run: python -m pip install -e engine -e eval pytest
+      - name: Verify frozen fixture checksums
+        working-directory: eval/golden/qualification-v0.2
+        run: sha256sum -c checksums.sha256
+      - name: Eval tests
+        working-directory: eval
+        run: python -m pytest -q tests
+      - name: Golden regression (gate)
+        run: python eval/runners/run_golden_regression.py --out artifacts/golden_regression.json
+      - name: Upload detailed results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-regression-${{ github.sha }}
+          path: artifacts/golden_regression.json
+          retention-days: 30
+
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: bidjigi
+          POSTGRES_USER: bidjigi
+          POSTGRES_PASSWORD: bidjigi_local_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bidjigi -d bidjigi"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://bidjigi:bidjigi_local_password@localhost:5432/bidjigi
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            apps/api/requirements.txt
+            apps/api/requirements-dev.txt
+            engine/pyproject.toml
+      - name: Install backend dependencies
+        run: python -m pip install -r apps/api/requirements-dev.txt -e engine -e eval
+      - name: Apply database migrations
+        working-directory: apps/api
+        run: python -m alembic upgrade head
+      - name: Backend tests
+        run: python -m pytest -q apps/api/tests
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - name: Install frontend dependencies
+        working-directory: apps/web
+        run: pnpm install --frozen-lockfile
+      - name: Inventory existing frontend lint debt
+        continue-on-error: true
+        working-directory: apps/web
+        run: pnpm lint
+      - name: Frontend unit tests
+        working-directory: apps/web
+        run: pnpm test
+      - name: Build frontend
+        working-directory: apps/web
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+        run: pnpm build

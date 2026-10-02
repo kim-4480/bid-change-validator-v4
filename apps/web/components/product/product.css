@@ -1,0 +1,254 @@
+:root {
+  --product-accent: #2b4fd8;
+  --product-accent-deep: #1f3ab0;
+  --product-accent-soft: #edeafb;
+  --product-surface: #ffffff;
+  --product-tint: #f6f7f9;
+  --product-tint-2: #f4f3fb;
+  --product-ink: #14161c;
+  --product-body: #33373d;
+  --product-muted: #5a6069;
+  --product-faint: #6e747c;
+  --product-line: #e4e7ed;
+  --product-line-2: #eef0f4;
+  --product-ok: #147a4a;
+  --product-ok-soft: #e4f3eb;
+  --product-ok-line: #b6ddc7;
+  --product-warn: #8a5a00;
+  --product-warn-soft: #fbf1de;
+  --product-warn-line: #e8d3a4;
+  --product-bad: #b3261e;
+  --product-bad-soft: #fbeae9;
+  --product-bad-line: #eebcb8;
+  --product-neutral: #5a6069;
+  --product-neutral-soft: #f2f4f7;
+  --product-neutral-line: #dfe3ea;
+  --product-card-radius: 20px;
+  --product-panel-radius: 24px;
+  --product-pill-radius: 999px;
+  --product-shell-gutter: 44px;
+  --product-shell-max: 1440px;
+}
+
+html,
+body {
+  font-family: var(--font-product-sans), Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: var(--product-surface);
+  color: var(--product-body);
+}
+
+.app-shell {
+  background: var(--product-surface);
+}
+
+.app-shell-container {
+  width: min(100%, var(--product-shell-max));
+  margin-inline: auto;
+  padding-inline: var(--product-shell-gutter);
+}
+
+.app-header {
+  width: 100%;
+  height: 119px;
+  background: var(--product-surface);
+  border-bottom: 1px solid var(--product-line);
+}
+
+.app-utility-bar {
+  height: 36px;
+  background: var(--product-tint);
+}
+
+.app-utility-action {
+  transition: color 160ms ease;
+}
+
+.app-utility-action:hover {
+  color: var(--product-ink);
+}
+
+.app-gnb {
+  height: 83px;
+  background: var(--product-surface);
+}
+
+.app-brand {
+  display: flex;
+  width: 130px;
+  min-width: 130px;
+  height: 47px;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 마크는 SVG다. 배경·라운드는 SVG 안에 있고, color는 rect fill(currentColor)로 들어간다. */
+.app-brand-mark {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  color: var(--product-accent);
+}
+
+.app-brand-copy {
+  display: flex;
+  min-width: 0;
+  height: 47px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.app-brand-name {
+  display: block;
+  color: var(--product-accent-deep);
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: -0.03em;
+}
+
+.app-brand-subtitle {
+  display: block;
+  color: var(--product-faint);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.app-primary-nav {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 52px;
+}
+
+.app-nav-link {
+  color: var(--product-body);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  transition: color 160ms ease;
+}
+
+.app-nav-link:hover,
+.app-nav-link[aria-current='page'] {
+  color: var(--product-accent-deep);
+}
+
+.app-nav-link[aria-current='page'] {
+  font-weight: 700;
+}
+
+/*
+  비활성 메뉴는 비활성으로 보여야 한다. 이전에는 opacity가 1이라 활성 링크와 구분이
+  안 됐고, 눌러도 반응이 없으니 준비 중이 아니라 고장난 것으로 읽혔다.
+*/
+.app-nav-link-disabled,
+.app-nav-link-disabled:hover {
+  cursor: not-allowed;
+  color: var(--product-faint);
+  opacity: 0.5;
+}
+
+.app-header-action:disabled {
+  cursor: not-allowed;
+  color: var(--product-faint);
+  opacity: 0.5;
+}
+
+.app-header-actions {
+  display: flex;
+  width: 102px;
+  flex: 0 0 102px;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 18px;
+}
+
+.app-header-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--product-body);
+  font-size: 12.5px;
+  line-height: 19px;
+  white-space: nowrap;
+}
+
+.app-title-band {
+  height: 120px;
+  background: linear-gradient(120.17deg, #dfe9ff 0%, #e9e2fb 33.82%, #dcefff 73.53%);
+}
+
+.app-title-band-tall {
+  height: 142px;
+}
+
+.app-shell-content {
+  background: var(--product-surface);
+}
+
+.app-footer {
+  min-height: 204px;
+  background: var(--product-tint);
+  border-top: 0;
+}
+
+.app-shell-route-workbench > main > header:first-child,
+.app-shell-route-qualification > main > div > header:first-child {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  :root {
+    --product-shell-gutter: 28px;
+  }
+
+  .app-primary-nav {
+    gap: 28px;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --product-shell-gutter: 20px;
+  }
+
+  .app-header {
+    height: 72px;
+  }
+
+  .app-utility-bar {
+    display: none;
+  }
+
+  .app-gnb {
+    height: 72px;
+  }
+
+  .app-primary-nav {
+    display: none;
+  }
+
+  .app-title-band,
+  .app-title-band-tall {
+    height: 118px;
+  }
+
+  .app-header-actions span {
+    display: none;
+  }
+
+  .app-header-actions {
+    width: auto;
+    flex-basis: auto;
+  }
+}

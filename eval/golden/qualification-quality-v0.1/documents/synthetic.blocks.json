@@ -1,0 +1,12 @@
+{
+  "document_id": "synthetic-doc-1",
+  "notice_version_id": "synthetic-v1",
+  "extracted_text_sha256": "f560c149f2e677a23c7c93d978b61b44e178847fc64cbcd21f3d18d2c0158ef9",
+  "extracted_blocks": [
+    {
+      "block_index": 0,
+      "page": 1,
+      "text": "1. 입찰 참가자격\n업종코드 1468 등록 업체이어야 한다.\n별도 협의에 따른 추가 요건을 확인한다."
+    }
+  ]
+}

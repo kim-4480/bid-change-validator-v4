@@ -1,0 +1,18 @@
+Python: 3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]
+DB: loopback port 1 / audit_never_connect; Engine.connect and sockets blocked
+Fixtures: existing synthetic objects; model: injected fake extractor
+============================= test session starts =============================
+platform win32 -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\HGLEE\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe
+rootdir: E:\dev\02_TeamProjects\bid-change-validator
+collecting ... collected 7 items
+
+apps/api/tests/test_copilot_narration.py::test_narrator_compacts_product_truth_without_changing_product_state PASSED [ 14%]
+apps/api/tests/test_copilot_narration.py::test_narrator_cannot_flip_product_status PASSED [ 28%]
+apps/api/tests/test_copilot_narration.py::test_narrator_unknown_requirement_falls_back PASSED [ 42%]
+apps/api/tests/test_copilot_narration.py::test_narrator_provider_failure_falls_back PASSED [ 57%]
+apps/api/tests/test_copilot_required_checks_narration.py::test_required_checks_provider_failure_keeps_compact_manual_review_fallback PASSED [ 71%]
+apps/api/tests/test_copilot_required_checks_narration.py::test_required_checks_narrator_receives_actual_manual_review_evidence PASSED [ 85%]
+apps/api/tests/test_copilot_required_checks_narration.py::test_required_checks_with_answerable_question_keeps_question_target_on_fallback PASSED [100%]
+
+- generated xml file: E:\dev\02_TeamProjects\bid-change-validator\docs\07_handoff\ai-copilot-v3.1\audit-evidence\narration.xml -
+============================== 7 passed in 0.41s ==============================

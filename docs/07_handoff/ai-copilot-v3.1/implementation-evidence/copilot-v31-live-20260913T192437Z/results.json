@@ -1,0 +1,658 @@
+[
+  {
+    "turn": 1,
+    "question": "이 공고 우리 회사가 참여할 수 있는지, 부족한 점과 다음에 할 일을 알려줘.",
+    "expected_fact_ids": [
+      "judgment",
+      "exception",
+      "manual"
+    ],
+    "envelope": {
+      "version": "3.1",
+      "conversation_id": "968c1bf4-c84d-4129-b246-93ef45119c93",
+      "context_revision": 1,
+      "message_id": "c4b47464-adba-4993-a45f-449b5bd5887f",
+      "status_card": null,
+      "claims": [
+        {
+          "claim_id": "quote-judgment-s-judgment-0",
+          "text": "현재 저장된 판정은 참가 불가입니다. 단체급식업 등록 요건은 미달입니다.",
+          "fact_ids": [
+            "judgment"
+          ],
+          "source_ids": [
+            "s-judgment"
+          ],
+          "validation": "SUPPORTED",
+          "method": "rule",
+          "reason": "EXACT_SOURCE"
+        },
+        {
+          "claim_id": "quote-manual-s-manual-0",
+          "text": "설명회 참석 및 입찰등록 기한은 원문에서 직접 확인해야 합니다. 공동수급과 하도급은 허용되지 않습니다.",
+          "fact_ids": [
+            "manual"
+          ],
+          "source_ids": [
+            "s-manual"
+          ],
+          "validation": "SUPPORTED",
+          "method": "extractive",
+          "reason": "EXACT_SOURCE"
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "s-judgment",
+          "kind": "PRODUCT",
+          "quote": "현재 저장된 판정은 참가 불가입니다. 단체급식업 등록 요건은 미달입니다.",
+          "scope": {
+            "case_id": "00000000-0000-4000-8000-000000000001",
+            "company_id": "00000000-0000-4000-8000-000000000002",
+            "notice_id": "00000000-0000-4000-8000-000000000003",
+            "notice_version_id": "00000000-0000-4000-8000-000000000004",
+            "analysis_run_id": "00000000-0000-4000-8000-000000000005",
+            "judgment_run_id": "00000000-0000-4000-8000-000000000006"
+          },
+          "document_id": null,
+          "location": {},
+          "source_sha256": null,
+          "extracted_sha256": null
+        },
+        {
+          "source_id": "s-manual",
+          "kind": "DOCUMENT",
+          "quote": "설명회 참석 및 입찰등록 기한은 원문에서 직접 확인해야 합니다. 공동수급과 하도급은 허용되지 않습니다.",
+          "scope": {
+            "case_id": "00000000-0000-4000-8000-000000000001",
+            "company_id": "00000000-0000-4000-8000-000000000002",
+            "notice_id": "00000000-0000-4000-8000-000000000003",
+            "notice_version_id": "00000000-0000-4000-8000-000000000004",
+            "analysis_run_id": "00000000-0000-4000-8000-000000000005",
+            "judgment_run_id": "00000000-0000-4000-8000-000000000006"
+          },
+          "document_id": null,
+          "location": {},
+          "source_sha256": null,
+          "extracted_sha256": null
+        }
+      ],
+      "limitations": [
+        "자동 설명 일부를 검증하지 못해 확인된 내용과 원문을 함께 표시합니다."
+      ],
+      "follow_up_targets": [
+        {
+          "target_id": "c2cd9768-e78a-446e-a012-38ccf60cd3a0",
+          "kind": "REQUIREMENT",
+          "label": "현재 저장된 판정은 참가 불가입니다. 단체급식업 등록 요건은 미달입니다.",
+          "message_id": "c4b47464-adba-4993-a45f-449b5bd5887f",
+          "ordinal": 1,
+          "fact_ids": [
+            "judgment"
+          ],
+          "source_ids": [
+            "s-judgment"
+          ],
+          "requirement_key": null
+        },
+        {
+          "target_id": "6fafc96e-79a7-403a-972c-54590b90ae91",
+          "kind": "MANUAL",
+          "label": "설명회 참석 및 입찰등록 기한은 원문에서 직접 확인해야 합니다. 공동수급과 하도급은 허용되지 않습니다.",
+          "message_id": "c4b47464-adba-4993-a45f-449b5bd5887f",
+          "ordinal": 1,
+          "fact_ids": [
+            "manual"
+          ],
+          "source_ids": [
+            "s-manual"
+          ],
+          "requirement_key": null
+        }
+      ],
+      "actions": [],
+      "capabilities": {},
+      "clarification": null,
+      "processing": {
+        "path": "v3.1",
+        "model": "gpt-5.6-luna",
+        "fallback": true,
+        "task_status": "PARTIAL",
+        "elapsed_ms": 1515,
+        "calls": [
+          {
+            "stage": "plan",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 2252,
+            "usage": null,
+            "status": "failed",
+            "error": "APIConnectionError",
+            "elapsed_ms": 625
+          },
+          {
+            "stage": "generate",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 5819,
+            "usage": null,
+            "status": "failed",
+            "error": "APIConnectionError",
+            "elapsed_ms": 0
+          }
+        ],
+        "validation_events": [
+          {
+            "stage": "generate",
+            "reason": "APIConnectionError"
+          }
+        ],
+        "tools": [
+          {
+            "tool": "READ_JUDGMENT",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          },
+          {
+            "tool": "READ_PROFILE",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          },
+          {
+            "tool": "READ_CHECKS",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          }
+        ],
+        "plan": {
+          "goal": "이 공고 우리 회사가 참여할 수 있는지, 부족한 점과 다음에 할 일을 알려줘.",
+          "tasks": [
+            {
+              "kind": "READ_JUDGMENT",
+              "question": "이 공고 우리 회사가 참여할 수 있는지, 부족한 점과 다음에 할 일을 알려줘.",
+              "scope_ref": "current_case"
+            },
+            {
+              "kind": "READ_PROFILE",
+              "question": "이 공고 우리 회사가 참여할 수 있는지, 부족한 점과 다음에 할 일을 알려줘.",
+              "scope_ref": "current_case"
+            },
+            {
+              "kind": "READ_CHECKS",
+              "question": "이 공고 우리 회사가 참여할 수 있는지, 부족한 점과 다음에 할 일을 알려줘.",
+              "scope_ref": "current_case"
+            }
+          ],
+          "clarification": null
+        },
+        "deadline_seconds": 45,
+        "storage": "process-memory; restart clears history; one worker only"
+      }
+    },
+    "required_fact_coverage": false,
+    "scope": "real planner/generator/verifier; synthetic read adapters; no database",
+    "calls": [
+      {
+        "stage": "plan",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 2252,
+        "usage": null,
+        "status": "failed",
+        "error": "APIConnectionError",
+        "elapsed_ms": 625
+      },
+      {
+        "stage": "generate",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 5819,
+        "usage": null,
+        "status": "failed",
+        "error": "APIConnectionError",
+        "elapsed_ms": 0
+      }
+    ],
+    "usage_cost_upper_usd": 0.0136
+  },
+  {
+    "turn": 2,
+    "question": "병원 급식 실적도 인정돼?",
+    "expected_fact_ids": [
+      "exception"
+    ],
+    "envelope": {
+      "version": "3.1",
+      "conversation_id": "968c1bf4-c84d-4129-b246-93ef45119c93",
+      "context_revision": 2,
+      "message_id": "acc646c3-993c-4eb2-8d8d-ec4e9fe122aa",
+      "status_card": null,
+      "claims": [
+        {
+          "claim_id": "quote-exception-s-exception-0",
+          "text": "공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.",
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "validation": "SUPPORTED",
+          "method": "extractive",
+          "reason": "EXACT_SOURCE"
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "s-exception",
+          "kind": "DOCUMENT",
+          "quote": "공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.",
+          "scope": {
+            "case_id": "00000000-0000-4000-8000-000000000001",
+            "company_id": "00000000-0000-4000-8000-000000000002",
+            "notice_id": "00000000-0000-4000-8000-000000000003",
+            "notice_version_id": "00000000-0000-4000-8000-000000000004",
+            "analysis_run_id": "00000000-0000-4000-8000-000000000005",
+            "judgment_run_id": "00000000-0000-4000-8000-000000000006"
+          },
+          "document_id": null,
+          "location": {},
+          "source_sha256": null,
+          "extracted_sha256": null
+        }
+      ],
+      "limitations": [
+        "자동 설명 일부를 검증하지 못해 확인된 내용과 원문을 함께 표시합니다."
+      ],
+      "follow_up_targets": [
+        {
+          "target_id": "319aa235-ae0f-48a1-9ff3-e5f202919760",
+          "kind": "DOCUMENT",
+          "label": "공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.",
+          "message_id": "acc646c3-993c-4eb2-8d8d-ec4e9fe122aa",
+          "ordinal": 1,
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "requirement_key": null
+        }
+      ],
+      "actions": [],
+      "capabilities": {},
+      "clarification": null,
+      "processing": {
+        "path": "v3.1",
+        "model": "gpt-5.6-luna",
+        "fallback": true,
+        "task_status": "PARTIAL",
+        "elapsed_ms": 32,
+        "calls": [
+          {
+            "stage": "plan",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 3672,
+            "usage": null,
+            "status": "failed",
+            "error": "APIConnectionError",
+            "elapsed_ms": 0
+          },
+          {
+            "stage": "generate",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 5021,
+            "usage": null,
+            "status": "failed",
+            "error": "APIConnectionError",
+            "elapsed_ms": 32
+          }
+        ],
+        "validation_events": [
+          {
+            "stage": "generate",
+            "reason": "APIConnectionError"
+          }
+        ],
+        "tools": [
+          {
+            "tool": "READ_DOCUMENT",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          }
+        ],
+        "plan": {
+          "goal": "병원 급식 실적도 인정돼?",
+          "tasks": [
+            {
+              "kind": "READ_DOCUMENT",
+              "question": "병원 급식 실적도 인정돼?",
+              "scope_ref": "current_case"
+            }
+          ],
+          "clarification": null
+        },
+        "deadline_seconds": 45,
+        "storage": "process-memory; restart clears history; one worker only"
+      }
+    },
+    "required_fact_coverage": true,
+    "scope": "real planner/generator/verifier; synthetic read adapters; no database",
+    "calls": [
+      {
+        "stage": "plan",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 3672,
+        "usage": null,
+        "status": "failed",
+        "error": "APIConnectionError",
+        "elapsed_ms": 0
+      },
+      {
+        "stage": "generate",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 5021,
+        "usage": null,
+        "status": "failed",
+        "error": "APIConnectionError",
+        "elapsed_ms": 32
+      }
+    ],
+    "usage_cost_upper_usd": 0.0136
+  },
+  {
+    "turn": 3,
+    "question": "그 조건 원문 보여줘.",
+    "expected_fact_ids": [
+      "exception"
+    ],
+    "envelope": {
+      "version": "3.1",
+      "conversation_id": "968c1bf4-c84d-4129-b246-93ef45119c93",
+      "context_revision": 3,
+      "message_id": "3bea82ce-65b9-4c81-b6e6-e741444e91ce",
+      "status_card": null,
+      "claims": [
+        {
+          "claim_id": "quote-exception-s-exception-0",
+          "text": "공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.",
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "validation": "SUPPORTED",
+          "method": "extractive",
+          "reason": "EXACT_SOURCE"
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "s-exception",
+          "kind": "DOCUMENT",
+          "quote": "공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.",
+          "scope": {
+            "case_id": "00000000-0000-4000-8000-000000000001",
+            "company_id": "00000000-0000-4000-8000-000000000002",
+            "notice_id": "00000000-0000-4000-8000-000000000003",
+            "notice_version_id": "00000000-0000-4000-8000-000000000004",
+            "analysis_run_id": "00000000-0000-4000-8000-000000000005",
+            "judgment_run_id": "00000000-0000-4000-8000-000000000006"
+          },
+          "document_id": null,
+          "location": {},
+          "source_sha256": null,
+          "extracted_sha256": null
+        }
+      ],
+      "limitations": [
+        "자동 설명 일부를 검증하지 못해 확인된 내용과 원문을 함께 표시합니다."
+      ],
+      "follow_up_targets": [
+        {
+          "target_id": "20ac047d-cdd4-4b66-a191-ec5d81416dff",
+          "kind": "DOCUMENT",
+          "label": "공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.",
+          "message_id": "3bea82ce-65b9-4c81-b6e6-e741444e91ce",
+          "ordinal": 1,
+          "fact_ids": [
+            "exception"
+          ],
+          "source_ids": [
+            "s-exception"
+          ],
+          "requirement_key": null
+        }
+      ],
+      "actions": [],
+      "capabilities": {},
+      "clarification": null,
+      "processing": {
+        "path": "v3.1",
+        "model": "gpt-5.6-luna",
+        "fallback": true,
+        "task_status": "PARTIAL",
+        "elapsed_ms": 31,
+        "calls": [
+          {
+            "stage": "plan",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 4788,
+            "usage": null,
+            "status": "failed",
+            "error": "APIConnectionError",
+            "elapsed_ms": 0
+          },
+          {
+            "stage": "generate",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 5864,
+            "usage": null,
+            "status": "failed",
+            "error": "APIConnectionError",
+            "elapsed_ms": 31
+          }
+        ],
+        "validation_events": [
+          {
+            "stage": "generate",
+            "reason": "APIConnectionError"
+          }
+        ],
+        "tools": [
+          {
+            "tool": "READ_DOCUMENT",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          }
+        ],
+        "plan": {
+          "goal": "그 조건 원문 보여줘.",
+          "tasks": [
+            {
+              "kind": "READ_DOCUMENT",
+              "question": "공고일 기준 2년 내 2개 이상 단체급식소에서 1일 평균 800식 이상을 1년 이상 운영한 실적. 관공서와 기업체에 한함. 병원, 학교, 군부대, 사회복지시설은 제외.",
+              "scope_ref": "current_case"
+            }
+          ],
+          "clarification": null
+        },
+        "deadline_seconds": 45,
+        "storage": "process-memory; restart clears history; one worker only"
+      }
+    },
+    "required_fact_coverage": true,
+    "scope": "real planner/generator/verifier; synthetic read adapters; no database",
+    "calls": [
+      {
+        "stage": "plan",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 4788,
+        "usage": null,
+        "status": "failed",
+        "error": "APIConnectionError",
+        "elapsed_ms": 0
+      },
+      {
+        "stage": "generate",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 5864,
+        "usage": null,
+        "status": "failed",
+        "error": "APIConnectionError",
+        "elapsed_ms": 31
+      }
+    ],
+    "usage_cost_upper_usd": 0.0136
+  },
+  {
+    "turn": 4,
+    "question": "그럼 내가 실제로 더 확인할 것만 정리해줘.",
+    "expected_fact_ids": [
+      "manual"
+    ],
+    "envelope": {
+      "version": "3.1",
+      "conversation_id": "968c1bf4-c84d-4129-b246-93ef45119c93",
+      "context_revision": 4,
+      "message_id": "95cc2b62-d6cf-4e3e-8467-6aea43c837f2",
+      "status_card": null,
+      "claims": [
+        {
+          "claim_id": "quote-manual-s-manual-0",
+          "text": "설명회 참석 및 입찰등록 기한은 원문에서 직접 확인해야 합니다. 공동수급과 하도급은 허용되지 않습니다.",
+          "fact_ids": [
+            "manual"
+          ],
+          "source_ids": [
+            "s-manual"
+          ],
+          "validation": "SUPPORTED",
+          "method": "extractive",
+          "reason": "EXACT_SOURCE"
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "s-manual",
+          "kind": "DOCUMENT",
+          "quote": "설명회 참석 및 입찰등록 기한은 원문에서 직접 확인해야 합니다. 공동수급과 하도급은 허용되지 않습니다.",
+          "scope": {
+            "case_id": "00000000-0000-4000-8000-000000000001",
+            "company_id": "00000000-0000-4000-8000-000000000002",
+            "notice_id": "00000000-0000-4000-8000-000000000003",
+            "notice_version_id": "00000000-0000-4000-8000-000000000004",
+            "analysis_run_id": "00000000-0000-4000-8000-000000000005",
+            "judgment_run_id": "00000000-0000-4000-8000-000000000006"
+          },
+          "document_id": null,
+          "location": {},
+          "source_sha256": null,
+          "extracted_sha256": null
+        }
+      ],
+      "limitations": [
+        "자동 설명 일부를 검증하지 못해 확인된 내용과 원문을 함께 표시합니다."
+      ],
+      "follow_up_targets": [
+        {
+          "target_id": "7d846216-c3b5-4446-85a5-adf5cbb287ef",
+          "kind": "MANUAL",
+          "label": "설명회 참석 및 입찰등록 기한은 원문에서 직접 확인해야 합니다. 공동수급과 하도급은 허용되지 않습니다.",
+          "message_id": "95cc2b62-d6cf-4e3e-8467-6aea43c837f2",
+          "ordinal": 1,
+          "fact_ids": [
+            "manual"
+          ],
+          "source_ids": [
+            "s-manual"
+          ],
+          "requirement_key": null
+        }
+      ],
+      "actions": [],
+      "capabilities": {},
+      "clarification": null,
+      "processing": {
+        "path": "v3.1",
+        "model": "gpt-5.6-luna",
+        "fallback": true,
+        "task_status": "PARTIAL",
+        "elapsed_ms": 47,
+        "calls": [
+          {
+            "stage": "plan",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 5934,
+            "usage": null,
+            "status": "failed",
+            "error": "APIConnectionError",
+            "elapsed_ms": 31
+          },
+          {
+            "stage": "generate",
+            "model": "gpt-5.6-luna",
+            "input_token_upper_bound": 6264,
+            "usage": null,
+            "status": "failed",
+            "error": "APIConnectionError",
+            "elapsed_ms": 16
+          }
+        ],
+        "validation_events": [
+          {
+            "stage": "generate",
+            "reason": "APIConnectionError"
+          }
+        ],
+        "tools": [
+          {
+            "tool": "READ_CHECKS",
+            "scope": "00000000-0000-4000-8000-000000000004",
+            "elapsed_ms": 0,
+            "coverage": "FOUND"
+          }
+        ],
+        "plan": {
+          "goal": "그럼 내가 실제로 더 확인할 것만 정리해줘.",
+          "tasks": [
+            {
+              "kind": "READ_CHECKS",
+              "question": "그럼 내가 실제로 더 확인할 것만 정리해줘.",
+              "scope_ref": "current_case"
+            }
+          ],
+          "clarification": null
+        },
+        "deadline_seconds": 45,
+        "storage": "process-memory; restart clears history; one worker only"
+      }
+    },
+    "required_fact_coverage": true,
+    "scope": "real planner/generator/verifier; synthetic read adapters; no database",
+    "calls": [
+      {
+        "stage": "plan",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 5934,
+        "usage": null,
+        "status": "failed",
+        "error": "APIConnectionError",
+        "elapsed_ms": 31
+      },
+      {
+        "stage": "generate",
+        "model": "gpt-5.6-luna",
+        "input_token_upper_bound": 6264,
+        "usage": null,
+        "status": "failed",
+        "error": "APIConnectionError",
+        "elapsed_ms": 16
+      }
+    ],
+    "usage_cost_upper_usd": 0.0136
+  }
+]

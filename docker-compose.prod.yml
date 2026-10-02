@@ -1,0 +1,104 @@
+services:
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      MIGRATION_DATABASE_URL: ${MIGRATION_DATABASE_URL:?MIGRATION_DATABASE_URL is required}
+      APP_ENVIRONMENT: production
+    command: ["alembic", "-c", "alembic.ini", "upgrade", "head"]
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      DATABASE_POOL_MODE: ${DATABASE_POOL_MODE:-transaction}
+      DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE:-2}
+      DATABASE_MAX_OVERFLOW: ${DATABASE_MAX_OVERFLOW:-0}
+      DATABASE_POOL_TIMEOUT_SECONDS: ${DATABASE_POOL_TIMEOUT_SECONDS:-30}
+      DATABASE_POOL_RECYCLE_SECONDS: ${DATABASE_POOL_RECYCLE_SECONDS:-900}
+      APP_ENVIRONMENT: production
+      G2B_SERVICE_KEY: ${G2B_SERVICE_KEY:?G2B_SERVICE_KEY is required}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL_DEFAULT: ${OPENAI_MODEL_DEFAULT:-gpt-5.6-luna}
+      BIDENGINE_EXTRACTION_MODE: ${BIDENGINE_EXTRACTION_MODE:-legacy}
+      BIDENGINE_POLARITY_GUARD: ${BIDENGINE_POLARITY_GUARD:-off}
+      BIDENGINE_CLAUSE_SELECTION: ${BIDENGINE_CLAUSE_SELECTION:-code}
+      DOCUMENT_STORAGE_BACKEND: ${DOCUMENT_STORAGE_BACKEND:-S3}
+      DOCUMENT_STORAGE_PATH: /data/notice-documents
+      DOCUMENT_S3_BUCKET: ${DOCUMENT_S3_BUCKET:-}
+      DOCUMENT_S3_PREFIX: ${DOCUMENT_S3_PREFIX:-notice-documents}
+      DOCUMENT_S3_ENDPOINT_URL: ${DOCUMENT_S3_ENDPOINT_URL:-}
+      AWS_REGION: ${AWS_REGION:-ap-northeast-2}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS is required}
+      AUTH_BOOTSTRAP_ADMIN_USERNAME: ${AUTH_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      AUTH_BOOTSTRAP_ADMIN_PASSWORD: ${AUTH_BOOTSTRAP_ADMIN_PASSWORD:?AUTH_BOOTSTRAP_ADMIN_PASSWORD is required}
+      AUTH_SESSION_TTL_HOURS: ${AUTH_SESSION_TTL_HOURS:-12}
+      AUTH_COOKIE_SECURE: "true"
+      AUTH_REQUIRED: "true"
+    ports:
+      - "${API_BIND_ADDRESS:-127.0.0.1}:${API_PORT:-8000}:8000"
+    volumes:
+      - notice_documents_data:/data/notice-documents
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  notice-poller:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      DATABASE_POOL_MODE: ${DATABASE_POOL_MODE:-transaction}
+      DATABASE_POOL_SIZE: ${NOTICE_POLLER_DATABASE_POOL_SIZE:-1}
+      DATABASE_MAX_OVERFLOW: ${NOTICE_POLLER_DATABASE_MAX_OVERFLOW:-0}
+      DATABASE_POOL_TIMEOUT_SECONDS: ${DATABASE_POOL_TIMEOUT_SECONDS:-30}
+      DATABASE_POOL_RECYCLE_SECONDS: ${DATABASE_POOL_RECYCLE_SECONDS:-900}
+      APP_ENVIRONMENT: production
+      G2B_SERVICE_KEY: ${G2B_SERVICE_KEY:?G2B_SERVICE_KEY is required}
+      DOCUMENT_STORAGE_BACKEND: ${DOCUMENT_STORAGE_BACKEND:-S3}
+      DOCUMENT_STORAGE_PATH: /data/notice-documents
+      DOCUMENT_S3_BUCKET: ${DOCUMENT_S3_BUCKET:-}
+      DOCUMENT_S3_PREFIX: ${DOCUMENT_S3_PREFIX:-notice-documents}
+      DOCUMENT_S3_ENDPOINT_URL: ${DOCUMENT_S3_ENDPOINT_URL:-}
+      AWS_REGION: ${AWS_REGION:-ap-northeast-2}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      NOTICE_POLL_INTERVAL_SECONDS: ${NOTICE_POLL_INTERVAL_SECONDS:-300}
+      NOTICE_POLL_LOOKBACK_MINUTES: ${NOTICE_POLL_LOOKBACK_MINUTES:-60}
+      NOTICE_POLL_OVERLAP_MINUTES: ${NOTICE_POLL_OVERLAP_MINUTES:-5}
+      NOTICE_POLL_PAGE_SIZE: ${NOTICE_POLL_PAGE_SIZE:-100}
+      NOTICE_POLL_MAX_PAGES: ${NOTICE_POLL_MAX_PAGES:-10}
+      NOTICE_POLL_BUSINESS_TYPES: ${NOTICE_POLL_BUSINESS_TYPES:-SERVICE,GOODS,CONSTRUCTION,FOREIGN}
+      NOTICE_HISTORY_BACKFILL_BATCH_SIZE: ${NOTICE_HISTORY_BACKFILL_BATCH_SIZE:-10}
+      NOTICE_HISTORY_BACKFILL_RETRY_MINUTES: ${NOTICE_HISTORY_BACKFILL_RETRY_MINUTES:-15}
+    volumes:
+      - notice_documents_data:/data/notice-documents
+    command: ["python", "-m", "app.workers.notice_polling"]
+
+volumes:
+  notice_documents_data:

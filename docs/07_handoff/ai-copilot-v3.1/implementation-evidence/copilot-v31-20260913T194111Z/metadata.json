@@ -1,0 +1,61 @@
+{
+  "started_utc": "20260913T194111Z",
+  "finished_utc": "2026-09-13T19:41:18.693136+00:00",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "head": "0c6968400a26f30ce1e1121a9afd752667b4ca97",
+  "tests": [
+    "test_copilot_narration.py",
+    "test_copilot_required_checks_narration.py",
+    "test_copilot_v31.py",
+    "test_copilot_v31_readiness.py",
+    "test_document_rag_store.py",
+    "test_copilot_chat_contract.py",
+    "test_copilot_semantic_router.py",
+    "test_copilot_intent_resolver.py",
+    "test_copilot_semantic_optin.py"
+  ],
+  "exit_code": 0,
+  "model": "scripted-fake",
+  "database": "blocked port 1, Engine.connect denied",
+  "fixture_sha256": "d70d87c2b5717f4954f410f63a3c99dbe8dd4ebe7170ddc0a7d6287145d44912",
+  "source_sha256": {
+    "apps\\api\\app\\copilot\\actions.py": "9fb66b9847c2552bf5d6a447260033e427085b0a9da02bc1df6a8e278a17cd51",
+    "apps\\api\\app\\copilot\\answer_validation.py": "82e9781b9028c1d4fbd13669355936c570288014e31f2e6dbfe2a78b2c6dbfc6",
+    "apps\\api\\app\\copilot\\chat.py": "bd04775aab647e236b09c3dff8dc61830ec49af015a8c767c61e122d4a7dfe8f",
+    "apps\\api\\app\\copilot\\context.py": "4f74899bc23bace9223fbbbeea89f19c13ab8490f6541749c5b3d025b943189b",
+    "apps\\api\\app\\copilot\\contracts.py": "d287f79a163dfeab7b24011f18a3c9b760c996d92f3ee8f1eacab4a241373bad",
+    "apps\\api\\app\\copilot\\conversation_state.py": "a1cd9dd9a3aae64d4c13d5e7cd20bfce9aafc4ee69913f22ab799792d87084c9",
+    "apps\\api\\app\\copilot\\document_qa.py": "61e32c6d6980a5eb8f9489ba0e45173d00f99958a5d0463514f6213a27e5d7c5",
+    "apps\\api\\app\\copilot\\intent_resolver.py": "dbb7917c99a3cfdfd480ff79357e581ec3258d879b4a4dff0bb3bde362e7b793",
+    "apps\\api\\app\\copilot\\model_gateway.py": "855f70f1a7393de9638fa900215ae2fdb97505df5e990d0c7a9b9b9888164ec6",
+    "apps\\api\\app\\copilot\\narration.py": "d6c405f6f95e1d0c5a26368e928b26f4f07a6c31f012aa03ab3c7b9a007e71e8",
+    "apps\\api\\app\\copilot\\orchestration.py": "6a09ef06f76830359769ea277a244e242b6b0b8cdeaea6c8719f53d2b628aa5a",
+    "apps\\api\\app\\copilot\\presentation.py": "3d7636d96ccd13fe231f04dcc4c95fee52edccfbe00c324373a93539f34cafc0",
+    "apps\\api\\app\\copilot\\product_tools.py": "3c1dc7ecf97dfe3157ad28b6d8b016f56f979960b37e95d92807c3c2fadc113e",
+    "apps\\api\\app\\copilot\\router.py": "a743c5f520135d31c885cab434cf7577c0d7f221530bfdabc2dbfd8d73c585be",
+    "apps\\api\\app\\copilot\\semantic_router.py": "b50ef47f3e2d88a60fefbd3e57e04abfbca7f1d192d6dfeba4d2f406b5863710",
+    "apps\\api\\app\\copilot\\source_map.py": "9b8e9f0555264a792d3c8f33c24600a09c8f8fb0448786b340bf3751c9b70e7d",
+    "apps\\api\\app\\copilot\\tool_adapters.py": "093c22f775e6fbdd6f65559da2828e84ad1a06defeb6cf725f948d9d62f2576b",
+    "apps\\api\\app\\copilot\\v31_contracts.py": "38b5cfb4be524ece999e27fdc0ee32b0761c7115affa4cc37f589de8ab354778",
+    "apps\\api\\app\\copilot\\__init__.py": "973f14ac713b182c5d01e18a9ea29b71699e0bf7b6c6ccaff2c67a9ea244d2e0",
+    "apps\\api\\app\\document_rag\\answer.py": "a3bcb4c0e9bb2ed61a5ab1d9755d349e7fd283055b5bb43ba1d0e9a419ada6bc",
+    "apps\\api\\app\\document_rag\\readiness.py": "b118f15d0c65024a5a71da9395bb33d35a990b6b9a2e8318286765efdc7889b4",
+    "apps\\api\\app\\document_rag\\retrieval.py": "f7dd19c2915532571791498e32d534c511923aabcabef04f14aa78221546312f",
+    "apps\\api\\app\\document_rag\\service.py": "ff576121949f6fccec0d0595fcd8328f18074b3291a8e91443c303ca229edde3",
+    "apps\\api\\app\\document_rag\\store.py": "6999bfe61ca24bae40f69b0d1749ccbea97a49f01dfd18b458d704b4ac4bd23f",
+    "apps\\api\\app\\document_rag\\__init__.py": "4beef9aa92746d8eb352e50ab76e6d39529430e73066c4927bccaec7198af0c4"
+  },
+  "packages": {
+    "pytest": "9.1.1",
+    "SQLAlchemy": "2.0.52",
+    "fastapi": "0.141.1",
+    "openai": "3.8.0",
+    "faiss-cpu": "1.15.0"
+  },
+  "not_run": [
+    "live DB",
+    "live model",
+    "human evaluation",
+    "reviewed Golden Core"
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "case_id": "C03",
+  "notice_no": "R26BK01716363",
+  "golden_class": "SOURCE_GOLDEN",
+  "identity_status": "PARTIAL",
+  "notice_id": null,
+  "notice_metadata": {
+    "id": null,
+    "bid_notice_no": "R26BK01716363"
+  },
+  "provenance": {
+    "kind": "real",
+    "snapshot_path": "R26BK01716363/document-export.json",
+    "snapshot_sha256": "3a548aad39ebe7721cdd2fff838185cb03a1e0b563347d854ce0387cd2b0bfb7",
+    "identity_note": "DB identity and complete version lineage unavailable"
+  },
+  "versions": [
+    {
+      "version_key": "C03-source-order-000",
+      "notice_version_id": null,
+      "version_number": null,
+      "bid_notice_order": "000",
+      "metadata": {
+        "id": null,
+        "version_number": null,
+        "bid_notice_order": "000"
+      }
+    }
+  ],
+  "documents": [
+    {
+      "document_key": "C03-cache-0c54546f46e11e95",
+      "document_id": null,
+      "version_key": "C03-source-order-000",
+      "notice_version_id": null,
+      "name": "01. 건축긴급공고문.hwp",
+      "source_file_sha256": "50a9c4c15c4e30889ad178eaece1c376c4507066852acfd62579d63039d61418",
+      "source_snapshot_path": "R26BK01716363/originals/0c54546f46e11e95.bin",
+      "extracted_text_sha256": "8edec7221b7a8d2464d0f6b6a10a0b2abfe3186952c71029af10934113c09540",
+      "blocks_file_sha256": "06958d775324a827bc0a13b00c203e16459e4096ac5d3e84a656cbc7f7ca56d2",
+      "text": {
+        "path": "cases/C03/documents/8edec7221b7a8d2464d0f6b6a10a0b2abfe3186952c71029af10934113c09540.txt",
+        "sha256": "8edec7221b7a8d2464d0f6b6a10a0b2abfe3186952c71029af10934113c09540"
+      },
+      "blocks": {
+        "path": "cases/C03/documents/06958d775324a827bc0a13b00c203e16459e4096ac5d3e84a656cbc7f7ca56d2.blocks.json",
+        "sha256": "06958d775324a827bc0a13b00c203e16459e4096ac5d3e84a656cbc7f7ca56d2"
+      },
+      "metadata": {
+        "document_id": null,
+        "cache_key": "0c54546f46e11e95",
+        "notice_version_id": null,
+        "original_path": "originals/0c54546f46e11e95.bin",
+        "file_sha256": "50a9c4c15c4e30889ad178eaece1c376c4507066852acfd62579d63039d61418",
+        "bytes": 93184,
+        "url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01716363&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=07",
+        "filename": "01. 건축긴급공고문.hwp",
+        "content_type": "application/octet-stream",
+        "source_bid_notice_order": "000",
+        "extraction_provenance": "new export-time extraction, not historical DB output",
+        "parser_version": {
+          "code_sha256": "c31bfd71d64985f4605aec4fd22036c55c552054558474b7a3de717da3a30e00",
+          "python": "3.12.14",
+          "pypdf": "6.17.0",
+          "olefile": "0.47"
+        },
+        "extraction_status": "EXTRACTED",
+        "extraction_error": null,
+        "text_extractor": "HWP5_BODYTEXT",
+        "extracted_text_sha256": "8edec7221b7a8d2464d0f6b6a10a0b2abfe3186952c71029af10934113c09540"
+      }
+    },
+    {
+      "document_key": "C03-cache-276799173a6f8a06",
+      "document_id": null,
+      "version_key": "C03-source-order-000",
+      "notice_version_id": null,
+      "name": "공사입찰설명서.hwp",
+      "source_file_sha256": "3bf22e166adb949810ced0d0c85808072382bf2189deb01add7b122841c66afd",
+      "source_snapshot_path": "R26BK01716363/originals/276799173a6f8a06.bin",
+      "extracted_text_sha256": "a6e88585836659a1d36567ba231c386e4fc25fbc7c05c151aac452bd397f9ecc",
+      "blocks_file_sha256": "dba3f7beec9357e2577f38b5b245512ada1958c26c1501cd8b1e73f7e7f1f734",
+      "text": {
+        "path": "cases/C03/documents/a6e88585836659a1d36567ba231c386e4fc25fbc7c05c151aac452bd397f9ecc.txt",
+        "sha256": "a6e88585836659a1d36567ba231c386e4fc25fbc7c05c151aac452bd397f9ecc"
+      },
+      "blocks": {
+        "path": "cases/C03/documents/dba3f7beec9357e2577f38b5b245512ada1958c26c1501cd8b1e73f7e7f1f734.blocks.json",
+        "sha256": "dba3f7beec9357e2577f38b5b245512ada1958c26c1501cd8b1e73f7e7f1f734"
+      },
+      "metadata": {
+        "document_id": null,
+        "cache_key": "276799173a6f8a06",
+        "notice_version_id": null,
+        "original_path": "originals/276799173a6f8a06.bin",
+        "file_sha256": "3bf22e166adb949810ced0d0c85808072382bf2189deb01add7b122841c66afd",
+        "bytes": 169984,
+        "url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01716363&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+        "filename": "공사입찰설명서.hwp",
+        "content_type": "application/octet-stream",
+        "source_bid_notice_order": "000",
+        "extraction_provenance": "new export-time extraction, not historical DB output",
+        "parser_version": {
+          "code_sha256": "c31bfd71d64985f4605aec4fd22036c55c552054558474b7a3de717da3a30e00",
+          "python": "3.12.14",
+          "pypdf": "6.17.0",
+          "olefile": "0.47"
+        },
+        "extraction_status": "EXTRACTED",
+        "extraction_error": null,
+        "text_extractor": "HWP5_BODYTEXT",
+        "extracted_text_sha256": "a6e88585836659a1d36567ba231c386e4fc25fbc7c05c151aac452bd397f9ecc"
+      }
+    },
+    {
+      "document_key": "C03-cache-bb3b8b580516766b",
+      "document_id": null,
+      "version_key": "C03-source-order-000",
+      "notice_version_id": null,
+      "name": "01. 건축긴급공고문.pdf",
+      "source_file_sha256": "6a7ae2bade24105d332cbdac8afd91746806fc7d0a711ebd72eb834d409ee228",
+      "source_snapshot_path": "R26BK01716363/originals/bb3b8b580516766b.bin",
+      "extracted_text_sha256": "958cf31b5a58f9c43c332f571d7a8c17b28e75701e6202b205200c17b3d4e165",
+      "blocks_file_sha256": "5fd206c3639f2ff73701502936c9fcd6c2ce786866ece13c93b8c661f2782743",
+      "text": {
+        "path": "cases/C03/documents/958cf31b5a58f9c43c332f571d7a8c17b28e75701e6202b205200c17b3d4e165.txt",
+        "sha256": "958cf31b5a58f9c43c332f571d7a8c17b28e75701e6202b205200c17b3d4e165"
+      },
+      "blocks": {
+        "path": "cases/C03/documents/5fd206c3639f2ff73701502936c9fcd6c2ce786866ece13c93b8c661f2782743.blocks.json",
+        "sha256": "5fd206c3639f2ff73701502936c9fcd6c2ce786866ece13c93b8c661f2782743"
+      },
+      "metadata": {
+        "document_id": null,
+        "cache_key": "bb3b8b580516766b",
+        "notice_version_id": null,
+        "original_path": "originals/bb3b8b580516766b.bin",
+        "file_sha256": "6a7ae2bade24105d332cbdac8afd91746806fc7d0a711ebd72eb834d409ee228",
+        "bytes": 122320,
+        "url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01716363&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=07",
+        "filename": "01. 건축긴급공고문.pdf",
+        "content_type": "application/pdf",
+        "source_bid_notice_order": "000",
+        "extraction_provenance": "new export-time extraction, not historical DB output",
+        "parser_version": {
+          "code_sha256": "c31bfd71d64985f4605aec4fd22036c55c552054558474b7a3de717da3a30e00",
+          "python": "3.12.14",
+          "pypdf": "6.17.0",
+          "olefile": "0.47"
+        },
+        "extraction_status": "EXTRACTED",
+        "extraction_error": null,
+        "text_extractor": "PYPDF",
+        "extracted_text_sha256": "958cf31b5a58f9c43c332f571d7a8c17b28e75701e6202b205200c17b3d4e165"
+      }
+    }
+  ],
+  "observations": []
+}

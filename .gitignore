@@ -1,18 +1,55 @@
 # Python
+.venv/
+.venv-copilot-v31/
+venv/
 __pycache__/
 *.py[cod]
-.venv/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
 
-# Node
+# Node / React
 node_modules/
 dist/
+build/
+coverage/
 .next/
 
-# Env
+# Environment variables and secrets
 .env
 .env.*
 !.env.example
+!.env.production.example
+
+# Editors
+.vscode/
+.idea/
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+
+# 데모·참고 자료는 저장소에 두지 않는다.
+# 공고 첨부 캐시는 나라장터에서 다시 받을 수 있고(app/ai/demo/cli.py --fetch),
+# 리포에 두면 클론할 때마다 수 MB 를 내려받게 된다.
+data/demo/
+docs/llm-rag/*.zip
+*.7z
+
+# Generated document indexes (not source code)
+data/rag/
+data/document-rag/
+
+# Ephemeral CI evidence
+.ci-results/
+.pnpm-store/
+artifacts/
 
 # Eval outputs
 eval/results/
+*.egg-info/

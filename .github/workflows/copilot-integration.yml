@@ -1,0 +1,46 @@
+name: Copilot integration validation
+on:
+  pull_request:
+    branches: [develop]
+permissions:
+  contents: read
+concurrency:
+  group: copilot-integration-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: copilot_ci
+          POSTGRES_USER: copilot_ci
+          POSTGRES_PASSWORD: isolated_ci_only
+        ports: ['127.0.0.1:5432:5432']
+        options: --health-cmd "pg_isready -U copilot_ci -d copilot_ci" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://copilot_ci:isolated_ci_only@127.0.0.1:5432/copilot_ci
+      AUTH_REQUIRED: 'false'
+      PYTHONPATH: ${{ github.workspace }}
+      COPILOT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, persist-credentials: false}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - uses: pnpm/action-setup@v4
+        with: {version: 10.15.0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Isolated backend, web and design regression
+        run: bash eval/runners/copilot/ci_copilot_integration.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: copilot-integration-results
+          path: .ci-results/
+          retention-days: 7
+          include-hidden-files: true

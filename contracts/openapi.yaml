@@ -1,0 +1,2635 @@
+openapi: 3.1.0
+info:
+  title: Bid Change Validator API
+  version: 0.1.0
+paths:
+  /health:
+    get:
+      tags:
+      - system
+      summary: Health
+      operationId: health_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+                title: Response Health Health Get
+  /api/v1/companies:
+    get:
+      tags:
+      - companies
+      summary: List Companies
+      operationId: list_companies_api_v1_companies_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/CompanyRead'
+                type: array
+                title: Response List Companies Api V1 Companies Get
+    post:
+      tags:
+      - companies
+      summary: Create Company
+      operationId: create_company_api_v1_companies_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/companies/{company_id}:
+    get:
+      tags:
+      - companies
+      summary: Get Company
+      operationId: get_company_api_v1_companies__company_id__get
+      parameters:
+      - name: company_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Company Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - companies
+      summary: Update Company
+      operationId: update_company_api_v1_companies__company_id__patch
+      parameters:
+      - name: company_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Company Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - companies
+      summary: Delete Company
+      operationId: delete_company_api_v1_companies__company_id__delete
+      parameters:
+      - name: company_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Company Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/companies/{company_id}/industries/{industry_code}:
+    put:
+      tags:
+      - companies
+      summary: Set Company Industry Verification
+      operationId: set_company_industry_verification_api_v1_companies__company_id__industries__industry_code__put
+      parameters:
+      - name: company_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Company Id
+      - name: industry_code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Industry Code
+      - name: verified
+        in: query
+        required: true
+        schema:
+          type: boolean
+          title: Verified
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/companies/{company_id}/performances:
+    post:
+      tags:
+      - companies
+      summary: Create Performance
+      operationId: create_performance_api_v1_companies__company_id__performances_post
+      parameters:
+      - name: company_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Company Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/companies/{company_id}/performances/{performance_id}:
+    patch:
+      tags:
+      - companies
+      summary: Update Performance
+      operationId: update_performance_api_v1_companies__company_id__performances__performance_id__patch
+      parameters:
+      - name: company_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Company Id
+      - name: performance_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Performance Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - companies
+      summary: Delete Performance
+      operationId: delete_performance_api_v1_companies__company_id__performances__performance_id__delete
+      parameters:
+      - name: company_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Company Id
+      - name: performance_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Performance Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/companies/{company_id}/certifications:
+    post:
+      tags:
+      - companies
+      summary: Create Certification
+      operationId: create_certification_api_v1_companies__company_id__certifications_post
+      parameters:
+      - name: company_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Company Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CertificationCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificationRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/companies/{company_id}/certifications/{certification_id}:
+    patch:
+      tags:
+      - companies
+      summary: Update Certification
+      operationId: update_certification_api_v1_companies__company_id__certifications__certification_id__patch
+      parameters:
+      - name: company_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Company Id
+      - name: certification_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Certification Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CertificationUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificationRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - companies
+      summary: Delete Certification
+      operationId: delete_certification_api_v1_companies__company_id__certifications__certification_id__delete
+      parameters:
+      - name: company_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Company Id
+      - name: certification_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Certification Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/master-codes/{code_type}:
+    get:
+      tags:
+      - master codes
+      summary: Search Master Codes
+      operationId: search_master_codes_api_v1_master_codes__code_type__get
+      parameters:
+      - name: code_type
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/MasterCodeType'
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 100
+          - type: 'null'
+          title: Q
+      - name: active_only
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+          title: Active Only
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterCodeSearchResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/master-codes/{code_type}/{code}:
+    get:
+      tags:
+      - master codes
+      summary: Get Master Code
+      operationId: get_master_code_api_v1_master_codes__code_type___code__get
+      parameters:
+      - name: code_type
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/MasterCodeType'
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterCodeRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/notices/sync:
+    post:
+      tags:
+      - bid notices
+      summary: Sync Notices
+      operationId: sync_notices_api_v1_notices_sync_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoticeSyncRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoticeCollectionRunRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/notices/collection-runs:
+    get:
+      tags:
+      - bid notices
+      summary: List Collection Runs
+      operationId: list_collection_runs_api_v1_notices_collection_runs_get
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NoticeCollectionRunRead'
+                title: Response List Collection Runs Api V1 Notices Collection Runs
+                  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/notices:
+    get:
+      tags:
+      - bid notices
+      summary: Search Notices
+      operationId: search_notices_api_v1_notices_get
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 200
+          - type: 'null'
+          title: Q
+      - name: business_type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/BusinessType'
+          - type: 'null'
+          title: Business Type
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BidNoticeSearchResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/notices/documents/extract-pending:
+    post:
+      tags:
+      - bid notices
+      summary: Extract Pending Notice Documents
+      operationId: extract_pending_notice_documents_api_v1_notices_documents_extract_pending_post
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          default: 100
+          title: Limit
+      - name: retry_failed
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+          title: Retry Failed
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentExtractionBatchRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/notices/{notice_id}/versions/{version_number}/documents/{document_id}/text:
+    get:
+      tags:
+      - bid notices
+      summary: Get Notice Document Text
+      operationId: get_notice_document_text_api_v1_notices__notice_id__versions__version_number__documents__document_id__text_get
+      parameters:
+      - name: notice_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Notice Id
+      - name: version_number
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Version Number
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Document Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoticeDocumentTextRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/notices/{notice_id}/versions/{version_number}/documents/{document_id}/source:
+    get:
+      tags:
+      - bid notices
+      summary: Get Notice Document Render Source
+      operationId: get_notice_document_render_source_api_v1_notices__notice_id__versions__version_number__documents__document_id__source_get
+      parameters:
+      - name: notice_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Notice Id
+      - name: version_number
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Version Number
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Document Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/notices/{notice_id}/versions/{version_number}/documents/{document_id}/content:
+    get:
+      tags:
+      - bid notices
+      summary: Download Notice Document
+      operationId: download_notice_document_api_v1_notices__notice_id__versions__version_number__documents__document_id__content_get
+      parameters:
+      - name: notice_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Notice Id
+      - name: version_number
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Version Number
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Document Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/notices/{notice_id}/versions/{version_number}/documents/{document_id}/preview:
+    get:
+      tags:
+      - bid notices
+      summary: Preview Notice Document
+      operationId: preview_notice_document_api_v1_notices__notice_id__versions__version_number__documents__document_id__preview_get
+      parameters:
+      - name: notice_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Notice Id
+      - name: version_number
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Version Number
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Document Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/notices/{notice_id}:
+    get:
+      tags:
+      - bid notices
+      summary: Get Notice
+      operationId: get_notice_api_v1_notices__notice_id__get
+      parameters:
+      - name: notice_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Notice Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BidNoticeDetail'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/notices/{notice_id}/versions:
+    get:
+      tags:
+      - bid notices
+      summary: List Notice Versions
+      operationId: list_notice_versions_api_v1_notices__notice_id__versions_get
+      parameters:
+      - name: notice_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Notice Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BidNoticeVersionRead'
+                title: Response List Notice Versions Api V1 Notices  Notice Id  Versions
+                  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/preflight-cases:
+    post:
+      tags:
+      - preflight cases
+      summary: Create Case
+      operationId: create_case_api_v1_preflight_cases_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreflightCaseCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreflightCaseRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - preflight cases
+      summary: List Cases
+      operationId: list_cases_api_v1_preflight_cases_get
+      parameters:
+      - name: notice_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Notice Id
+      - name: company_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Company Id
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreflightCaseSearchResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/preflight-cases/{case_id}:
+    get:
+      tags:
+      - preflight cases
+      summary: Get Case
+      operationId: get_case_api_v1_preflight_cases__case_id__get
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreflightCaseRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/preflight-cases/{case_id}/documents:
+    post:
+      tags:
+      - preflight cases
+      summary: Upload Document
+      operationId: upload_document_api_v1_preflight_cases__case_id__documents_post
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_upload_document_api_v1_preflight_cases__case_id__documents_post'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProposalDocumentRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/preflight-cases/{case_id}/documents/{document_id}/text:
+    get:
+      tags:
+      - preflight cases
+      summary: Get Document Text
+      operationId: get_document_text_api_v1_preflight_cases__case_id__documents__document_id__text_get
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Document Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoticeDocumentTextRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/preflight-cases/{case_id}/documents/{document_id}/source:
+    get:
+      tags:
+      - preflight cases
+      summary: Get Document Source
+      operationId: get_document_source_api_v1_preflight_cases__case_id__documents__document_id__source_get
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Document Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/preflight-cases/{case_id}/documents/{document_id}/content:
+    get:
+      tags:
+      - preflight cases
+      summary: Download Document
+      operationId: download_document_api_v1_preflight_cases__case_id__documents__document_id__content_get
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Document Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/preflight-cases/{case_id}/documents/{document_id}/preview:
+    get:
+      tags:
+      - preflight cases
+      summary: Preview Document
+      operationId: preview_document_api_v1_preflight_cases__case_id__documents__document_id__preview_get
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Document Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    BidNoticeDetail:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        bid_notice_no:
+          type: string
+          title: Bid Notice No
+        title:
+          type: string
+          title: Title
+        business_type:
+          $ref: '#/components/schemas/BusinessType'
+        notice_kind:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Notice Kind
+        announcing_institution_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Announcing Institution Code
+        announcing_institution_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Announcing Institution Name
+        demanding_institution_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Demanding Institution Code
+        demanding_institution_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Demanding Institution Name
+        first_seen_at:
+          type: string
+          format: date-time
+          title: First Seen At
+        last_seen_at:
+          type: string
+          format: date-time
+          title: Last Seen At
+        current_version:
+          type: integer
+          title: Current Version
+        latest:
+          $ref: '#/components/schemas/BidNoticeVersionRead'
+      type: object
+      required:
+      - id
+      - bid_notice_no
+      - title
+      - business_type
+      - notice_kind
+      - announcing_institution_code
+      - announcing_institution_name
+      - demanding_institution_code
+      - demanding_institution_name
+      - first_seen_at
+      - last_seen_at
+      - current_version
+      - latest
+      title: BidNoticeDetail
+    BidNoticeSearchResponse:
+      properties:
+        query:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Query
+        business_type:
+          anyOf:
+          - $ref: '#/components/schemas/BusinessType'
+          - type: 'null'
+        total:
+          type: integer
+          title: Total
+        limit:
+          type: integer
+          title: Limit
+        offset:
+          type: integer
+          title: Offset
+        items:
+          items:
+            $ref: '#/components/schemas/BidNoticeSummary'
+          type: array
+          title: Items
+      type: object
+      required:
+      - query
+      - business_type
+      - total
+      - limit
+      - offset
+      - items
+      title: BidNoticeSearchResponse
+    BidNoticeSummary:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        bid_notice_no:
+          type: string
+          title: Bid Notice No
+        title:
+          type: string
+          title: Title
+        business_type:
+          $ref: '#/components/schemas/BusinessType'
+        notice_kind:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Notice Kind
+        announcing_institution_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Announcing Institution Code
+        announcing_institution_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Announcing Institution Name
+        demanding_institution_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Demanding Institution Code
+        demanding_institution_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Demanding Institution Name
+        first_seen_at:
+          type: string
+          format: date-time
+          title: First Seen At
+        last_seen_at:
+          type: string
+          format: date-time
+          title: Last Seen At
+        current_version:
+          type: integer
+          title: Current Version
+      type: object
+      required:
+      - id
+      - bid_notice_no
+      - title
+      - business_type
+      - notice_kind
+      - announcing_institution_code
+      - announcing_institution_name
+      - demanding_institution_code
+      - demanding_institution_name
+      - first_seen_at
+      - last_seen_at
+      - current_version
+      title: BidNoticeSummary
+    BidNoticeVersionRead:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        version_number:
+          type: integer
+          title: Version Number
+        bid_notice_order:
+          type: string
+          title: Bid Notice Order
+        is_current:
+          type: boolean
+          title: Is Current
+        notice_kind:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Notice Kind
+        registration_type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Registration Type
+        is_reannouncement:
+          type: boolean
+          title: Is Reannouncement
+        posted_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Posted At
+        changed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Changed At
+        bid_started_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Bid Started At
+        bid_closed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Bid Closed At
+        opened_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Opened At
+        allocated_budget:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Allocated Budget
+        estimated_price:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Estimated Price
+        contract_method:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Contract Method
+        change_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Change Reason
+        detail_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Detail Url
+        source_endpoint:
+          type: string
+          title: Source Endpoint
+        payload_hash:
+          type: string
+          title: Payload Hash
+        collected_at:
+          type: string
+          format: date-time
+          title: Collected At
+        documents:
+          items:
+            $ref: '#/components/schemas/NoticeDocumentRead'
+          type: array
+          title: Documents
+      type: object
+      required:
+      - id
+      - version_number
+      - bid_notice_order
+      - is_current
+      - notice_kind
+      - registration_type
+      - is_reannouncement
+      - posted_at
+      - changed_at
+      - bid_started_at
+      - bid_closed_at
+      - opened_at
+      - allocated_budget
+      - estimated_price
+      - contract_method
+      - change_reason
+      - detail_url
+      - source_endpoint
+      - payload_hash
+      - collected_at
+      - documents
+      title: BidNoticeVersionRead
+    Body_upload_document_api_v1_preflight_cases__case_id__documents_post:
+      properties:
+        file:
+          type: string
+          contentMediaType: application/octet-stream
+          title: File
+        role:
+          $ref: '#/components/schemas/ProposalDocumentRole'
+          default: PROPOSAL
+      type: object
+      required:
+      - file
+      title: Body_upload_document_api_v1_preflight_cases__case_id__documents_post
+    BusinessType:
+      type: string
+      enum:
+      - SERVICE
+      - GOODS
+      - CONSTRUCTION
+      - FOREIGN
+      - OTHER
+      title: BusinessType
+    CertificationCreate:
+      properties:
+        name:
+          type: string
+          title: Name
+        certificate_number:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Certificate Number
+        issuer_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Issuer Name
+        issued_at:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Issued At
+        expires_at:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Expires At
+        verified:
+          type: boolean
+          title: Verified
+          default: false
+      type: object
+      required:
+      - name
+      title: CertificationCreate
+    CertificationRead:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        name:
+          type: string
+          title: Name
+        certificate_number:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Certificate Number
+        issuer_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Issuer Name
+        issued_at:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Issued At
+        expires_at:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Expires At
+        verified:
+          type: boolean
+          title: Verified
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+      type: object
+      required:
+      - id
+      - name
+      - certificate_number
+      - issuer_name
+      - issued_at
+      - expires_at
+      - verified
+      - created_at
+      - updated_at
+      title: CertificationRead
+    CertificationUpdate:
+      properties:
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        certificate_number:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Certificate Number
+        issuer_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Issuer Name
+        issued_at:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Issued At
+        expires_at:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Expires At
+        verified:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Verified
+      type: object
+      title: CertificationUpdate
+    CompanyCreate:
+      properties:
+        name:
+          type: string
+          title: Name
+        business_registration_number:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Business Registration Number
+        region_code:
+          type: string
+          title: Region Code
+        region_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Region Name
+        company_size:
+          $ref: '#/components/schemas/CompanySize'
+        industry_codes:
+          items:
+            type: string
+          type: array
+          minItems: 1
+          title: Industry Codes
+        staff:
+          $ref: '#/components/schemas/StaffCreate'
+      type: object
+      required:
+      - name
+      - region_code
+      - company_size
+      - industry_codes
+      - staff
+      title: CompanyCreate
+    CompanyRead:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        name:
+          type: string
+          title: Name
+        business_registration_number:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Business Registration Number
+        region_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Region Code
+        region_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Region Name
+        company_size:
+          $ref: '#/components/schemas/CompanySize'
+        industries:
+          items:
+            $ref: '#/components/schemas/IndustryRead'
+          type: array
+          title: Industries
+        staff:
+          anyOf:
+          - $ref: '#/components/schemas/StaffRead'
+          - type: 'null'
+        performances:
+          items:
+            $ref: '#/components/schemas/PerformanceRead'
+          type: array
+          title: Performances
+        certifications:
+          items:
+            $ref: '#/components/schemas/CertificationRead'
+          type: array
+          title: Certifications
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+      type: object
+      required:
+      - id
+      - name
+      - business_registration_number
+      - region_code
+      - region_name
+      - company_size
+      - industries
+      - staff
+      - performances
+      - certifications
+      - created_at
+      - updated_at
+      title: CompanyRead
+    CompanySize:
+      type: string
+      enum:
+      - MICRO
+      - SMALL
+      - MEDIUM
+      - MID_SIZED
+      - LARGE
+      - NONE
+      title: CompanySize
+    CompanyUpdate:
+      properties:
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        business_registration_number:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Business Registration Number
+        region_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Region Code
+        region_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Region Name
+        company_size:
+          anyOf:
+          - $ref: '#/components/schemas/CompanySize'
+          - type: 'null'
+        industry_codes:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Industry Codes
+        staff:
+          anyOf:
+          - $ref: '#/components/schemas/StaffUpdate'
+          - type: 'null'
+      type: object
+      title: CompanyUpdate
+    DocumentExtractionBatchRead:
+      properties:
+        requested_count:
+          type: integer
+          title: Requested Count
+        extracted_count:
+          type: integer
+          title: Extracted Count
+        empty_count:
+          type: integer
+          title: Empty Count
+        unsupported_count:
+          type: integer
+          title: Unsupported Count
+        failed_count:
+          type: integer
+          title: Failed Count
+      type: object
+      required:
+      - requested_count
+      - extracted_count
+      - empty_count
+      - unsupported_count
+      - failed_count
+      title: DocumentExtractionBatchRead
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    IndustryRead:
+      properties:
+        code:
+          type: string
+          title: Code
+        name:
+          type: string
+          title: Name
+        verified:
+          type: boolean
+          title: Verified
+      type: object
+      required:
+      - code
+      - name
+      - verified
+      title: IndustryRead
+    MasterCodeRead:
+      properties:
+        code:
+          type: string
+          title: Code
+        name:
+          type: string
+          title: Name
+        active:
+          type: boolean
+          title: Active
+      type: object
+      required:
+      - code
+      - name
+      - active
+      title: MasterCodeRead
+    MasterCodeSearchResponse:
+      properties:
+        type:
+          $ref: '#/components/schemas/MasterCodeType'
+        query:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Query
+        active_only:
+          type: boolean
+          title: Active Only
+        total:
+          type: integer
+          title: Total
+        limit:
+          type: integer
+          title: Limit
+        offset:
+          type: integer
+          title: Offset
+        items:
+          items:
+            $ref: '#/components/schemas/MasterCodeRead'
+          type: array
+          title: Items
+      type: object
+      required:
+      - type
+      - query
+      - active_only
+      - total
+      - limit
+      - offset
+      - items
+      title: MasterCodeSearchResponse
+    MasterCodeType:
+      type: string
+      enum:
+      - industries
+      - products
+      - institutions
+      title: MasterCodeType
+    NoticeCollectionRunRead:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        business_type:
+          $ref: '#/components/schemas/BusinessType'
+        inquiry_type:
+          $ref: '#/components/schemas/NoticeInquiryType'
+        window_started_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Window Started At
+        window_ended_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Window Ended At
+        status:
+          type: string
+          title: Status
+        api_calls:
+          type: integer
+          title: Api Calls
+        fetched_count:
+          type: integer
+          title: Fetched Count
+        created_count:
+          type: integer
+          title: Created Count
+        new_version_count:
+          type: integer
+          title: New Version Count
+        unchanged_count:
+          type: integer
+          title: Unchanged Count
+        error_message:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error Message
+        started_at:
+          type: string
+          format: date-time
+          title: Started At
+        completed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Completed At
+      type: object
+      required:
+      - id
+      - business_type
+      - inquiry_type
+      - window_started_at
+      - window_ended_at
+      - status
+      - api_calls
+      - fetched_count
+      - created_count
+      - new_version_count
+      - unchanged_count
+      - error_message
+      - started_at
+      - completed_at
+      title: NoticeCollectionRunRead
+    NoticeDocumentRead:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        document_order:
+          type: integer
+          title: Document Order
+        name:
+          type: string
+          title: Name
+        url:
+          type: string
+          title: Url
+        source_field:
+          type: string
+          title: Source Field
+        download_status:
+          type: string
+          title: Download Status
+        storage_key:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Storage Key
+        content_type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Content Type
+        file_size_bytes:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: File Size Bytes
+        file_sha256:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: File Sha256
+        downloaded_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Downloaded At
+        download_error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Download Error
+        extraction_status:
+          type: string
+          title: Extraction Status
+        extracted_char_count:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Extracted Char Count
+        extracted_text_sha256:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Extracted Text Sha256
+        text_extractor:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Text Extractor
+        extracted_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Extracted At
+        extraction_error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Extraction Error
+        viewer_type:
+          type: string
+          title: Viewer Type
+        render_source_url:
+          type: string
+          title: Render Source Url
+        text_url:
+          type: string
+          title: Text Url
+        preview_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Preview Url
+      type: object
+      required:
+      - id
+      - document_order
+      - name
+      - url
+      - source_field
+      - download_status
+      - storage_key
+      - content_type
+      - file_size_bytes
+      - file_sha256
+      - downloaded_at
+      - download_error
+      - extraction_status
+      - extracted_char_count
+      - extracted_text_sha256
+      - text_extractor
+      - extracted_at
+      - extraction_error
+      - viewer_type
+      - render_source_url
+      - text_url
+      - preview_url
+      title: NoticeDocumentRead
+    NoticeDocumentTextRead:
+      properties:
+        document_id:
+          type: string
+          format: uuid
+          title: Document Id
+        name:
+          type: string
+          title: Name
+        extraction_status:
+          type: string
+          title: Extraction Status
+        extractor:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Extractor
+        char_count:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Char Count
+        text_sha256:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Text Sha256
+        text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Text
+        blocks:
+          anyOf:
+          - items:
+              additionalProperties: true
+              type: object
+            type: array
+          - type: 'null'
+          title: Blocks
+      type: object
+      required:
+      - document_id
+      - name
+      - extraction_status
+      - extractor
+      - char_count
+      - text_sha256
+      - text
+      - blocks
+      title: NoticeDocumentTextRead
+    NoticeInquiryType:
+      type: string
+      enum:
+      - REGISTERED
+      - CHANGED
+      - NOTICE_NUMBER
+      title: NoticeInquiryType
+    NoticeSyncRequest:
+      properties:
+        business_type:
+          $ref: '#/components/schemas/BusinessType'
+        inquiry_type:
+          $ref: '#/components/schemas/NoticeInquiryType'
+          default: REGISTERED
+        window_started_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Window Started At
+        window_ended_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Window Ended At
+        bid_notice_no:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Bid Notice No
+        page_size:
+          type: integer
+          maximum: 999.0
+          minimum: 1.0
+          title: Page Size
+          default: 100
+        max_pages:
+          type: integer
+          maximum: 100.0
+          minimum: 1.0
+          title: Max Pages
+          default: 10
+      type: object
+      required:
+      - business_type
+      title: NoticeSyncRequest
+    PerformanceCreate:
+      properties:
+        name:
+          type: string
+          title: Name
+        client_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Name
+        client_institution_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Institution Code
+        amount:
+          type: integer
+          maximum: 1.0e+18
+          minimum: 0.0
+          title: Amount
+        started_at:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Started At
+        completed_at:
+          type: string
+          format: date
+          title: Completed At
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        fields:
+          items:
+            type: string
+          type: array
+          title: Fields
+        verified:
+          type: boolean
+          title: Verified
+          default: false
+      type: object
+      required:
+      - name
+      - amount
+      - completed_at
+      title: PerformanceCreate
+    PerformanceRead:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        name:
+          type: string
+          title: Name
+        client_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Name
+        client_institution_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Institution Code
+        amount:
+          type: integer
+          title: Amount
+        started_at:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Started At
+        completed_at:
+          type: string
+          format: date
+          title: Completed At
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        fields:
+          items:
+            type: string
+          type: array
+          title: Fields
+        verified:
+          type: boolean
+          title: Verified
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+      type: object
+      required:
+      - id
+      - name
+      - client_name
+      - client_institution_code
+      - amount
+      - started_at
+      - completed_at
+      - description
+      - fields
+      - verified
+      - created_at
+      - updated_at
+      title: PerformanceRead
+    PerformanceUpdate:
+      properties:
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        client_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Name
+        client_institution_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Institution Code
+        amount:
+          anyOf:
+          - type: integer
+            maximum: 1.0e+18
+            minimum: 0.0
+          - type: 'null'
+          title: Amount
+        started_at:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Started At
+        completed_at:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Completed At
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        fields:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Fields
+        verified:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Verified
+      type: object
+      title: PerformanceUpdate
+    PreflightCaseCreate:
+      properties:
+        notice_id:
+          type: string
+          format: uuid
+          title: Notice Id
+        company_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Company Id
+        baseline_version_number:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Baseline Version Number
+        current_version_number:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Current Version Number
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+      type: object
+      required:
+      - notice_id
+      title: PreflightCaseCreate
+    PreflightCaseRead:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        company_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Company Id
+        notice_id:
+          type: string
+          format: uuid
+          title: Notice Id
+        bid_notice_no:
+          type: string
+          title: Bid Notice No
+        notice_title:
+          type: string
+          title: Notice Title
+        title:
+          type: string
+          title: Title
+        status:
+          type: string
+          title: Status
+        baseline_version_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Baseline Version Id
+        baseline_version_number:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Baseline Version Number
+        current_version_id:
+          type: string
+          format: uuid
+          title: Current Version Id
+        current_version_number:
+          type: integer
+          title: Current Version Number
+        documents:
+          items:
+            $ref: '#/components/schemas/ProposalDocumentRead'
+          type: array
+          title: Documents
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+      type: object
+      required:
+      - id
+      - company_id
+      - notice_id
+      - bid_notice_no
+      - notice_title
+      - title
+      - status
+      - baseline_version_id
+      - baseline_version_number
+      - current_version_id
+      - current_version_number
+      - documents
+      - created_at
+      - updated_at
+      title: PreflightCaseRead
+    PreflightCaseSearchResponse:
+      properties:
+        total:
+          type: integer
+          title: Total
+        limit:
+          type: integer
+          title: Limit
+        offset:
+          type: integer
+          title: Offset
+        items:
+          items:
+            $ref: '#/components/schemas/PreflightCaseRead'
+          type: array
+          title: Items
+      type: object
+      required:
+      - total
+      - limit
+      - offset
+      - items
+      title: PreflightCaseSearchResponse
+    ProposalDocumentRead:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        case_id:
+          type: string
+          format: uuid
+          title: Case Id
+        document_order:
+          type: integer
+          title: Document Order
+        role:
+          $ref: '#/components/schemas/ProposalDocumentRole'
+        name:
+          type: string
+          title: Name
+        storage_status:
+          type: string
+          title: Storage Status
+        content_type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Content Type
+        file_size_bytes:
+          type: integer
+          title: File Size Bytes
+        file_sha256:
+          type: string
+          title: File Sha256
+        stored_at:
+          type: string
+          format: date-time
+          title: Stored At
+        extraction_status:
+          type: string
+          title: Extraction Status
+        extracted_char_count:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Extracted Char Count
+        extracted_text_sha256:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Extracted Text Sha256
+        text_extractor:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Text Extractor
+        extracted_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Extracted At
+        extraction_error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Extraction Error
+        viewer_type:
+          type: string
+          title: Viewer Type
+        render_source_url:
+          type: string
+          title: Render Source Url
+        text_url:
+          type: string
+          title: Text Url
+        preview_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Preview Url
+      type: object
+      required:
+      - id
+      - case_id
+      - document_order
+      - role
+      - name
+      - storage_status
+      - content_type
+      - file_size_bytes
+      - file_sha256
+      - stored_at
+      - extraction_status
+      - extracted_char_count
+      - extracted_text_sha256
+      - text_extractor
+      - extracted_at
+      - extraction_error
+      - viewer_type
+      - render_source_url
+      - text_url
+      - preview_url
+      title: ProposalDocumentRead
+    ProposalDocumentRole:
+      type: string
+      enum:
+      - PROPOSAL
+      - ATTACHMENT
+      title: ProposalDocumentRole
+    StaffCreate:
+      properties:
+        total_count:
+          type: integer
+          minimum: 0.0
+          title: Total Count
+        verified:
+          type: boolean
+          title: Verified
+          default: false
+        roles:
+          items:
+            $ref: '#/components/schemas/StaffRoleInput'
+          type: array
+          title: Roles
+      type: object
+      required:
+      - total_count
+      title: StaffCreate
+    StaffRead:
+      properties:
+        total_count:
+          type: integer
+          title: Total Count
+        verified:
+          type: boolean
+          title: Verified
+        roles:
+          items:
+            $ref: '#/components/schemas/StaffRoleRead'
+          type: array
+          title: Roles
+      type: object
+      required:
+      - total_count
+      - verified
+      - roles
+      title: StaffRead
+    StaffRoleInput:
+      properties:
+        role_name:
+          type: string
+          title: Role Name
+        headcount:
+          type: integer
+          minimum: 0.0
+          title: Headcount
+        verified:
+          type: boolean
+          title: Verified
+          default: false
+      type: object
+      required:
+      - role_name
+      - headcount
+      title: StaffRoleInput
+    StaffRoleRead:
+      properties:
+        role_name:
+          type: string
+          title: Role Name
+        headcount:
+          type: integer
+          title: Headcount
+        verified:
+          type: boolean
+          title: Verified
+      type: object
+      required:
+      - role_name
+      - headcount
+      - verified
+      title: StaffRoleRead
+    StaffUpdate:
+      properties:
+        total_count:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Total Count
+        verified:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Verified
+        roles:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/StaffRoleInput'
+            type: array
+          - type: 'null'
+          title: Roles
+      type: object
+      title: StaffUpdate
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

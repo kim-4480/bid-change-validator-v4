@@ -1,0 +1,159 @@
+{
+  "case_id": "C01",
+  "notice_no": "R26BK01705963",
+  "golden_class": "SOURCE_GOLDEN",
+  "identity_status": "PARTIAL",
+  "notice_id": null,
+  "notice_metadata": {
+    "id": null,
+    "bid_notice_no": "R26BK01705963"
+  },
+  "provenance": {
+    "kind": "real",
+    "snapshot_path": "R26BK01705963/document-export.json",
+    "snapshot_sha256": "06510821ae813470eee97930e3ce6695770684a16770ee08ac993f73d5063dcc",
+    "identity_note": "DB identity and complete version lineage unavailable"
+  },
+  "versions": [
+    {
+      "version_key": "C01-source-order-000",
+      "notice_version_id": null,
+      "version_number": null,
+      "bid_notice_order": "000",
+      "metadata": {
+        "id": null,
+        "version_number": null,
+        "bid_notice_order": "000"
+      }
+    }
+  ],
+  "documents": [
+    {
+      "document_key": "C01-cache-0f39b1f925e1d4c9",
+      "document_id": null,
+      "version_key": "C01-source-order-000",
+      "notice_version_id": null,
+      "name": "1. 입찰공고문(법무정보 통합플랫폼 기반 구축 사업).hwpx",
+      "source_file_sha256": "1a32c098265432453eece48c1171a97af5927ceba0e51e05329e02790035f20b",
+      "source_snapshot_path": "R26BK01705963/originals/0f39b1f925e1d4c9.bin",
+      "extracted_text_sha256": "1f37cabe95ba6592171dc74eaa104d596c9a673fe9b95f700c30f1d75c637ad6",
+      "blocks_file_sha256": "8f7c69916d919ac06b67ffb5444cf2633583bc5c2951c2ab652535845e796777",
+      "text": {
+        "path": "cases/C01/documents/1f37cabe95ba6592171dc74eaa104d596c9a673fe9b95f700c30f1d75c637ad6.txt",
+        "sha256": "1f37cabe95ba6592171dc74eaa104d596c9a673fe9b95f700c30f1d75c637ad6"
+      },
+      "blocks": {
+        "path": "cases/C01/documents/8f7c69916d919ac06b67ffb5444cf2633583bc5c2951c2ab652535845e796777.blocks.json",
+        "sha256": "8f7c69916d919ac06b67ffb5444cf2633583bc5c2951c2ab652535845e796777"
+      },
+      "metadata": {
+        "document_id": null,
+        "cache_key": "0f39b1f925e1d4c9",
+        "notice_version_id": null,
+        "original_path": "originals/0f39b1f925e1d4c9.bin",
+        "file_sha256": "1a32c098265432453eece48c1171a97af5927ceba0e51e05329e02790035f20b",
+        "bytes": 150366,
+        "url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01705963&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+        "filename": "1. 입찰공고문(법무정보 통합플랫폼 기반 구축 사업).hwpx",
+        "content_type": "application/octet-stream",
+        "source_bid_notice_order": "000",
+        "extraction_provenance": "new export-time extraction, not historical DB output",
+        "parser_version": {
+          "code_sha256": "c31bfd71d64985f4605aec4fd22036c55c552054558474b7a3de717da3a30e00",
+          "python": "3.12.14",
+          "pypdf": "6.17.0",
+          "olefile": "0.47"
+        },
+        "extraction_status": "EXTRACTED",
+        "extraction_error": null,
+        "text_extractor": "HWPX_XML",
+        "extracted_text_sha256": "1f37cabe95ba6592171dc74eaa104d596c9a673fe9b95f700c30f1d75c637ad6"
+      }
+    },
+    {
+      "document_key": "C01-cache-3f31ff624b51646c",
+      "document_id": null,
+      "version_key": "C01-source-order-000",
+      "notice_version_id": null,
+      "name": "1. 입찰공고문(법무정보 통합플랫폼 기반 구축 사업).pdf",
+      "source_file_sha256": "795728bae02eede0e69aae4c512d166811ff77042b64ba8a53151bffe6611cdf",
+      "source_snapshot_path": "R26BK01705963/originals/3f31ff624b51646c.bin",
+      "extracted_text_sha256": "0ab172ff2d04054cc641c02f6378a6647aab18803a76eff2404164b3881115f3",
+      "blocks_file_sha256": "d84db32ae6d5777cc2d8f995a150e7fd2fc058aaa42ae97ad2dad79a76eeded7",
+      "text": {
+        "path": "cases/C01/documents/0ab172ff2d04054cc641c02f6378a6647aab18803a76eff2404164b3881115f3.txt",
+        "sha256": "0ab172ff2d04054cc641c02f6378a6647aab18803a76eff2404164b3881115f3"
+      },
+      "blocks": {
+        "path": "cases/C01/documents/d84db32ae6d5777cc2d8f995a150e7fd2fc058aaa42ae97ad2dad79a76eeded7.blocks.json",
+        "sha256": "d84db32ae6d5777cc2d8f995a150e7fd2fc058aaa42ae97ad2dad79a76eeded7"
+      },
+      "metadata": {
+        "document_id": null,
+        "cache_key": "3f31ff624b51646c",
+        "notice_version_id": null,
+        "original_path": "originals/3f31ff624b51646c.bin",
+        "file_sha256": "795728bae02eede0e69aae4c512d166811ff77042b64ba8a53151bffe6611cdf",
+        "bytes": 618452,
+        "url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01705963&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+        "filename": "1. 입찰공고문(법무정보 통합플랫폼 기반 구축 사업).pdf",
+        "content_type": "application/pdf",
+        "source_bid_notice_order": "000",
+        "extraction_provenance": "new export-time extraction, not historical DB output",
+        "parser_version": {
+          "code_sha256": "c31bfd71d64985f4605aec4fd22036c55c552054558474b7a3de717da3a30e00",
+          "python": "3.12.14",
+          "pypdf": "6.17.0",
+          "olefile": "0.47"
+        },
+        "extraction_status": "EXTRACTED",
+        "extraction_error": null,
+        "text_extractor": "PYPDF",
+        "extracted_text_sha256": "0ab172ff2d04054cc641c02f6378a6647aab18803a76eff2404164b3881115f3"
+      }
+    },
+    {
+      "document_key": "C01-cache-dff181bb843ba322",
+      "document_id": null,
+      "version_key": "C01-source-order-000",
+      "notice_version_id": null,
+      "name": "2. 제안요청서(「법무정보 통합플랫폼 기반 구축 사업」).hwpx",
+      "source_file_sha256": "96da496938c0b3e093e55974ff483a22cd52af77a7a22321be650f0ec781965c",
+      "source_snapshot_path": "R26BK01705963/originals/dff181bb843ba322.bin",
+      "extracted_text_sha256": "4616fde8b521e1c3fa8a177b276e32c2d29d6f1676401bea9131d6126c6f0ef8",
+      "blocks_file_sha256": "bca5a0f63574341e9bf52d15005f71189ceb9a02c54b0cd9a4fca320f5390bc6",
+      "text": {
+        "path": "cases/C01/documents/4616fde8b521e1c3fa8a177b276e32c2d29d6f1676401bea9131d6126c6f0ef8.txt",
+        "sha256": "4616fde8b521e1c3fa8a177b276e32c2d29d6f1676401bea9131d6126c6f0ef8"
+      },
+      "blocks": {
+        "path": "cases/C01/documents/bca5a0f63574341e9bf52d15005f71189ceb9a02c54b0cd9a4fca320f5390bc6.blocks.json",
+        "sha256": "bca5a0f63574341e9bf52d15005f71189ceb9a02c54b0cd9a4fca320f5390bc6"
+      },
+      "metadata": {
+        "document_id": null,
+        "cache_key": "dff181bb843ba322",
+        "notice_version_id": null,
+        "original_path": "originals/dff181bb843ba322.bin",
+        "file_sha256": "96da496938c0b3e093e55974ff483a22cd52af77a7a22321be650f0ec781965c",
+        "bytes": 1821194,
+        "url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01705963&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+        "filename": "2. 제안요청서(「법무정보 통합플랫폼 기반 구축 사업」).hwpx",
+        "content_type": "application/octet-stream",
+        "source_bid_notice_order": "000",
+        "extraction_provenance": "new export-time extraction, not historical DB output",
+        "parser_version": {
+          "code_sha256": "c31bfd71d64985f4605aec4fd22036c55c552054558474b7a3de717da3a30e00",
+          "python": "3.12.14",
+          "pypdf": "6.17.0",
+          "olefile": "0.47"
+        },
+        "extraction_status": "EXTRACTED",
+        "extraction_error": null,
+        "text_extractor": "HWPX_XML",
+        "extracted_text_sha256": "4616fde8b521e1c3fa8a177b276e32c2d29d6f1676401bea9131d6126c6f0ef8"
+      }
+    }
+  ],
+  "observations": []
+}

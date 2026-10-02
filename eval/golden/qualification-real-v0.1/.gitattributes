@@ -1,0 +1,2 @@
+# Preserve snapshot bytes on Windows and Linux; hashes must survive checkout.
+* -text

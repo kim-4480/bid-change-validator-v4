@@ -1,0 +1,72 @@
+{
+  "contract_version": "ai-analysis-v0.2",
+  "fixture_version": "mvp-golden-v0.1",
+  "notice_id": "GOLDEN-NOTICE-001",
+  "notice_version_id": "GOLDEN-NOTICE-001-V2",
+  "requirements": [
+    {
+      "requirement_key": "REQ-REGION",
+      "requirement_group_key": "REQ-REGION-GROUP",
+      "group_operator": "ALL_OF",
+      "notice_version_id": "GOLDEN-NOTICE-001-V2",
+      "type": "REGION",
+      "operator": "MATCH",
+      "value": "서울특별시",
+      "unit": null,
+      "period_months": null,
+      "scope": {},
+      "required": true,
+      "raw": "서울특별시에 소재한 업체만 참가할 수 있다.",
+      "confidence": 1.0,
+      "evidence_keys": ["EV-V2-REGION"]
+    },
+    {
+      "requirement_key": "REQ-STAFF",
+      "requirement_group_key": "REQ-STAFF-GROUP",
+      "group_operator": "ALL_OF",
+      "notice_version_id": "GOLDEN-NOTICE-001-V2",
+      "type": "STAFF",
+      "operator": ">=",
+      "value": 5,
+      "unit": "PERSON",
+      "period_months": null,
+      "scope": {"role": "개발"},
+      "required": true,
+      "raw": "개발 인력 5명 이상을 보유하여야 한다.",
+      "confidence": 1.0,
+      "evidence_keys": ["EV-V2-STAFF"]
+    },
+    {
+      "requirement_key": "REQ-PERFORMANCE-AMOUNT",
+      "requirement_group_key": "REQ-PERFORMANCE-GROUP",
+      "group_operator": "ALL_OF",
+      "notice_version_id": "GOLDEN-NOTICE-001-V2",
+      "type": "PERFORMANCE_AMOUNT",
+      "operator": ">=",
+      "value": 600000000,
+      "unit": "KRW",
+      "period_months": 36,
+      "scope": {"aggregation": "UNSPECIFIED", "client_requirement": "공공기관"},
+      "required": true,
+      "raw": "최근 3년간 공공기관 수행실적 6억원 이상을 보유하여야 한다.",
+      "confidence": 1.0,
+      "evidence_keys": ["EV-V2-PERFORMANCE"]
+    },
+    {
+      "requirement_key": "REQ-REGISTRATION",
+      "requirement_group_key": "REQ-REGISTRATION-GROUP",
+      "group_operator": "ALL_OF",
+      "notice_version_id": "GOLDEN-NOTICE-001-V2",
+      "type": "REGISTRATION_CERTIFICATION",
+      "operator": "MATCH",
+      "value": "정보통신공사업",
+      "unit": null,
+      "period_months": null,
+      "scope": {"kind": "REGISTRATION"},
+      "required": true,
+      "raw": "정보통신공사업 등록업체이어야 한다.",
+      "confidence": 1.0,
+      "evidence_keys": ["EV-V2-REGISTRATION"]
+    }
+  ]
+}

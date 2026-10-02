@@ -1,0 +1,75 @@
+{
+  "version": "retrieval-v0.1",
+  "cases": [
+    {
+      "notice_no": "R26BK01705963",
+      "documents": [
+        {
+          "document_id": "NOTICE-HWPX",
+          "path": "data/demo/notice-documents/R26BK01705963/0f39b1f925e1d4c9.bin",
+          "role": "NOTICE"
+        },
+        {
+          "document_id": "NOTICE-PDF",
+          "path": "data/demo/notice-documents/R26BK01705963/3f31ff624b51646c.bin",
+          "role": "DUPLICATE"
+        },
+        {
+          "document_id": "RFP-HWPX",
+          "path": "data/demo/notice-documents/R26BK01705963/dff181bb843ba322.bin",
+          "role": "RFP"
+        }
+      ],
+      "spans": [
+        {
+          "span_id": "POS-001",
+          "document_id": "NOTICE-HWPX",
+          "span_kind": "POSITIVE",
+          "quote": "사업금액 20억 미만의 사업으로서, 「소프트웨어진흥법」제48조",
+          "note": "COMPANY_SIZE",
+          "expected_type": "COMPANY_SIZE"
+        },
+        {
+          "span_id": "POS-002",
+          "document_id": "NOTICE-HWPX",
+          "span_kind": "POSITIVE",
+          "quote": "소프트웨어사업(컴퓨터관련서비스사업, 업종코드 : 1468)",
+          "note": "INDUSTRY",
+          "expected_type": "INDUSTRY",
+          "expected_operator": "MATCH",
+          "expected_value": "1468"
+        },
+        {
+          "span_id": "POS-003",
+          "document_id": "NOTICE-HWPX",
+          "span_kind": "POSITIVE",
+          "quote": "직접생산확인증명서(세부품명 : 정보시스템개발서비스",
+          "note": "REGISTRATION_CERTIFICATION",
+          "expected_type": "REGISTRATION_CERTIFICATION"
+        },
+        {
+          "span_id": "POS-004",
+          "document_id": "NOTICE-HWPX",
+          "span_kind": "POSITIVE",
+          "quote": "소프트웨어 진흥법」제58조에 의거 소프트웨어사업자로 신고",
+          "note": "REGISTRATION_CERTIFICATION",
+          "expected_type": "REGISTRATION_CERTIFICATION"
+        },
+        {
+          "span_id": "TRAP-001",
+          "document_id": "RFP-HWPX",
+          "span_kind": "TRAP",
+          "quote": "누출 금지 정보를 무단으로 누출할 경우 국가계약법에 의거",
+          "note": "보안 위반에 따른 사후 제재"
+        },
+        {
+          "span_id": "TRAP-002",
+          "document_id": "RFP-HWPX",
+          "span_kind": "TRAP",
+          "quote": "입찰참가 자격이 제한될 수 있으며, 고의나 과실을 불문하고",
+          "note": "보안 위반에 따른 사후 제재"
+        }
+      ]
+    }
+  ]
+}

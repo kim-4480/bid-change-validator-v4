@@ -1,0 +1,27 @@
+name: Zone guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  zones:
+    # 기능 PR(→ develop)만 검사한다. develop → main 통합 PR은 그동안 합친 모든 영역을 담는 게 정상이라
+    # 건너뛴다(skipped 는 필수 체크도 통과로 친다).
+    if: github.head_ref != 'develop'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: 한 PR이 한 영역만 건드리는지 검사
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ALLOW_CROSS_ZONE: ${{ contains(github.event.pull_request.labels.*.name, 'cross-zone') }}
+        run: |
+          git diff --name-only "$BASE_SHA...$HEAD_SHA" > changed.txt
+          python .github/scripts/zone_guard.py changed.txt

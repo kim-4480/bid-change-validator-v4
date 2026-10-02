@@ -1,0 +1,117 @@
+{
+  "created_utc": "2026-09-13T19:45:38.842505+00:00",
+  "head": "0c6968400a26f30ce1e1121a9afd752667b4ca97",
+  "branch": "feature/ai-copilot-user-test-hardening",
+  "uncommitted": true,
+  "final_test_run": "copilot-v31-20260913T194111Z",
+  "tests": 330,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "by_file": {
+    "apps.api.tests.test_copilot_narration": 4,
+    "apps.api.tests.test_copilot_required_checks_narration": 3,
+    "apps.api.tests.test_copilot_v31": 33,
+    "apps.api.tests.test_copilot_v31_readiness": 14,
+    "apps.api.tests.test_document_rag_store": 19,
+    "apps.api.tests.test_copilot_chat_contract": 232,
+    "apps.api.tests.test_copilot_semantic_router": 7,
+    "apps.api.tests.test_copilot_intent_resolver": 7,
+    "apps.api.tests.test_copilot_semantic_optin": 11
+  },
+  "final_model_run": "copilot-v31-live-20260913T194132Z",
+  "final_model_turns": [
+    {
+      "turn": 1,
+      "status": "PARTIAL",
+      "elapsed_ms": 41968,
+      "calls": 5,
+      "expected_fact_coverage": true
+    },
+    {
+      "turn": 2,
+      "status": "PASS",
+      "elapsed_ms": 8156,
+      "calls": 3,
+      "expected_fact_coverage": true
+    },
+    {
+      "turn": 3,
+      "status": "PASS",
+      "elapsed_ms": 7281,
+      "calls": 3,
+      "expected_fact_coverage": true
+    },
+    {
+      "turn": 4,
+      "status": "PARTIAL",
+      "elapsed_ms": 35875,
+      "calls": 5,
+      "expected_fact_coverage": true
+    }
+  ],
+  "live_runs": [
+    {
+      "run": "copilot-v31-live-20260913T192437Z",
+      "cost_upper_usd": 0.0544,
+      "model": "gpt-5.6-luna",
+      "mode": "dialogue"
+    },
+    {
+      "run": "copilot-v31-live-20260913T192506Z",
+      "cost_upper_usd": 0.013417000000000002,
+      "model": "gpt-5.6-luna",
+      "mode": "dialogue"
+    },
+    {
+      "run": "copilot-v31-live-20260913T192710Z",
+      "cost_upper_usd": 0.01748,
+      "model": "gpt-5.6-luna",
+      "mode": "dialogue"
+    },
+    {
+      "run": "copilot-v31-live-20260913T192956Z",
+      "cost_upper_usd": 0.014421600000000001,
+      "model": "gpt-5.6-luna",
+      "mode": "dialogue"
+    },
+    {
+      "run": "copilot-v31-live-20260913T193059Z",
+      "cost_upper_usd": 0.0011002,
+      "model": "gpt-5.6-luna",
+      "mode": "verifier"
+    },
+    {
+      "run": "copilot-v31-live-20260913T193335Z",
+      "cost_upper_usd": 0.0238344,
+      "model": "gpt-5.6-luna",
+      "mode": "dialogue"
+    },
+    {
+      "run": "copilot-v31-live-20260913T193821Z",
+      "cost_upper_usd": 0.0274328,
+      "model": "gpt-5.6-luna",
+      "mode": "dialogue"
+    },
+    {
+      "run": "copilot-v31-live-20260913T194132Z",
+      "cost_upper_usd": 0.0175,
+      "model": "gpt-5.6-luna",
+      "mode": "dialogue"
+    }
+  ],
+  "cost_upper_usd_total": 0.169586,
+  "budget_authorized_usd": 10,
+  "not_an_invoice": true,
+  "not_run": [
+    "live PostgreSQL 16",
+    "real DB transaction/rollback",
+    "reviewed Golden Core/holdout",
+    "human evaluation"
+  ],
+  "preserved_stashes": [
+    "02a630d4eb4f14275f19d42473356ddc41e82e1a",
+    "7481cba916d94c71755e1d56e70133f9dd1b8725"
+  ],
+  "worktrees": "worktree E:/dev/02_TeamProjects/bid-change-validator\nHEAD 0c6968400a26f30ce1e1121a9afd752667b4ca97\nbranch refs/heads/feature/ai-copilot-user-test-hardening"
+}

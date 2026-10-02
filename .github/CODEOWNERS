@@ -1,15 +1,18 @@
 # 영역별 소유자. 팀원 GitHub 계정이 확정되면 TODO 줄을 채운다.
 # 마지막으로 일치하는 규칙이 우선한다.
 
-*                   @kim-4480
+*                          @kim-4480
 
-/engine/            @kim-4480
-/eval/              @kim-4480
+# LLM
+/engine/                   @kim-4480
+/eval/                     @kim-4480
+/apps/api/app/copilot/     @kim-4480
+/apps/api/app/document_rag/ @kim-4480
 
-# TODO(FE)     /apps/web/     @<fe-handle>
-# TODO(BE)     /apps/api/     @<be-handle>
-# TODO(DB)     /db/ /data/    @<db-handle>
-# TODO(INFRA)  /infra/ /.github/  @<infra-handle>
+# TODO(FE)     /apps/web/                 @<fe-handle>
+# TODO(BE)     /apps/api/  /docker-compose*.yml  @<be-handle>
+# TODO(DB)     /db/  /data/               @<db-handle>
+# TODO(INFRA)  /infra/  /.github/         @<infra-handle>
 
 # 계약은 양쪽 승인
 # TODO /contracts/   @kim-4480 @<fe-handle> @<be-handle>

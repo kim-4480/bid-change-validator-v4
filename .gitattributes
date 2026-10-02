@@ -1,0 +1,11 @@
+# 기본은 git 의 자동 판별에 맡긴다.
+* text=auto
+
+# 골든셋 픽스처는 sha256 으로 고정되어 있다. 체크아웃 때 LF→CRLF 로 바뀌면
+# 해시가 달라져 Windows 에서만 평가 하네스가 통째로 실패한다.
+eval/golden/** -text
+
+# 예규 원문과 파생 인덱스도 바이트가 바뀌면 안 된다.
+data/standards/** -text
+engine/bidengine/clause_review/standards/data/*.json -text
+eval/golden/qualification-v0.2/** -text

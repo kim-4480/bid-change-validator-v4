@@ -1,0 +1,2061 @@
+{
+  "collected_at": "2026-10-01T12:08:00.389548+09:00",
+  "window_days": 7,
+  "notices": [
+    {
+      "notice_no": "R26BK01744466",
+      "order": "001",
+      "business_type": "SERVICE",
+      "title": "2026년 울산광역시 보육주간기념행사",
+      "dir": "R26BK01744466-001",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744466&bidPbancOrd=001&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "2928ffa736702835387644a099f11daf45f927a9b2e019de1a004184a32e2dbf",
+          "blocks": "2928ffa736702835.blocks.json"
+        },
+        {
+          "name": "2026년 어린이집연합회보육주간과업지시서.hwp",
+          "document_order": 1,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744466&bidPbancOrd=001&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "76f8eaade884868ecee57b82671a1580edaf1a03e8b119bf440fc8695143752f",
+          "blocks": "76f8eaade884868e.blocks.json"
+        },
+        {
+          "name": "2026년 울산시어린이집연합회보육주간입찰공고.pdf",
+          "document_order": 3,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744466&bidPbancOrd=001&fileType=&fileSeq=3&prcmBsneSeCd=03",
+          "source_file_sha256": "1a1dcaf80057580e6fedc8730ca03d57cda6e1b7283ee317e37146271b416391",
+          "blocks": "1a1dcaf80057580e.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01744466",
+      "order": "002",
+      "business_type": "SERVICE",
+      "title": "2026년 울산광역시 보육주간기념행사",
+      "dir": "R26BK01744466-002",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744466&bidPbancOrd=002&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "5dfe2f5065b8e25f545a69f7f57a8b0004c87f2d150ba722a34b94cb5940be13",
+          "blocks": "5dfe2f5065b8e25f.blocks.json"
+        },
+        {
+          "name": "2026년 울산시어린이집연합회보육주간입찰공고.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744466&bidPbancOrd=002&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "1a9d785abe436540de6a3a803779f6371f5d2c48cd7f745a55ffe05d61706642",
+          "blocks": "1a9d785abe436540.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01744620",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "인천대학교 네트워크 장비 교체사업",
+      "dir": "R26BK01744620-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744620&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "f4e75e9482a495695898fbda8a53150ec0565eb21a277bb96af74172da2c1cd5",
+          "blocks": "f4e75e9482a49569.blocks.json"
+        },
+        {
+          "name": "공고문.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744620&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "efd20d7f4849e18d3bbb46984153f7645430876bdad18e9d05c73535972daeb7",
+          "blocks": "efd20d7f4849e18d.blocks.json"
+        },
+        {
+          "name": "제안요청서.hwp",
+          "document_order": 3,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744620&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+          "source_file_sha256": "6068d65d416ebc0ae5a4d9ae2ea877f22080f86475bba4b03d1dc6896c565f94",
+          "blocks": "6068d65d416ebc0a.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01744644",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "「광주첨단 스마트그린 AX실증산단 구축 사업」 디지털트윈 기획 및 설계 용역",
+      "dir": "R26BK01744644-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744644&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "f6a5d85c68322cf3b1458d568cc526f39d246d8061ab31d663f01acd2a0717c7",
+          "blocks": "f6a5d85c68322cf3.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01740355",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "목포국제기독학교 2026년 4분기 식자재 납품 단가계약 공고",
+      "dir": "R26BK01740355-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01740355&bidPbancOrd=000&fileType=&fileSeq=10&prcmBsneSeCd=01",
+          "source_file_sha256": "6a67fea2726acf57911ea84fb1eb39d63cb68e71c893ec869ed3e3c63e7a15db",
+          "blocks": "6a67fea2726acf57.blocks.json"
+        },
+        {
+          "name": "[입찰공고문]목포국제기독학교 2026년 집단급식소 식자재.pdf",
+          "document_order": 6,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01740355&bidPbancOrd=000&fileType=&fileSeq=11&prcmBsneSeCd=01",
+          "source_file_sha256": "0448e837e0c7de1628e3f31827868fbdeda7d56176f203f70177493fc49e7b53",
+          "blocks": "0448e837e0c7de16.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01744777",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "2026 뮤지컬 [오페라] 무대 세트 제작, 설치, 철수  공고",
+      "dir": "R26BK01744777-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "DOCX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744777&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "e612fe607a89b38e91977137f92ef1d6e33b4d540af2e8bb05e401d2685c85f4",
+          "blocks": "e612fe607a89b38e.blocks.json"
+        },
+        {
+          "name": "01_뮤지컬_오페라_무대세트_제작설치철거_입찰공고문_재공고.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744777&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "6f7b5bb3e393cb475935400b70a2341a0b600075e9bc05e0b35a121e90fe1ca0",
+          "blocks": "6f7b5bb3e393cb47.blocks.json"
+        },
+        {
+          "name": "02_뮤지컬_오페라_무대세트_제작설치철거_과업지시서.pdf",
+          "document_order": 3,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744777&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "3f8f11ac20a10bd42fd20d4a1d37d31dc8bd0e98c9b4602bdf7c96aa55bf13fa",
+          "blocks": "3f8f11ac20a10bd4.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01744796",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "산청 프리미엄 벌꿀 융복합 생산기반 구축사업 생산설비 제조·구매·설치",
+      "dir": "R26BK01744796-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744796&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "8a0827d5671249fb6d3f780b8ff4134e55471357a397723147c7a12c783799a8",
+          "blocks": "8a0827d5671249fb.blocks.json"
+        },
+        {
+          "name": "02_벌꿀생산설비_세부규격서.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744796&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "b0303ff65302a549e8eba1458ab2de8a3943a09b6166d89fc7e255abe0dceeef",
+          "blocks": "b0303ff65302a549.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01740874",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "소방무선망(UHF) 장비 구매",
+      "dir": "R26BK01740874-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01740874&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "88fda95a27398a29d12bae8f66b17ae211b2379c94de8a3ad5ff8bc9b70c71b9",
+          "blocks": "88fda95a27398a29.blocks.json"
+        },
+        {
+          "name": "소액수의 견적제출 안내공고[소방무선망(UHF)장비 구매].pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01740874&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "8d6d299f1a385b2d3ebb157620ab2acfc604b317b83396f9ce88baa90a36fc42",
+          "blocks": "8d6d299f1a385b2d.blocks.json"
+        },
+        {
+          "name": "규격서[소방무선망(UHF)장비 구매].hwpx",
+          "document_order": 3,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01740874&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "558d09607b110faed39db4ec72221197d144cfe05d00e2d30df85a80f09aba51",
+          "blocks": "558d09607b110fae.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01744609",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "인주면 문방2리 마을안길 정비공사",
+      "dir": "R26BK01744609-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744609&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "59709b0d5dd434a063a44d2137a7deae9784550bad8b5799cd91eadebc5530d7",
+          "blocks": "59709b0d5dd434a0.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01742861",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "긴급]한국삼육중·고 체육관, 급식실 및 특별교실 증축공사[건축, 토목, 설비]",
+      "dir": "R26BK01742861-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01742861&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "53826227facfac802bfe416a4fbb96b4f44b8f92100cad1fa48c84eb96da9cfa",
+          "blocks": "53826227facfac80.blocks.json"
+        },
+        {
+          "name": "공사입찰설명서(지방,지역제한,50억이상100억미만,장기,사실조사).pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01742861&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "6f9e86514c3acffad061326e070ddea24e88c8dc5b217747f520ec8fe71146d3",
+          "blocks": "6f9e86514c3acffa.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01744615",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "건양대학교 건양회관 5층 인테리어 공사",
+      "dir": "R26BK01744615-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744615&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "c761765917df8b7a7e6e09f3abc21af5bb3a3ed9d6c2af2e7f2866a6a29415e4",
+          "blocks": "c761765917df8b7a.blocks.json"
+        },
+        {
+          "name": "붙임_1._제2026-032호_입찰공고문.pdf",
+          "document_order": 3,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744615&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=07",
+          "source_file_sha256": "85485cfeb6a4336b55ab64259d9e84f7f6b4211829b5f54680504a87cabbc545",
+          "blocks": "85485cfeb6a4336b.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01744617",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "건양대학교 건양회관 5층 인테리어 공사(전기)",
+      "dir": "R26BK01744617-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744617&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "6831d8a4a18f7de7638926be97d144853018133561d9d160c8e955764b670c79",
+          "blocks": "6831d8a4a18f7de7.blocks.json"
+        },
+        {
+          "name": "붙임_1._제2026-033호_입찰공고문.pdf",
+          "document_order": 3,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01744617&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=07",
+          "source_file_sha256": "350aec94c04f934730fad331c59ce85b89a8f0a1b576b266156d30141d93dd9b",
+          "blocks": "350aec94c04f9347.blocks.json"
+        }
+      ]
+    }
+  ],
+  "changed": [
+    {
+      "notice_no": "R26BK01723179",
+      "business_type": "SERVICE",
+      "title": "2026. 충북형 직업계고 글로벌 현장학습 용역",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01723179-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723179&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "6117c97ab3fc09961be367b91dbafc66a47f2ba6218b83448df379090fa34b3d",
+              "blocks": "6117c97ab3fc0996.blocks.json"
+            },
+            {
+              "name": "2026년 직업계고 글로벌 현장학습 청주농고 과업지시서.hwp",
+              "document_order": 2,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723179&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+              "source_file_sha256": "deec395afc9331edb1b7d38afd42ac5ce1ef930064b1b48601c93c42cbc124c0",
+              "blocks": "deec395afc9331ed.blocks.json"
+            },
+            {
+              "name": "★2026학년 직업계고 글로벌 현장학습 청주농고 위탁용역 제안요청서.hwp",
+              "document_order": 3,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723179&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+              "source_file_sha256": "55219a256d515ddbd29a6e9b96c7a657d1f5b79e76744fd0f9e0a761c5addede",
+              "blocks": "55219a256d515ddb.blocks.json"
+            },
+            {
+              "name": "2026. 충북형 직업계고 글로벌 현장학습 위탁용역 입찰 재공고.pdf",
+              "document_order": 4,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723179&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=03",
+              "source_file_sha256": "dee6912af43ffc5e39f3ee50137f9cd7f7b8f9f441c17c35b3294fc9ea651227",
+              "blocks": "dee6912af43ffc5e.blocks.json"
+            }
+          ]
+        },
+        {
+          "order": "001",
+          "dir": "R26BK01723179-001",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723179&bidPbancOrd=001&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "6117c97ab3fc09961be367b91dbafc66a47f2ba6218b83448df379090fa34b3d",
+              "blocks": "6117c97ab3fc0996.blocks.json"
+            },
+            {
+              "name": "2026년 직업계고 글로벌 현장학습 청주농고 과업지시서.hwp",
+              "document_order": 2,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723179&bidPbancOrd=001&fileType=&fileSeq=2&prcmBsneSeCd=03",
+              "source_file_sha256": "deec395afc9331edb1b7d38afd42ac5ce1ef930064b1b48601c93c42cbc124c0",
+              "blocks": "deec395afc9331ed.blocks.json"
+            },
+            {
+              "name": "★2026학년 직업계고 글로벌 현장학습 청주농고 위탁용역 제안요청서.hwp",
+              "document_order": 3,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723179&bidPbancOrd=001&fileType=&fileSeq=3&prcmBsneSeCd=03",
+              "source_file_sha256": "55219a256d515ddbd29a6e9b96c7a657d1f5b79e76744fd0f9e0a761c5addede",
+              "blocks": "55219a256d515ddb.blocks.json"
+            },
+            {
+              "name": "2026. 충북형 직업계고 글로벌 현장학습 위탁용역 입찰 재공고.pdf",
+              "document_order": 4,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723179&bidPbancOrd=001&fileType=&fileSeq=4&prcmBsneSeCd=03",
+              "source_file_sha256": "d7cc90db521abe029e7cb3670b9f9629b1ef3fa9e12816c9281c7c2d5e2ce661",
+              "blocks": "d7cc90db521abe02.blocks.json"
+            }
+          ]
+        },
+        {
+          "order": "002",
+          "dir": "R26BK01723179-002",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723179&bidPbancOrd=002&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "6117c97ab3fc09961be367b91dbafc66a47f2ba6218b83448df379090fa34b3d",
+              "blocks": "6117c97ab3fc0996.blocks.json"
+            },
+            {
+              "name": "2026년 직업계고 글로벌 현장학습 청주농고 과업지시서.hwp",
+              "document_order": 2,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723179&bidPbancOrd=002&fileType=&fileSeq=2&prcmBsneSeCd=03",
+              "source_file_sha256": "deec395afc9331edb1b7d38afd42ac5ce1ef930064b1b48601c93c42cbc124c0",
+              "blocks": "deec395afc9331ed.blocks.json"
+            },
+            {
+              "name": "★2026학년 직업계고 글로벌 현장학습 청주농고 위탁용역 제안요청서.hwp",
+              "document_order": 3,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723179&bidPbancOrd=002&fileType=&fileSeq=3&prcmBsneSeCd=03",
+              "source_file_sha256": "55219a256d515ddbd29a6e9b96c7a657d1f5b79e76744fd0f9e0a761c5addede",
+              "blocks": "55219a256d515ddb.blocks.json"
+            },
+            {
+              "name": "2026. 충북형 직업계고 글로벌 현장학습 위탁용역 입찰 재공고.pdf",
+              "document_order": 4,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723179&bidPbancOrd=002&fileType=&fileSeq=4&prcmBsneSeCd=03",
+              "source_file_sha256": "8ea2e9aceac03534dec1ef4530ee2a7ce9497b91f0feeaa503549c424c2b3cef",
+              "blocks": "8ea2e9aceac03534.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01750494",
+      "business_type": "CONSTRUCTION",
+      "title": "강북구 행정복합타운 건립 상하수관로 이설 및 우회도로 개설공사",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01750494-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01750494&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+              "source_file_sha256": "51859252dbe2ae2249c9c7c9749305cc490161472f6bfb361df844aed2a45ab9",
+              "blocks": "51859252dbe2ae22.blocks.json"
+            },
+            {
+              "name": "공고문(강북구 행정복합타운 건립 상하수관로 이설 및 우회도로 개설공사 시행)(수정).pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01750494&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+              "source_file_sha256": "52cc906693d2b8845046b95b84396537be6074464e329ed9f702dd51c530c6a3",
+              "blocks": "52cc906693d2b884.blocks.json"
+            },
+            {
+              "name": "공사설명서.pdf",
+              "document_order": 4,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01750494&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=07",
+              "source_file_sha256": "63c47ac5807e3bba88a68028a328721e3097ef5a9432a063627e77cf6666c750",
+              "blocks": "63c47ac5807e3bba.blocks.json"
+            }
+          ]
+        },
+        {
+          "order": "001",
+          "dir": "R26BK01750494-001",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01750494&bidPbancOrd=001&fileType=&fileSeq=1&prcmBsneSeCd=07",
+              "source_file_sha256": "51859252dbe2ae2249c9c7c9749305cc490161472f6bfb361df844aed2a45ab9",
+              "blocks": "51859252dbe2ae22.blocks.json"
+            },
+            {
+              "name": "공고문(강북구 행정복합타운 건립 상하수관로 이설 및 우회도로 개설공사 시행)(수정).pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01750494&bidPbancOrd=001&fileType=&fileSeq=2&prcmBsneSeCd=07",
+              "source_file_sha256": "52cc906693d2b8845046b95b84396537be6074464e329ed9f702dd51c530c6a3",
+              "blocks": "52cc906693d2b884.blocks.json"
+            },
+            {
+              "name": "공사설명서.pdf",
+              "document_order": 5,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01750494&bidPbancOrd=001&fileType=&fileSeq=5&prcmBsneSeCd=07",
+              "source_file_sha256": "63c47ac5807e3bba88a68028a328721e3097ef5a9432a063627e77cf6666c750",
+              "blocks": "63c47ac5807e3bba.blocks.json"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "unselected": [
+    {
+      "kind": "registered",
+      "reason": "no_documents",
+      "notice_no": "R26BK01744686",
+      "business_type": "GOODS",
+      "title": "2026년 친환경농업기반 구축사업 고추가공시설 물품구매 및 설치",
+      "versions": [
+        {
+          "order": "000",
+          "dir": null,
+          "documents": []
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01727851",
+      "business_type": "SERVICE",
+      "title": "2027학년도 한림항공우주고등학교 전기에너지과 항공우주 IPC표준 분야 교재 개발 용역(재공고)",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01727851-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01727851&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "f374f2d795cf6ad51d39175def669b33031c6d622c0372dd22952b300a65f702",
+              "blocks": "f374f2d795cf6ad5.blocks.json"
+            },
+            {
+              "name": "2027학년도 한림항공우주고등학교 전기에너지과 항공우주 IPC표준 분야 교재 개발 용역 입찰공고문 (재공고).pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01727851&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+              "source_file_sha256": "4dc7b56a690f215bbe15b2010e8cbe5b897e05dd246a9e10b81a17c5158196a8",
+              "blocks": "4dc7b56a690f215b.blocks.json"
+            },
+            {
+              "name": "2027학년도 전기에너지과 항공우주 IPC표준 분야 교재 개발 용역 과업지시서(최종).hwp",
+              "document_order": 3,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01727851&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+              "source_file_sha256": "79380180d67926c3d812e481c279aef76770a6ad9a45c8a2bbb41a86643d3319",
+              "blocks": "79380180d67926c3.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01735353",
+      "business_type": "SERVICE",
+      "title": "(재공고) 저소음 친환경 시험장 확보를 위한 선행연구",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01735353-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01735353&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+              "source_file_sha256": "12faf214c11d215dbf9e9de224881d53d87f4c71aaefd564c4b45f2b5eab08c9",
+              "blocks": "12faf214c11d215d.blocks.json"
+            },
+            {
+              "name": "01. 입찰공고문(저소음 친환경 시험장 확보를 위한 선행연구).pdf",
+              "document_order": 1,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01735353&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "88350bcea9a890112565359855baa4886de4a7c0f27e3bafa300707e6a81577f",
+              "blocks": "88350bcea9a89011.blocks.json"
+            },
+            {
+              "name": "02. 제안요청서(저소음 친환경 시험장 확보를 위한 선행연구).hwp",
+              "document_order": 3,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01735353&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+              "source_file_sha256": "ebc5e260886b2671c35d4d3f1027ae4c85134de06507f81d9127c903bc5a5b7c",
+              "blocks": "ebc5e260886b2671.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01734777",
+      "business_type": "SERVICE",
+      "title": "지능형홈·글로벌융합클러스터 성과분석 및 AX 전략 연구 용역",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01734777-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01734777&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+              "source_file_sha256": "60aa66f19ac6350b4b890491d31b01dcd8b1125be6bc6a83c6fd573e52995f81",
+              "blocks": "60aa66f19ac6350b.blocks.json"
+            },
+            {
+              "name": "제안요청서.hwpx",
+              "document_order": 1,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01734777&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "28922a12ee5794b578bc6b1a54ed7949d8b2464c493f3e13ccf011d544595750",
+              "blocks": "28922a12ee5794b5.blocks.json"
+            },
+            {
+              "name": "입찰유의서.hwp",
+              "document_order": 3,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01734777&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+              "source_file_sha256": "6cb1da320771b2550e75f1a2af0da6bd68d505ea76598898bc8b68fb8a5a543d",
+              "blocks": "6cb1da320771b255.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01732656",
+      "business_type": "SERVICE",
+      "title": "2026학년도 춘천한샘고등학교 2학년 테마형 체험학습 위탁용역 입찰 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01732656-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01732656&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "abdc1d8a03f619028395871c212e874ad512f03eb476645829acd6150f69bbc1",
+              "blocks": "abdc1d8a03f61902.blocks.json"
+            },
+            {
+              "name": "2026학년도 춘천한샘고등학교 2학년 테마형체험학습 위탁용역입찰 재공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01732656&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+              "source_file_sha256": "72fdfb1357d65d0854908718930a76832844414446b04c232dd69616460a653c",
+              "blocks": "72fdfb1357d65d08.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01720893",
+      "business_type": "SERVICE",
+      "title": "순천이수중 옹벽 개선공사 감독권한대행 등 건설사업관리용역",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01720893-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01720893&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=05",
+              "source_file_sha256": "2f9535fa2a6578543fad12e1896067b9a15afb9674d20433bf53deacae22f6d9",
+              "blocks": "2f9535fa2a657854.blocks.json"
+            },
+            {
+              "name": "(재공고 )기술용역 입찰설명서(R26DC00235817).pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01720893&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=05",
+              "source_file_sha256": "59498e47c5405af77a6be226bce90bd3c81647ea2785e8245ea455da2287a913",
+              "blocks": "59498e47c5405af7.blocks.json"
+            },
+            {
+              "name": "1. 과업내용서(순천이수중 옹벽 개선공사 감독권한대행 등 건설사업관리용역).hwpx",
+              "document_order": 3,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01720893&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=05",
+              "source_file_sha256": "b46cfe1d6649a51a09ac683852176bb27f81d89a60085ee3acfe0ab48c81a3d2",
+              "blocks": "b46cfe1d6649a51a.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01723735",
+      "business_type": "SERVICE",
+      "title": "(계획공모형 지역관광개발사업) 별의별 어드벤처 프로그램 개발 및 운영 용역(긴급/재공고)",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01723735-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723735&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "1b81a0c188ba08e24f8dd9172eee98683bfcf0b914b8e34c7d409fa89a4729a1",
+              "blocks": "1b81a0c188ba08e2.blocks.json"
+            },
+            {
+              "name": "별의별 어드벤처 프로그램 개발 및 운영 용역(영양축제관광재단)_과업지시서.hwpx",
+              "document_order": 2,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723735&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+              "source_file_sha256": "96b7a2e1d22ba49f2c21ec37d29add3f9d9d45aa58dc0d74668d330c3f3e3448",
+              "blocks": "96b7a2e1d22ba49f.blocks.json"
+            },
+            {
+              "name": "별의별 어드벤처 프로그램 개발 및 운영 용역(영양축제관광재단)_제안요청서.hwpx",
+              "document_order": 3,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723735&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+              "source_file_sha256": "c76095496b9f105af7f5187cb263ad883350ec1cbac5197b8fd9aa9f366b261c",
+              "blocks": "c76095496b9f105a.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01725803",
+      "business_type": "SERVICE",
+      "title": "토지특성 GIS분석 및 지리정보데이터 구매 ",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01725803-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01725803&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "ab24d844e6ef825ffd2a16e59686eb93fa5babfea9c6caf37be6d16630c26b9d",
+              "blocks": "ab24d844e6ef825f.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01736181",
+      "business_type": "SERVICE",
+      "title": "부동산거래 전자계약시스템 문자통합 전송서비스",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01736181-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01736181&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "358abc930268dcdb42baa7f8a62aace305b0d836cee06a26a75f7c40019a1378",
+              "blocks": "358abc930268dcdb.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01724971",
+      "business_type": "SERVICE",
+      "title": " 2026 대전전통나래관 기획전시 「단청, 우주의 빛」 전시 연출 및 운영 용역",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01724971-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01724971&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "e4852a7f3d0b409a188070bf1c598312179476c1d17c27965d890b03ad06525e",
+              "blocks": "e4852a7f3d0b409a.blocks.json"
+            },
+            {
+              "name": "제안요청서.hwp",
+              "document_order": 2,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01724971&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+              "source_file_sha256": "f22562d82e2e0bcaeda1ec6b3f02d21166aa0562e6b9f7a8250c8a7ef0491932",
+              "blocks": "f22562d82e2e0bca.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01729235",
+      "business_type": "SERVICE",
+      "title": "2026학년도 세종대성고 1학년 숙박형 현장체험(수련활동) 위탁용역 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01729235-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01729235&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "69fead5ae5a6db5132505e057a0e865e17e3189567803fb896c32a684d62def5",
+              "blocks": "69fead5ae5a6db51.blocks.json"
+            },
+            {
+              "name": "2026학년도 세종대성고 1학년 숙박형 현장체험(수련활동) 용역 입찰 재공고(과업지시서,특수조건 포함).pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01729235&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+              "source_file_sha256": "e2c6a53c3f839c858d32cd823aba59998345c3442c20c351796c2e5bffab4f08",
+              "blocks": "e2c6a53c3f839c85.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01728220",
+      "business_type": "SERVICE",
+      "title": "[앵커] 생성형 AI 융합 K-pop 송캠프 운영 용역",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01728220-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01728220&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "6809cfca07d2c79682ce01d9b55a7c406a251740752601ab06a97e264bb42370",
+              "blocks": "6809cfca07d2c796.blocks.json"
+            },
+            {
+              "name": "붙임2. 과업지시서_[앵커] 생성형 AI 융합 K-pop 송캠프 운영 용역.hwp",
+              "document_order": 2,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01728220&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+              "source_file_sha256": "809ea687db509b599f94cc278c4959948f178b96c8c4fa3ea4172d858c1c64a3",
+              "blocks": "809ea687db509b59.blocks.json"
+            },
+            {
+              "name": "붙임1. 입찰공고문_[앵커] 생성형 AI 융합 K-pop 송캠프 운영 용역.hwp",
+              "document_order": 3,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01728220&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+              "source_file_sha256": "06ce6762c1d351c9dcd2ba6e24ff97bde9e74bef0a1578be4654b82a173946e6",
+              "blocks": "06ce6762c1d351c9.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01735183",
+      "business_type": "SERVICE",
+      "title": "AI·GPR 활용 스마트 지반조사 체계 구축 사업(협상)",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01735183-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01735183&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=05",
+              "source_file_sha256": "4da8db3a9beb961233b490eea34bed515829db19524e2447a5a45441243301d4",
+              "blocks": "4da8db3a9beb9612.blocks.json"
+            },
+            {
+              "name": "제안요청서(AIGPR 활용 스마트 지반조사 체계 구축)(수정).hwpx",
+              "document_order": 2,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01735183&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=05",
+              "source_file_sha256": "de7b7225ec279f04e2ae958c406d6fa15010034a898838db3f121c2dcbfbc341",
+              "blocks": "de7b7225ec279f04.blocks.json"
+            },
+            {
+              "name": "[공고문] AIGPR 활용 스마트 지반조사 체계 구축 사업(최종).pdf",
+              "document_order": 4,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01735183&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=05",
+              "source_file_sha256": "19b7705eab760e49937fd147961021e373f80feb702b924281b63e30b9c9b515",
+              "blocks": "19b7705eab760e49.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01729096",
+      "business_type": "SERVICE",
+      "title": "26년 부동산거래관리시스템 기능고도화 감리 용역",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01729096-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01729096&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "1aebcf69414f149605d7e5c41f9a31c146583e8447fff08f0faefd3a7ad55515",
+              "blocks": "1aebcf69414f1496.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01728162",
+      "business_type": "SERVICE",
+      "title": "2026학년도 한림항공우주고등학교 항공우주 사제동행 해외연수 위탁용역 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01728162-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01728162&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "096896c4a8f1e73357faf4ff42b8bff4eb49145c030a9765088b90c701e6f4ad",
+              "blocks": "096896c4a8f1e733.blocks.json"
+            },
+            {
+              "name": "2026학년도 한림항공우주고등학교  항공우주 사제동행 해외연수 위탁 용역 과업내용서.hwp",
+              "document_order": 2,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01728162&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+              "source_file_sha256": "a21b866f59a240001067937c9147d688d3ba50c4861183478d598622e9ba4c2c",
+              "blocks": "a21b866f59a24000.blocks.json"
+            },
+            {
+              "name": "2026학년도 한림항공우주고등학교  항공우주 사제동행 해외연수 위탁 용역 제안요청서.hwp",
+              "document_order": 3,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01728162&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+              "source_file_sha256": "78292709025277e2df20ed8356ebe4b9a432349169a713b87944143f0eeef35b",
+              "blocks": "78292709025277e2.blocks.json"
+            },
+            {
+              "name": "2026학년도 한림항공우주고등학교 항공우주 사제동행 해외연수 위탁 용역 입찰공고문(재공고).pdf",
+              "document_order": 4,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01728162&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=03",
+              "source_file_sha256": "1f5f6bc7a7b5e1da9b7d3004191abcf59d777dca597fb4b613fa213732b53ae8",
+              "blocks": "1f5f6bc7a7b5e1da.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01723941",
+      "business_type": "GOODS",
+      "title": "2027학년도 덕장중학교 교복(동.하복)학교주관 제조.구매 입찰공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01723941-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723941&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "fa0c0fb908a2d82a57af41c9e7f1084bbf33093bfb4f250389ac7d9c7a0ef302",
+              "blocks": "fa0c0fb908a2d82a.blocks.json"
+            },
+            {
+              "name": "2027학년도_덕장중학교_교복(동.하복)학교주관_제조·구매업체_선정_입찰공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723941&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "94232f14889b0662162fd4645624ba553fb9495a3830731b1f28a60468f74ec6",
+              "blocks": "94232f14889b0662.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01721243",
+      "business_type": "GOODS",
+      "title": "2027학년도 조천중학교 교복(동·하복) 구매 입찰 공고[장기계속계약]",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01721243-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01721243&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "48fbf0acc80cea7b3ac8a4d41040b529bec6172c293fa329451d7c7e48882731",
+              "blocks": "48fbf0acc80cea7b.blocks.json"
+            },
+            {
+              "name": "2027학년도 조천중학교 교복(동·하복) 구매 업체 선정 입찰 공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01721243&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "32580a48d305626d109bc782df9b1d33d2c620aa2de0faace45453ce01c2034e",
+              "blocks": "32580a48d305626d.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01727300",
+      "business_type": "GOODS",
+      "title": "[재공고]2027학년도 도현중학교 교복(동복, 하복, 생활복) 학교주관구매 업체 선정 입찰 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01727300-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01727300&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "60a9adc70bf3fc83d8dfe58b550405b27b8057287eab8ffa5b82ae80d4b1ca75",
+              "blocks": "60a9adc70bf3fc83.blocks.json"
+            },
+            {
+              "name": "2027학년도 도현중학교 교복(동복, 하복, 생활복) 학교주관구매 업체 선정 입찰 재공고문.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01727300&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "23a04fed79a13598d4a3d77d03c3ad77d41bda39d367c6a15a90803d9fb0ec61",
+              "blocks": "23a04fed79a13598.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01728269",
+      "business_type": "GOODS",
+      "title": "2027학년도 불곡중학교 신입생 교복 학교주관구매 업체 선정(재공고)",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01728269-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01728269&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "43945b97f85ca3dd705bfbde4c98a6ef229e0e02bdeb53c2bbe0a231ab318266",
+              "blocks": "43945b97f85ca3dd.blocks.json"
+            },
+            {
+              "name": "2027 교복 학교주관구매 업체 선정 재공고문.pdf",
+              "document_order": 3,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01728269&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+              "source_file_sha256": "16a04bea24cee69486d96ae56ed18884b7194155ea5807dd242251497ceb5e28",
+              "blocks": "16a04bea24cee694.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01720784",
+      "business_type": "GOODS",
+      "title": "2027학년도 아라중학교 교복(동‧하복) 구매 입찰 공고[장기계속계약]",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01720784-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01720784&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "beccb6eebb4f5a89a3ebdc58a05c530190dc8fa1b3c7ce1e72943ceb641aba5f",
+              "blocks": "beccb6eebb4f5a89.blocks.json"
+            },
+            {
+              "name": "2027학년도 아라중학교 교복(동·하복) 구매 입찰 공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01720784&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "15351035c9d1d9f12a0c69383899ac6748e7ef864d18c77d43d8f0bf3ae19ea2",
+              "blocks": "15351035c9d1d9f1.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01719849",
+      "business_type": "GOODS",
+      "title": "2026년 일회용 밴드 공동구매 단가계약(2차)",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01719849-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01719849&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "92fc21856833fb74b2d7f137f9dad9f723d92c18ea3b36f48a2f633675eca214",
+              "blocks": "92fc21856833fb74.blocks.json"
+            },
+            {
+              "name": "붙임 1. 입찰공고문(일회용 밴드_2차).pdf",
+              "document_order": 1,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01719849&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "26fbd78ea4c85fe946ce3833a33c4d3aa41d0abb1efebc6ba8d57cad1e981156",
+              "blocks": "26fbd78ea4c85fe9.blocks.json"
+            },
+            {
+              "name": "붙임 2. 규격서(일회용 밴드_2차).hwp",
+              "document_order": 3,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01719849&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+              "source_file_sha256": "e2e57a873788e70d52c16e4b28ff519599bc4ea681a288ca05024811b7aa3d31",
+              "blocks": "e2e57a873788e70d.blocks.json"
+            },
+            {
+              "name": "붙임 6. 입찰 및 청렴계약 특별유의서.hwp",
+              "document_order": 7,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01719849&bidPbancOrd=000&fileType=&fileSeq=7&prcmBsneSeCd=01",
+              "source_file_sha256": "baeafe9b9e732e0c27bbb3a41cf773c825350000422f273d97db2612336c0217",
+              "blocks": "baeafe9b9e732e0c.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01718033",
+      "business_type": "GOODS",
+      "title": "2027학년도 신입생 교복(동복/하복/생활복) 학교주관구매 업체 선정 입찰 공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01718033-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01718033&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "b2e1c73de41ff46c964fb5036d566864571a77813ee11fe95bf545528525e845",
+              "blocks": "b2e1c73de41ff46c.blocks.json"
+            },
+            {
+              "name": "2027학년도 분당경영고등학교 신입생 교복(동복, 하복, 생활복) 학교주관구매 입찰 공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01718033&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "956980f1606cee6eba437e72d3fc1eea6009cbedcf6827c5c2a3e28d050e1b32",
+              "blocks": "956980f1606cee6e.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01728311",
+      "business_type": "GOODS",
+      "title": "2027학년도 대전도시과학고등학교 교복(동복, 하복) 학교주관 구매 입찰 공고(재공고)",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01728311-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01728311&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "a707604923e8c2e37bb2151af1b1b461b00263499a6db25b42d4700eece8b7ae",
+              "blocks": "a707604923e8c2e3.blocks.json"
+            },
+            {
+              "name": "2027학년도 대전도시과학고등학교 교복 학교주관 구매 입찰 재공고문(안).pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01728311&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "066f2d21b755dfe4e8ee19edda37b8566a024b9315782603a7fc381b37ddd0f3",
+              "blocks": "066f2d21b755dfe4.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01713874",
+      "business_type": "GOODS",
+      "title": "2027학년도 하랑중학교 체육복(동복, 하복) 학교주관구매 업체 선정 입찰 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01713874-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01713874&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "2646816f2818f3a9fd7198f7da2e1b3fbe037525b5e24957f23e3261cc4bf34b",
+              "blocks": "2646816f2818f3a9.blocks.json"
+            },
+            {
+              "name": "[재공고문]2027학년도 하랑중학교 체육복(동복,하복) 학교주관구매 입찰 재공고문.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01713874&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "1e6458195bf2053dba0fdb7e82b8f5f125a8d043b72fd6378b66b10557191a33",
+              "blocks": "1e6458195bf2053d.blocks.json"
+            },
+            {
+              "name": "[붙임3~19]2026학년도 하랑중 체육복(동복,하복) 학교주관구매 입찰공고문 붙임서류(3~19).hwp",
+              "document_order": 5,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01713874&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=01",
+              "source_file_sha256": "910655f172b9a33e4bd95b54865d72aeea4d26c83146ba91dd6f956c437f71bb",
+              "blocks": "910655f172b9a33e.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01723670",
+      "business_type": "GOODS",
+      "title": "2027학년도 반곡중학교 교복(동복,하복) 학교주관 구매 입찰 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01723670-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723670&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=01",
+              "source_file_sha256": "413b9802a65b704daff6bc170ddbe4a32a873333d62eedd7cd88f3571a1a9b59",
+              "blocks": "413b9802a65b704d.blocks.json"
+            },
+            {
+              "name": "1.2027학년도 반곡중 교복 입찰 재공고문.pdf",
+              "document_order": 4,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01723670&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=01",
+              "source_file_sha256": "e7350ab1d714bdcfe338df85caefa3062e3a0b39e03af29b274c6b8e139ac285",
+              "blocks": "e7350ab1d714bdcf.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01721033",
+      "business_type": "GOODS",
+      "title": "2027학년도 제주동중학교 교복(동‧하복) 구매 입찰 공고[장기계속계약]",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01721033-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01721033&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "61c403d0e4b0c9598229f35d5da887c0f267c20fd7829fa118dca6f911ddd3f8",
+              "blocks": "61c403d0e4b0c959.blocks.json"
+            },
+            {
+              "name": "2027학년도 제주동중학교 교복(동·하복) 구매 입찰 공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01721033&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "068aeff2e6a84bef9dd75b60df5d7da902bee58d9641b8ce2912ec6e1b5ce22d",
+              "blocks": "068aeff2e6a84bef.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01736241",
+      "business_type": "GOODS",
+      "title": "2027학년도 분당중학교 학생 교복(동˙하˙춘추복) 학교주관구매 업체 선정 입찰 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01736241-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01736241&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=01",
+              "source_file_sha256": "1b204930fc22812f3e6fcdfc810ef4c87108b9d295f5fb285be819f545e4f44f",
+              "blocks": "1b204930fc22812f.blocks.json"
+            },
+            {
+              "name": "2027학년도 분당중학교 교복(동·하·춘추복) 구매업체 선정 입찰 재공고(안).pdf",
+              "document_order": 3,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01736241&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=01",
+              "source_file_sha256": "dd9c3ecc69612821d4e934f27cd4bcae05150846a0453098dba3cb4515db5939",
+              "blocks": "dd9c3ecc69612821.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01729873",
+      "business_type": "GOODS",
+      "title": "2027학년도 교복(동복,하복) 학교주관구매 2단계(규격, 가격동시) 전자 입찰 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01729873-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01729873&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "24a340a5f9d7dbd51e397f01c3068a4b19bbe9b6c767447af84bc09244a7d107",
+              "blocks": "24a340a5f9d7dbd5.blocks.json"
+            },
+            {
+              "name": "2027학년도 서전중학교 교복 학교주관구매 입찰 재공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01729873&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+              "source_file_sha256": "afb8006d40b40b3550d3468ca187b54f1f2e2355eedf578a45da2dba12c1b2ce",
+              "blocks": "afb8006d40b40b35.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01727498",
+      "business_type": "GOODS",
+      "title": "2027학년도 세종고등학교 교복(동·하복) 학교주관구매 업체선정 입찰 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01727498-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01727498&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "841d57a171525c64e4ed90c22a08b6c4125f72110821c1369186e50e8beee045",
+              "blocks": "841d57a171525c64.blocks.json"
+            },
+            {
+              "name": "2027학년도 세종고등학교 교복 학교주관구매 업체선정 입찰 공고문 및 특수조건_재공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01727498&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "ede75cc1c740190541a7aa801d6aadd47f761117a8d90cb1f55c50805562688e",
+              "blocks": "ede75cc1c7401905.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01727703",
+      "business_type": "GOODS",
+      "title": "2027학년도 대전용전중학교 교복(동복, 생활복) 학교주관 구매 입찰 공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01727703-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01727703&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "19931d4565dcfb59210f375c4c7b89e791cc85ef86b6522a041177f4e16c57f7",
+              "blocks": "19931d4565dcfb59.blocks.json"
+            },
+            {
+              "name": "2027학년도 대전용전중학교 교복 학교주관 구매 입찰 공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01727703&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "117ca11a9f36a2781aac6f3a109305f6b32cb211f3142dfd5d346970223f99f0",
+              "blocks": "117ca11a9f36a278.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01720322",
+      "business_type": "GOODS",
+      "title": "2027학년도 연북중학교 교복(동복,하복,체육복)제조 구매",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01720322-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01720322&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=01",
+              "source_file_sha256": "401a35951975d41d0db17f86ca9960ba69896b3105b26223ffd349230ca621d9",
+              "blocks": "401a35951975d41d.blocks.json"
+            },
+            {
+              "name": "2027학년도 연북중 교복(동복 하복 체육복) 제조구매 입찰 공고문.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01720322&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=01",
+              "source_file_sha256": "d35b0f80d54451b39957c1c7e26c927fd9bfadf69b47055fba85f40148bc87f3",
+              "blocks": "d35b0f80d54451b3.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01721485",
+      "business_type": "GOODS",
+      "title": "2027학년도 한림여자중학교 교복(동·하복) 구매 입찰 공고[장기계속계약]",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01721485-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01721485&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "c4d1272844e293c0f5c69cc6df716e630ab60ea1ef4e174556ee3199ead207fa",
+              "blocks": "c4d1272844e293c0.blocks.json"
+            },
+            {
+              "name": "2027학년도 한림여자중학교 교복(동·하복) 구매 입찰 공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01721485&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "9cc7cd894806a27440ad58d968dd9abcb0b634f75dc0a388f37ce784dd40ed3d",
+              "blocks": "9cc7cd894806a274.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01732292",
+      "business_type": "GOODS",
+      "title": "2027학년도 경기폴리텍고등학교 교복(동복 및 하복 또는 생활복)학교주관구매 업체 선정 입찰 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01732292-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01732292&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "fe56fac6b84e990e54cbb8a6b2bf8f2ac3dc1251cf18b9cc1f7d73d2aa667b13",
+              "blocks": "fe56fac6b84e990e.blocks.json"
+            },
+            {
+              "name": "2027학년도 경기폴리텍고등학교 교복(동복및하복또는생활복)학교주관 구매 업체선정 입찰 재공고(안).pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01732292&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "e21df2d4e053ba4906b401f9b1b0e00af2812c46a2b46ff2cf586d852d63cf7f",
+              "blocks": "e21df2d4e053ba49.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01734122",
+      "business_type": "GOODS",
+      "title": "2027학년도 사곡고등학교 학교주관교복(동·하복) 구매 2단계 입찰[규격·가격 동시] 공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01734122-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01734122&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "be278e12af3039e669f34e7ea0f3d6785ec2da80a42900dc5506bbd1740f06de",
+              "blocks": "be278e12af3039e6.blocks.json"
+            },
+            {
+              "name": "2027학년도 사곡고등학교 학교주관교복구매 2단계 입찰 공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01734122&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "66a7e5a7eafeab39550f3d558392d03593ef1209b73a4fc7a801d46082e1850a",
+              "blocks": "66a7e5a7eafeab39.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01717600",
+      "business_type": "GOODS",
+      "title": "2027학년도 한림고등학교 교복(동,하복) 구매 입찰공고(장기계속계약)",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01717600-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01717600&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "b548ec969f61d625acc70504fc692df9764eec33520c7dae340791bb297bd1d0",
+              "blocks": "b548ec969f61d625.blocks.json"
+            },
+            {
+              "name": "1-3. 2027학년도 한림고등학교 교복(동,하복) 구매 업체 선정 입찰 공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01717600&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "8580d10d2106c47dda6654eb8fdd320fde7517869f5895ce266507b7d7e2332e",
+              "blocks": "8580d10d2106c47d.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01718475",
+      "business_type": "GOODS",
+      "title": "2027학년도 상모고등학교 학교주관 교복 구매 2단계 입찰(규격·가격 분리 동시입찰) 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01718475-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01718475&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "f7daa16c65badab075436528089b21171bb043345259fad4593540500f8442c9",
+              "blocks": "f7daa16c65badab0.blocks.json"
+            },
+            {
+              "name": "[붙임1]2027학년도 학교주관 교복 구매 공고문.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01718475&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "3e375dabfed02b50e1c3fe5511b0a38b4d0ae4691f033146e2d1b635d584c444",
+              "blocks": "3e375dabfed02b50.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01732233",
+      "business_type": "GOODS",
+      "title": "2026년 희망풍차꾸러미 전달사업",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01732233-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01732233&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "1fa0cfa71973eba5920e9f1c1088ba9e6f1bd7bc2bd69b01573b0c3c91ad5e73",
+              "blocks": "1fa0cfa71973eba5.blocks.json"
+            },
+            {
+              "name": "2. 규격 및 과업지시서.hwpx",
+              "document_order": 2,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01732233&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "c2067f630d9a0ca1b45070effc3e827cd4bc09f9872e163675f6fd9bd35a1568",
+              "blocks": "c2067f630d9a0ca1.blocks.json"
+            },
+            {
+              "name": "5. 입찰유의서 및 청렴계약이행을 위한 입찰 특별유의서.hwp",
+              "document_order": 5,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01732233&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=01",
+              "source_file_sha256": "fcec067a883842a674f3c109600cb12ccea2435905f608d30b58ec09c570bd52",
+              "blocks": "fcec067a883842a6.blocks.json"
+            },
+            {
+              "name": "1. 입찰공고문.pdf",
+              "document_order": 7,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01732233&bidPbancOrd=000&fileType=&fileSeq=7&prcmBsneSeCd=01",
+              "source_file_sha256": "80e9ae8bee1d97bfdb756fe80933cb67b24492b1cd8c77dc55a9a267bdd9967f",
+              "blocks": "80e9ae8bee1d97bf.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01728133",
+      "business_type": "GOODS",
+      "title": "2027학년도 충북비즈니스고등학교 교복 학교주관구매 2단계(규격, 가격 동시) 입찰 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01728133-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01728133&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "21fb2cd647ac4da47610ff76b275130c5acb264e5fd857540fd61f67f728e6fe",
+              "blocks": "21fb2cd647ac4da4.blocks.json"
+            },
+            {
+              "name": "2027학년도 교복 구매 입찰 재공고문(충북비즈니스고)★.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01728133&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "8eae69ef4177138eafac7745f50fea6929cb57a542c32815424e8c6c7c28759e",
+              "blocks": "8eae69ef4177138e.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01727827",
+      "business_type": "GOODS",
+      "title": "2026학년도 금곡중학교 교복(동복·하복) 학교주관구매 2단계(규격·가격동시) 입찰 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01727827-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01727827&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "2a1316b303615eda02af41d62cf79c9155a0cd5397f43b22057a693d55cce1d8",
+              "blocks": "2a1316b303615eda.blocks.json"
+            },
+            {
+              "name": "2026학년도 금곡중학교 교복(동복·하복) 학교주관 구매 2단계(규격·가격동시) 입찰 재공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01727827&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "30fbf5e7650f022c6e227a45f4248c7f7a230c0c0d1faf6626b12086a51e869a",
+              "blocks": "30fbf5e7650f022c.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01721508",
+      "business_type": "GOODS",
+      "title": "2027학년도 한림중학교 교복(동·하복) 구매 입찰 공고[장기계속계약]",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01721508-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01721508&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "f2c683638cb2841cb026119b027f2cec6aafa83b4905d193eb02613c72fabd76",
+              "blocks": "f2c683638cb2841c.blocks.json"
+            },
+            {
+              "name": "2027학년도 한림중학교 교복(동·하복) 구매 입찰 공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01721508&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "15915cff2101506d8c75458b1c372753a05d363f59fc10dd306d90ee9b77295e",
+              "blocks": "15915cff2101506d.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01730235",
+      "business_type": "GOODS",
+      "title": "2027학년도 삼산고등학교 입학생 교복(동복·하복) 학교주관 구매 입찰 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01730235-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01730235&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "e8377a7c7836e35efd029ab7e45b1dca334844e45290f7854a830122673fffa4",
+              "blocks": "e8377a7c7836e35e.blocks.json"
+            },
+            {
+              "name": "2027학년도 삼산고등학교 입학생 교 학교주관 구매 입찰 재공고문.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01730235&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "d06d5ab89f7f2ab39ab4d4929c85218fa4ef1432c040c886524f76391ad93591",
+              "blocks": "d06d5ab89f7f2ab3.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01736073",
+      "business_type": "GOODS",
+      "title": "[연구기기] Low Coherence Holotomography System 구매(신규)",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01736073-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01736073&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "3a87e706582538e3fcce0d1e6c79a3f5768fc901e5200d294ed63f6e68ac4892",
+              "blocks": "3a87e706582538e3.blocks.json"
+            },
+            {
+              "name": "1. 입찰공고서(Low Coherence Holotomography System).pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01736073&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "45d5b4c96fcab1105404fe3ad85b66d044a273a313fa802c8d4754f0874cee68",
+              "blocks": "45d5b4c96fcab110.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01729614",
+      "business_type": "GOODS",
+      "title": "2027학년도 대전체육중·고등학교 교복(생활복) 학교주관 구매 입찰 공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01729614-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01729614&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "a07cfb10c3f47d0268ba6d004d2cf230bd0827459875174d993955091a7985f9",
+              "blocks": "a07cfb10c3f47d02.blocks.json"
+            },
+            {
+              "name": "☆2027학년도 대전체육중고 교복 학교주관 구매 입찰 재공고.pdf",
+              "document_order": 3,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01729614&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+              "source_file_sha256": "609509c84e6cd4f2832b802646c4fdea11d97192b71d06e89682b3cdc34bad9f",
+              "blocks": "609509c84e6cd4f2.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01730583",
+      "business_type": "GOODS",
+      "title": "2027학년도 대전중앙중학교 교복(동복, 생활복)  학교주관 구매 입찰공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01730583-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01730583&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "1e9b788a07762a0bf9a48ae5f8cf5e312de7d788b8ccc825efbff15d0397e733",
+              "blocks": "1e9b788a07762a0b.blocks.json"
+            },
+            {
+              "name": "[공고문] 2027학년도 대전중앙중학교 교복 학교주관 구매 입찰 공고.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01730583&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "aa95e0dc2038fddfc92897188a97072175dbb3dd7a308a6009c2bcd70fa3a362",
+              "blocks": "aa95e0dc2038fddf.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01722834",
+      "business_type": "GOODS",
+      "title": "2027학년도 당정중학교 교복(동.하복) 학교주관구매 입찰 공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01722834-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01722834&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "1d840ce04c601149091ee07992d766f4bc7e4387cf89819956a20a85f26ea822",
+              "blocks": "1d840ce04c601149.blocks.json"
+            },
+            {
+              "name": "2027학년도 당정중학교 신입생 교복입찰 공고문.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01722834&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "24e062d7f2f8ce4494ee904294dc84cd41c68c73709bd893ab321fbbafe86799",
+              "blocks": "24e062d7f2f8ce44.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01720941",
+      "business_type": "GOODS",
+      "title": "2027학년도 대전변동중학교 교복(동복, 생활복) 학교주관 구매 입찰 공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01720941-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01720941&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "41ac946d14cba683404a65f7960762aecad76beb1ac680ff199487026a8fc40a",
+              "blocks": "41ac946d14cba683.blocks.json"
+            },
+            {
+              "name": "2027학년도 대전변동중학교 교복(동복, 생활복) 학교주관 구매 입찰 공고문.pdf",
+              "document_order": 3,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01720941&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+              "source_file_sha256": "59b081d46c0eeebfc9ead3ffde2f3607891164d61d5c884f3a164b52c41ba7cf",
+              "blocks": "59b081d46c0eeebf.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "versions_without_notice_document",
+      "notice_no": "R26BK01740229",
+      "business_type": "CONSTRUCTION",
+      "title": "서울강솔초 교사동 옥상 방수공사",
+      "versions": [
+        {
+          "order": "000",
+          "dir": null,
+          "documents": []
+        },
+        {
+          "order": "001",
+          "dir": null,
+          "documents": []
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01680319",
+      "business_type": "CONSTRUCTION",
+      "title": "거문도항 제2삼호교 건설공사",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01680319-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01680319&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+              "source_file_sha256": "d790880af945e8e8b78dc15e7b0b8e23b69b0648989191245daa5e21292b9e21",
+              "blocks": "d790880af945e8e8.blocks.json"
+            },
+            {
+              "name": "입찰공고서(R26DC00233499).pdf",
+              "document_order": 3,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01680319&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=07",
+              "source_file_sha256": "4f8b14cf9c9ab1c2a45390e0c366aee730e1bd6246abe9bdbb87a60ef50c9235",
+              "blocks": "4f8b14cf9c9ab1c2.blocks.json"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

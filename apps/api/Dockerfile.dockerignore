@@ -1,0 +1,10 @@
+*
+!apps/api/requirements.txt
+!apps/api/app
+!apps/api/alembic.ini
+!apps/api/alembic
+!engine
+**/__pycache__
+**/*.py[cod]
+engine/tests
+engine/scripts

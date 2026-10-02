@@ -1,0 +1,74 @@
+{
+  "fixture_version": "mvp-golden-v0.1",
+  "baseline": {
+    "notice_version_id": "GOLDEN-NOTICE-001-V1",
+    "judgments_before_ask_back": [
+      {
+        "requirement_key": "REQ-REGION",
+        "status": "SATISFIED",
+        "basis_type": "PROFILE",
+        "reason_code": "RULE_MATCH"
+      },
+      {
+        "requirement_key": "REQ-STAFF",
+        "status": "SATISFIED",
+        "basis_type": "PROFILE",
+        "reason_code": "RULE_MATCH"
+      },
+      {
+        "requirement_key": "REQ-PERFORMANCE-AMOUNT",
+        "status": "SATISFIED",
+        "basis_type": "PROFILE",
+        "reason_code": "RULE_MATCH"
+      },
+      {
+        "requirement_key": "REQ-REGISTRATION",
+        "status": "UNKNOWN",
+        "basis_type": "NONE",
+        "reason_code": "INSUFFICIENT_DATA"
+      }
+    ],
+    "overall_before_ask_back": "insufficient_data",
+    "ask_back": {
+      "requirement_key": "REQ-REGISTRATION",
+      "question": "정보통신공사업 등록을 보유하고 있나요?",
+      "answer": {
+        "value": true,
+        "normalized_value": "정보통신공사업",
+        "evidence_held": true,
+        "apply_to_profile": false
+      }
+    },
+    "judgment_after_answer": {
+      "requirement_key": "REQ-REGISTRATION",
+      "status": "SATISFIED",
+      "basis_type": "USER_ANSWER",
+      "evidence_held": true,
+      "reason_code": "RULE_MATCH"
+    },
+    "overall_after_ask_back": "eligible"
+  },
+  "change": {
+    "baseline_version_id": "GOLDEN-NOTICE-001-V1",
+    "current_version_id": "GOLDEN-NOTICE-001-V2",
+    "expected_diff": [
+      {"requirement_key": "REQ-REGION", "change_type": "UNCHANGED"},
+      {"requirement_key": "REQ-STAFF", "change_type": "UNCHANGED"},
+      {
+        "requirement_key": "REQ-PERFORMANCE-AMOUNT",
+        "change_type": "MODIFIED",
+        "before": {"operator": ">=", "value": 400000000, "unit": "KRW"},
+        "after": {"operator": ">=", "value": 600000000, "unit": "KRW"}
+      },
+      {"requirement_key": "REQ-REGISTRATION", "change_type": "UNCHANGED"}
+    ],
+    "requirements_to_revalidate": ["REQ-PERFORMANCE-AMOUNT"],
+    "revalidated_judgment": {
+      "requirement_key": "REQ-PERFORMANCE-AMOUNT",
+      "status": "UNSATISFIED",
+      "basis_type": "PROFILE",
+      "reason_code": "RULE_MISMATCH"
+    },
+    "overall_after_change": "ineligible"
+  }
+}

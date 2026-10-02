@@ -1,0 +1,45 @@
+{
+  "schema_version": "quality-eval-v1",
+  "dataset_id": "qualification-quality-v0.1",
+  "purpose": "Synthetic harness check only; no real notice or model quality claim",
+  "profiles": {
+    "path": "profiles/synthetic.json",
+    "sha256": "d5575522cf7621e3e76358756a320cd71f3cc0a7e522b682044a8abfc2938e05"
+  },
+  "cases": [
+    {
+      "case_id": "synthetic-case-1",
+      "notice_id": "synthetic-notice-1",
+      "notice_no": "SYNTHETIC-001",
+      "notice_version_id": "synthetic-v1",
+      "version_number": 1,
+      "provenance": "synthetic",
+      "provenance_note": "Handwritten blocks; no original binary or parser run",
+      "documents": [
+        {
+          "path": "documents/synthetic.blocks.json",
+          "sha256": "5a2c99932ce55e2cac3eb275eadd96d94480b8e4c2896d8e33bbffb15dbaf1cb",
+          "document_id": "synthetic-doc-1",
+          "source_sha256": null
+        }
+      ],
+      "labels": {
+        "path": "labels/synthetic.json",
+        "sha256": "dab332e919d716d0565d26d50303f65e6dd29ae7e2a75c652e8f9e89990df1f2"
+      },
+      "synthetic_slots": [
+        {
+          "유형": "업종요건",
+          "raw": "업종코드 1468 등록 업체이어야 한다.",
+          "업종코드_raw": "1468",
+          "근거조항": null
+        },
+        {
+          "유형": "기타요건",
+          "raw": "별도 협의에 따른 추가 요건을 확인한다.",
+          "근거조항": null
+        }
+      ]
+    }
+  ]
+}
