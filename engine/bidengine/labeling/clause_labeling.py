@@ -8,6 +8,7 @@ extract_legacy_slots 와 같은 모양의 결과를 돌려주므로 이후 정�
 from __future__ import annotations
 
 import copy
+import re
 from typing import Any
 
 from collections.abc import MutableMapping
@@ -24,6 +25,9 @@ from bidengine.labeling.requirement_extraction import (
 )
 
 MAX_BODY_CHARS = 32_000
+# 공동수급·공동계약의 허용 여부를 말하는 조항. 닫힌 낱말이라 코드가 찾는다. 협정서 제출 같은 절차 문장은 아니다.
+_PARTY_CLAUSE_RE = re.compile(r"공동\s*(?:수급|계약|도급|이행)|분담\s*이행")
+_PARTY_PROCEDURE_RE = re.compile(r"협정서|제출|승인|서식|간주")
 
 
 def _clause_schema() -> dict[str, Any]:
@@ -121,6 +125,11 @@ def extract_clause_slots(
     body = _body(kept)
     by_id = {clause.clause_id: clause for clause in kept}
     base = {
+        # 모델이 요건으로 올리지 않아도 사람이 봐야 하는 조항. 파이프라인이 확인 필요(공백)로 남긴다.
+        "party_clauses": [
+            clause.text for clause in kept
+            if _PARTY_CLAUSE_RE.search(clause.text) and not _PARTY_PROCEDURE_RE.search(clause.text)
+        ],
         "target_chunk_ids": [chunk.get("chunk_id") for chunk in target],
         "selection_mode": selection_mode,
         "input_truncated": len(full_body) > len(body),

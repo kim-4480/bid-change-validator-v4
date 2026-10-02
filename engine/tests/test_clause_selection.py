@@ -153,3 +153,38 @@ def test_alternative_groups_that_only_share_a_member_are_both_kept():
     other = [_requirement("B1", "0002", group="B"), _requirement("B2", "0004", group="B")]
     kept, _ = deduplicate_requirements(first + other)
     assert [r.requirement_key for r in kept] == ["A1", "A2", "B1", "B2"]   # (A 또는 B) 그리고 (A 또는 C) 는 그대로
+
+
+def test_joint_venture_clause_stays_for_review_whatever_the_model_says():
+    from bidengine.judgment.context_guard import decide
+    from bidengine.pipeline.analysis_pipeline import (
+        QualificationAnalysisInput, QualificationDocumentInput, analyze_qualification_documents,
+    )
+
+    raw = "차. 본 입찰은 공동수급 및 하도급을 불허"
+    assert decide(raw, "NOT_REQUIREMENT").action == "DEFAULT"
+    _requirements, diagnostics = _adapt({"유형": "기타요건", "raw": raw}, "NOT_REQUIREMENT")
+    assert diagnostics[0]["reason"] == "COMPOSITE_PARTY_RULE"
+
+    # 모델이 그 조항에서 요건을 하나도 올리지 않아도 확인 필요(공백)로 남는다.
+    section = "2. 입찰참가자격\n가. 실내건축공사업(4990)을 등록한 업체\n차. 본 입찰은 공동수급 및 하도급을 불허\n3. 입찰보증금"
+    analysis = analyze_qualification_documents(
+        QualificationAnalysisInput(
+            notice_id="n", notice_version_id="v",
+            documents=[QualificationDocumentInput(document_id="d", extracted_blocks=[{"text": section}])],
+        ),
+        structured_extract=lambda _s, _b, schema: {"clauses": []},
+        extraction_mode="clause", polarity_guard=True,
+    )
+    assert [(gap.kind, gap.reason) for gap in analysis.coverage.gaps if "공동수급" in gap.raw] == [
+        ("UNREPRESENTABLE", "COMPOSITE_PARTY_RULE")
+    ]
+
+
+def test_construction_work_name_with_a_code_is_an_industry_code():
+    raw = "마. 건설산업기본법에 의한 [실내건축공사(4990)]을 등록하고 면허를 소지한 업체"
+    requirements, _ = _adapt({"유형": "등록요건", "raw": raw, "등록인증_raw": "[실내건축공사(4990)]"}, "POSITIVE")
+    assert [(r.type, r.value) for r in requirements] == [("INDUSTRY", "4990")]
+    year = "가. 체육관 증축공사(2026) 설계 실적이 있는 업체"
+    requirements, _ = _adapt({"유형": "등록요건", "raw": year, "등록인증_raw": "증축공사 설계"}, "POSITIVE")
+    assert not any(r.type == "INDUSTRY" for r in requirements)

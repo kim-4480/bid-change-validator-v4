@@ -184,6 +184,19 @@ def analyze_qualification_documents(
         industry_resolver=industry_resolver,
     )
 
+    if use_polarity:
+        # 공동수급·공동계약 조항은 모델이 요건으로 올리지 않아도 확인 필요로 남긴다. 낱말이 닫혀 있어 코드가
+        # 찾을 수 있고, 모델의 라벨링에 맡기면 실행에 따라 사람이 볼 자리에서 사라진다.
+        seen_raws = {"".join(str(item.get("raw") or "").split()) for item in canonicalized["diagnostics"]}
+        seen_raws |= {"".join(item.raw.split()) for item in canonicalized["requirements"]}
+        for text in extraction.get("party_clauses") or []:
+            key = "".join(text.split())
+            if key not in seen_raws:
+                seen_raws.add(key)
+                canonicalized["diagnostics"].append(
+                    {"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": "COMPOSITE_PARTY_RULE"}
+                )
+
     if chunks:
         # 모델이 빠뜨린 업종코드 조항을 원문에서 채운다. 같은 공고를 반복해 돌리면 어떤
         # 실행에서는 업종 조항이 안 올라오거나, 올라와도 매핑이 못 푼다 — 원문의 숫자는

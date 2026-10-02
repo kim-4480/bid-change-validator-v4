@@ -41,6 +41,13 @@ _REGISTRATION_CONTEXT_RE = re.compile(r"등록|신고|영업|허가|면허")
 _PRODUCT_CONTEXT_RE = re.compile(r"직접\s*생산\s*확인|세부\s*품명|품명\s*번호")
 
 
+# 건설 업종은 "실내건축공사(4990)" 처럼 '업' 없이 적기도 한다. 뒤에 등록·면허가 바로 이어질 때만 업종코드로
+# 읽는다 — "…증축공사(2026)" 같은 연도를 코드로 만들지 않기 위해서다.
+_NAMED_WORK_CODE_RE = re.compile(
+    r"[가-힣]{2,}공사\]?\(([0-9]{4})\)\]?(?:을|를|의|으로|로)?(?:등록|면허)"
+)
+
+
 def _compact(text: str) -> str:
     """닫힌 식별자를 읽을 때 쓰는 본문 — 공백·줄바꿈을 전부 걷어낸다.
 
@@ -588,7 +595,7 @@ def adapt_legacy_slot(
         # "업종코드 : 1450" 뿐 아니라 "폐기물수집·운반업(1227)" 처럼 업종명 뒤 괄호에
         # 바로 적는 공고가 많다. 업종명이 앞에 붙어 있을 때만 읽는다 — 그냥 네 자리
         # 숫자를 코드로 보면 연도·금액을 업종으로 만든다.
-        named = set(_NAMED_INDUSTRY_CODE_RE.findall(_compact(raw)))
+        named = set(_NAMED_INDUSTRY_CODE_RE.findall(_compact(raw))) | set(_NAMED_WORK_CODE_RE.findall(_compact(raw)))
         if len(named) == 1:
             industry_codes = named
     if names is not None:

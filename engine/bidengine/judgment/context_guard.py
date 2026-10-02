@@ -46,6 +46,10 @@ def decide(text: str, polarity: str | None, *, exclusion_representable: bool = F
     if polarity is None:
         return ContextDecision("DEFAULT")
     reasons = guard_reasons(text)
+    if "COMPOSITE_PARTY_RULE" in reasons:
+        # 공동수급·공동계약 조건은 모델이 뭐라고 읽든 확인 필요다. '요건 아님' 으로 읽히면 절차 조항이 되어
+        # 사람이 볼 자리에서 사라진다(2026-10-03 표본 R26BK01736181 "공동수급 및 하도급을 불허").
+        return ContextDecision("DEFAULT")
     hard = [reason for reason in reasons if reason not in SOFT_REASONS]
     if polarity == "EXCLUSION" and exclusion_representable and not hard:
         return ContextDecision("KEEP", basis="model_polarity")
