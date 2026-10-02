@@ -41,7 +41,7 @@ web ──(HTTP)──> api ──> engine <── eval
                  └──> db
 ```
 
-`engine/tests/test_engine_boundary.py`가 엔진의 역방향 import를 막고, `Zone guard` 워크플로가 한 PR이 여러 영역을 동시에 건드리면 실패시킵니다(`cross-zone` 라벨로 예외).
+`engine/tests/test_engine_boundary.py`가 엔진의 역방향 import를 막고, `Zone guard` 워크플로가 한 PR이 여러 영역을 동시에 건드리면 실패시킵니다(`cross-zone` 라벨로 예외, develop → main 통합 PR은 검사하지 않음).
 
 ## 개발 환경
 
