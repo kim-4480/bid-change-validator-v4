@@ -120,6 +120,8 @@ def analyze_qualification_documents(
     extraction_mode: str | None = None,
     polarity_guard: bool | None = None,
     polarity_memory: MutableMapping[str, str] | None = None,
+    clause_selection: str | None = None,
+    selection_memory: MutableMapping[str, bool] | None = None,
 ) -> RequirementAnalysisResult:
     """Run one qualification Requirement analysis without touching Backend state."""
     document_ids = [document.document_id for document in analysis_input.documents]
@@ -142,12 +144,22 @@ def analyze_qualification_documents(
     mode = extraction_mode or os.getenv("BIDENGINE_EXTRACTION_MODE", "legacy")
     if mode not in {"legacy", "clause"}:
         raise ValueError(f"알 수 없는 추출 방식: {mode}")
-    extract = extract_clause_slots if mode == "clause" else extract_legacy_slots
-    extraction = extract(
-        chunks,
-        structured_extract=structured_extract,
-        max_retry=max_retry,
-    )
+    if mode == "clause":
+        # 조항 선택 방식: code(제목·키워드) | hybrid(코드 ∪ 모델) | model(모델만). 지정하지 않으면
+        # BIDENGINE_CLAUSE_SELECTION 을 본다(기본 code). clause 방식에서만 쓴다.
+        extraction = extract_clause_slots(
+            chunks,
+            structured_extract=structured_extract,
+            max_retry=max_retry,
+            clause_selection=clause_selection or os.getenv("BIDENGINE_CLAUSE_SELECTION", "code").strip().lower(),
+            selection_memory=selection_memory,
+        )
+    else:
+        extraction = extract_legacy_slots(
+            chunks,
+            structured_extract=structured_extract,
+            max_retry=max_retry,
+        )
 
     normalized_slots = _normalize_extracted_slots(
         list(extraction.get("slots") or []),

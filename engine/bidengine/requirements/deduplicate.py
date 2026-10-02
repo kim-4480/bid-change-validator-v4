@@ -88,7 +88,11 @@ def _identity(requirement: QualificationRequirement) -> tuple:
         # industry_name·kind 는 어느 슬롯에서 왔는지의 흔적이지 요건의 뜻이 아니다. 같은 코드
         # 1450 이 업종요건 슬롯과 인증요건 슬롯에서 각각 나오면 kind 만 다르고 같은 요건이다.
         # guard·guard_reason 은 가드 평가의 흔적이지 요건의 뜻이 아니다.
-        tuple(sorted((k, _norm(v)) for k, v in scope.items() if k not in ("industry_name", "kind", "guard", "guard_reason"))),
+        # guard_basis·source_name 도 그렇다 — 가드를 무엇으로 풀었는지, 값이 어떤 이름에서 왔는지의 흔적이다.
+        tuple(sorted(
+            (k, _norm(v)) for k, v in scope.items()
+            if k not in ("industry_name", "kind", "guard", "guard_reason", "guard_basis", "source_name")
+        )),
     )
 
 
@@ -158,7 +162,33 @@ def deduplicate_requirements(
     diagnostics: list[dict[str, object]] = []
     seen: set[tuple[str, str, str]] = set()
 
+    # 같은 대안 묶음이 두 문서(공고문 HWP 와 PDF)에 그대로 있으면 묶음째 한 번만 남긴다. 구성원 하나씩
+    # 지우면 "(A 또는 B) 그리고 (A 또는 C)" 가 "(A 또는 B) 그리고 C" 로 바뀌므로(아래 주석), 구성원이
+    # **전부 같은** 묶음만 통째로 접는다. 조건은 바뀌지 않는다.
+    members: dict[str, list[QualificationRequirement]] = {}
     for requirement in requirements:
+        if requirement.group_operator == "ANY_OF":
+            members.setdefault(requirement.requirement_group_key or requirement.requirement_key, []).append(requirement)
+    seen_groups: set[frozenset] = set()
+    duplicate_groups: set[str] = set()
+    for group_key, group in members.items():
+        signature = frozenset(_identity(item) for item in group)
+        if signature in seen_groups:
+            duplicate_groups.add(group_key)
+        seen_groups.add(signature)
+
+    for requirement in requirements:
+        if requirement.group_operator == "ANY_OF" and (
+            requirement.requirement_group_key or requirement.requirement_key
+        ) in duplicate_groups:
+            diagnostics.append({
+                "code": "DUPLICATE_REQUIREMENT",
+                "raw": requirement.raw,
+                "type": requirement.type,
+                "value": requirement.value,
+                "dropped_key": requirement.requirement_key,
+            })
+            continue
         # [재현 2026-09-15, 검수] identity 는 소속 그룹(requirement_group_key)을 안 본다 —
         # 두 문서에 같은 요건이 두 벌 있는 흔한 경우(그룹이 각자 하나뿐)를 잡으려면 그래야
         # 한다. 그런데 "(A 또는 B) 그리고 (A 또는 C)" 처럼 서로 다른 ANY_OF 묶음에 같은 값

@@ -10,7 +10,10 @@ from __future__ import annotations
 import copy
 from typing import Any
 
+from collections.abc import MutableMapping
+
 from bidengine.clauses.enumerate import Clause, enumerate_clauses
+from bidengine.labeling.clause_selection import select_requirement_clauses, selection_key
 from bidengine.labeling.requirement_extraction import (
     SLOT_SCHEMA,
     StructuredExtractor,
@@ -68,14 +71,46 @@ def _body(clauses: list[Clause]) -> str:
     return "\n\n".join(f"[{clause.clause_id}]\n{clause.text}" for clause in clauses)
 
 
+SELECTION_MODES = ("code", "hybrid", "model")
+
+
 def extract_clause_slots(
     chunks: list[dict[str, Any]],
     *,
     structured_extract: StructuredExtractor,
     max_retry: int = 1,
+    clause_selection: str = "code",
+    selection_memory: MutableMapping[str, bool] | None = None,
 ) -> dict[str, Any]:
+    """clause_selection
+      code   제목·키워드로 고른 자격 절의 조항 (기본)
+      hybrid 코드가 고른 조항 ∪ 모델이 문서 전체에서 고른 조항
+      model  모델이 고른 조항만. 모델이 아무것도 고르지 않거나 호출이 실패하면 코드 선택으로 돌아간다.
+    """
+    if clause_selection not in SELECTION_MODES:
+        raise ValueError(f"알 수 없는 조항 선택 방식: {clause_selection}")
     target, selection_mode = select_eligibility_chunks_with_mode(chunks)
     clauses = enumerate_clauses(target)
+    selection_note = ""
+    if clause_selection != "code":
+        document_clauses = enumerate_clauses(chunks)
+        picked = select_requirement_clauses(
+            document_clauses, structured_extract=structured_extract, memory=selection_memory, max_retry=max_retry
+        )
+        if picked is None:
+            selection_note = "조항 선택 호출이 실패해 코드 선택으로 분석했습니다."
+        elif picked or clause_selection == "hybrid":
+            code_chunk_ids = {chunk.get("chunk_id") for chunk in target}
+            picked_chunk_ids = {c.chunk_id for c in document_clauses if selection_key(c.text) in picked}
+            wanted = picked_chunk_ids | code_chunk_ids if clause_selection == "hybrid" else picked_chunk_ids
+            target = [chunk for chunk in chunks if chunk.get("chunk_id") in wanted]
+            clauses = [
+                clause for clause in enumerate_clauses(target)
+                if selection_key(clause.text) in picked
+                or (clause_selection == "hybrid" and clause.chunk_id in code_chunk_ids)
+            ]
+            # 모델이 문서 전체의 조항을 보고 골랐다. "자격 절을 봤다" 고 말할 수 있다.
+            selection_mode = "anchored"
     full_body = _body(clauses)
     # 조항 단위로 자른다 — 조항 중간에서 끊지 않는다.
     kept: list[Clause] = []
@@ -129,7 +164,7 @@ def extract_clause_slots(
                 slot["_source_blocks"] = list(clause.source_blocks)
                 accepted.append(slot)
 
-        notes = []
+        notes = [selection_note] if selection_note else []
         if rejected:
             notes.append(f"검증 탈락 {len(rejected)}건")
         if unknown_ids:

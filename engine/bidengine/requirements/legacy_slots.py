@@ -307,6 +307,29 @@ def sido_names(text: str) -> list[str]:
     return names
 
 
+# 모든 입찰자에게 똑같이 걸리는 결격 사유. 회사 프로필과 대조할 자격이 아니다.
+_COMMON_DISQUALIFICATION_RE = re.compile(
+    r"부정당\s*업자|부정당\s*업체|조세\s*포탈|유죄\s*판결"
+    # "입찰참가자격 제한" 은 제재를 받는 중이라는 뜻일 때만이다. "종합건설사업자는 입찰참가자격을 제한합니다"
+    # 는 같은 낱말로 쓴 진짜 참여 제한이라 여기 걸리면 안 된다.
+    r"|입찰\s*참가\s*자격\s*(?:의|을)?\s*제한\s*(?:중|처분|기간|을\s*받|받)"
+    r"|휴\s*[·ㆍ,]?\s*폐업|휴업|폐업|영업\s*정지|등록\s*취소|자격\s*정지|부도|파산|담합|제재\s*(?:중|처분|를\s*받|받)"
+)
+
+
+def is_common_disqualification(raw: str) -> bool:
+    """결격 사유만 말하는 조항인가. 지역·업종코드·품명번호·기업 규모 같은 닫힌 값이 함께 있으면 아니다.
+
+    닫힌 값이 있는 배제 조항("대기업은 참여할 수 없음")은 실제 자격 조건이라 확인 필요로 남아야 한다.
+    """
+    compact = _compact(raw)
+    if not _COMMON_DISQUALIFICATION_RE.search(" ".join((raw or "").split())):
+        return False
+    if sido_names(raw) or _SIZE_WORD_RE.search(_size_text(raw)):
+        return False
+    return not (_INDUSTRY_CODE_RE.search(compact) or _NAMED_INDUSTRY_CODE_RE.search(compact) or _PRODUCT_CODE_RE.search(compact))
+
+
 def excluded_company_sizes(raw: str) -> list[str]:
     """참여를 막는 문장에 적힌 기업 규모. 대기업·중견기업뿐일 때만 돌려준다.
 
@@ -494,8 +517,12 @@ def adapt_legacy_slot(
         exclusion_representable=bool(excluded_sizes)
         or (slot_type == "기업규모요건" and bool(_SIZE_EXCLUSION_RE.search(raw))),
     )
+    has_polarity = slot.get("_clause_polarity") is not None
     if context.action == "ABSTAIN":
-        return [], [{"code": "UNMAPPED_REQUIREMENT", "raw": raw, "reason": context.reason}]
+        reason = context.reason
+        if reason != "MODEL_POLARITY_NOT_REQUIREMENT" and is_common_disqualification(raw):
+            reason = "COMMON_DISQUALIFICATION"
+        return [], [{"code": "UNMAPPED_REQUIREMENT", "raw": raw, "reason": reason}]
     guard_lifted = context.action == "KEEP"
     if guard_lifted and excluded_sizes and slot_type != "기업규모요건":
         # 모델이 배제로 읽은 조항에 대기업·중견기업 참여 제한이 적혀 있다. 유형이 무엇으로 붙었든 닫힌 낱말로 담는다.
@@ -535,6 +562,12 @@ def adapt_legacy_slot(
             raw, regions_only, notice_version_id=notice_version_id, key_prefix=key_prefix
         ), [{"code": "REGION_ALTERNATION", "raw": raw, "regions": list(regions_only)}]
     if unsafe_reason and alternation is None and names is None and not guard_lifted:
+        if (
+            has_polarity
+            and unsafe_reason not in {"LEGAL_PROCEDURAL_RULE", "COMPOSITE_PARTY_RULE"}
+            and is_common_disqualification(raw)
+        ):
+            unsafe_reason = "COMMON_DISQUALIFICATION"
         return [], [{"code": "UNMAPPED_REQUIREMENT", "raw": raw, "reason": unsafe_reason}]
     diagnostics: list[dict[str, Any]] = []
     requirements: list[QualificationRequirement] = []
@@ -822,6 +855,12 @@ def adapt_legacy_slot(
             scope: dict[str, Any] = {"kind": kind}
             if issuer:
                 scope["issuer"] = issuer
+            product_codes = set(_PRODUCT_CODE_RE.findall(_compact(name)))
+            if guard_lifted and len(product_codes) == 1 and _PRODUCT_CONTEXT_RE.search(raw):
+                # 세부품명번호는 닫힌 식별자다. "무선송수신기(세부품명번호: 4319151001)" 와 "4319151001" 이
+                # 다른 값으로 남으면 같은 요건이 두 번 판정된다. 번호로 통일하고 이름은 설명으로 둔다.
+                scope["source_name"] = name
+                name = next(iter(product_codes))
             add(
                 "CERT",
                 "REGISTRATION_CERTIFICATION",

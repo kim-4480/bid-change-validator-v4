@@ -58,7 +58,15 @@ CoverageGapKind = Literal["UNREPRESENTABLE", "UNCLASSIFIED", "DROPPED", "SECTION
 #              자격인데 담지 못했으므로 공백이고, 적합을 막는다.
 #   미분류   — 모델이 '기타요건'으로 분류했고 닫힌 식별자도 없다. 제출 서류 같은 절차일 때가
 #              많지만 참여 제한이 섞일 수 있어 목록으로 보여 준다. 적합을 막을지는 정책값이다.
-_PROCEDURAL_REASONS = {"LEGAL_PROCEDURAL_RULE", "REPRESENTATIVE_CONFLICT_RULE"}
+#   맥락 가드(2026-10-03)에서 둘이 더해졌다.
+#   COMMON_DISQUALIFICATION        부정당업자 제재·조세포탈·휴폐업처럼 모든 입찰자에게 똑같이 걸리는 결격 사유.
+#                                  회사 프로필로 판정하는 자격이 아니고, 닫힌 값(지역·업종·규모)도 없다.
+#   MODEL_POLARITY_NOT_REQUIREMENT 모델이 자격이 아니라고 읽은 조항(유효기간 안내, 납품 물품의 조건 등).
+#                                  조항 라벨링에서 요건이 없다고 답한 조항과 같은 처지다.
+_PROCEDURAL_REASONS = {
+    "LEGAL_PROCEDURAL_RULE", "REPRESENTATIVE_CONFLICT_RULE",
+    "COMMON_DISQUALIFICATION", "MODEL_POLARITY_NOT_REQUIREMENT",
+}
 _UNREPRESENTABLE_CODES = {
     "UNMAPPED_PERFORMANCE", "UNMAPPED_EXPERIENCE_FIELD", "UNMAPPED_INDUSTRY", "UNMAPPED_REGION",
     "UNMAPPED_STAFF", "UNMAPPED_REGISTRATION_CERTIFICATION", "UNMAPPED_COMPANY_SIZE", "UNKNOWN_LEGACY_TYPE",
