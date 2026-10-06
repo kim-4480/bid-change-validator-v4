@@ -100,12 +100,15 @@ def summarize(runs: list[dict], modes: list[str]) -> dict:
         by_version: dict[str, list[dict]] = {}
         for r in mine:
             by_version.setdefault(r["version"], []).append(r)
-        false_unsatisfied = [r for r in mine if any(j["status"] == "UNSATISFIED" for j in r["judgments"])]
+        # 틀린 미달은 가상 회사가 '부적합' 으로 나온 실행이다. 대안 묶음(ANY_OF) 안의 대안 하나가 미달인 것은
+        # 묶음이 충족이면 틀린 것이 아니다("봉화군, 영주시, 안동시 중 하나" 의 영주시 회사).
+        false_unsatisfied = [r for r in mine if r["overall"] == "ineligible"]
         per_notice = {}
         for version, group in sorted(by_version.items()):
             per_notice[version] = {
                 "overall": [r["overall"] for r in sorted(group, key=lambda r: r["run"])],
-                "unsatisfied": sorted({f"{j['type']} {j['value']}" for r in group for j in r["judgments"] if j["status"] == "UNSATISFIED"}),
+                "unsatisfied": sorted({f"{j['type']} {j['value']}" for r in group if r["overall"] == "ineligible"
+                                       for j in r["judgments"] if j["status"] == "UNSATISFIED"}),
                 "same_overall": len({r["overall"] for r in group}) == 1,
                 "same_judgments": len({_signature(r) for r in group}) == 1,
             }
