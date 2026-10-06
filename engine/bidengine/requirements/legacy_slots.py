@@ -607,6 +607,25 @@ def _performance_scope(slot: dict[str, Any], *, aggregation: str | None = None) 
     return scope
 
 
+_REGION_ANCHOR_RE = re.compile(r"본점|본사|주된\s*(?:영업소|사업소|사무소)|소재지|주소지")
+
+
+def salvage_region_span(raw: str) -> str | None:
+    """소재지 조항에 지역 이름이 하나뿐이면 그 이름("서울특별시", "전북특별자치도 전주시"). 아니면 None.
+
+    지역이 여럿이면 관계(또는/및)를 모르므로 되살리지 않는다.
+    """
+    text = strip_decorations(raw or "")
+    if not _REGION_ANCHOR_RE.search(text):
+        return None
+    sidos, subs = find_regions(text)
+    if len(subs) == 1 and len(sidos) <= 1:
+        return f"{sidos[0]} {subs[0]}" if sidos else subs[0]
+    if len(sidos) == 1 and not subs:
+        return sidos[0]
+    return None
+
+
 def adapt_legacy_slot(
     slot: dict[str, Any],
     *,
@@ -617,6 +636,16 @@ def adapt_legacy_slot(
     """Map one validated extraction slot into zero or more canonical requirements."""
     slot_type = slot.get("유형")
     raw = (slot.get("raw") or "").strip()
+    if slot_type == "기타요건" and slot.get("_clause_polarity") is not None and salvage_closed_identifier(raw) is None:
+        region_span = salvage_region_span(raw)
+        if region_span is not None:
+            # 같은 소재지 조항을 모델이 실행마다 지역요건/기타요건으로 갈라 냈다(gpt-6-luna 는 temperature 를 받지
+            # 않고 seed 로도 답이 고정되지 않는다 — 2026-10-06 같은 입력 4회 4가지 답). 지역은 닫힌 어휘라
+            # 업종코드처럼 코드가 원문에서 되살린다. 확정 여부는 지역요건 경로(극성·가드)가 그대로 정한다.
+            return adapt_legacy_slot(
+                {**slot, "유형": "지역요건", "지역_raw": region_span},
+                notice_version_id=notice_version_id, key_prefix=key_prefix, industry_resolver=industry_resolver,
+            )
     # [재현 2026-09-15, 검수 2차] 나라장터 절차 가드가 raw 만 보면 놓치는 경우가 있었다 —
     # 01634263-003 를 5회 중 1회는 모델이 "「국가종합전자조달시스템 입찰참가자격등록규정」"
     # 을 raw 가 아니라 등록인증_raw 에 담고, raw 에는 "입찰참가등록 마감일시까지 …" 꼬리만

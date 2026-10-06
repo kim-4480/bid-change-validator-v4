@@ -314,3 +314,14 @@ def test_fragments_and_sentences_are_not_requirement_values(slot, reason):
     assert requirements == []
     if reason:
         assert reason in {d.get("reason") for d in diagnostics}
+
+
+@pytest.mark.parametrize(("raw", "expected"), [
+    ("라. 입찰 공고일 현재 주된 사업소(본사)가 서울특별시인 업체(지사투찰 불가)", ["서울특별시"]),
+    ("가. 본점 소재지가 전주시인 업체이어야 합니다.", ["전주시"]),
+    ("가. 본점 소재지가 서울특별시 또는 경기도인 업체", []),        # 여럿이면 관계를 몰라 되살리지 않는다
+    ("마. 청렴계약 이행서약서를 제출한 업체", []),                  # 소재지 조항이 아니다
+])
+def test_a_location_clause_labelled_as_other_still_becomes_a_region(raw, expected):
+    requirements, _ = _adapt({"유형": "기타요건", "raw": raw}, "POSITIVE")
+    assert [r.value for r in requirements if r.type == "REGION"] == expected
