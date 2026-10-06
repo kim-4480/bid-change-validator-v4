@@ -144,6 +144,8 @@ def extract_clause_slots(
         "selection_mode": selection_mode,
         "input_truncated": len(full_body) > len(body),
         "clause_count": len(kept),
+        # 고른 조항 원문 — 파이프라인이 조항마다 결과가 남았는지 확인한다(clause_accounting).
+        "clause_texts": [clause.text for clause in kept],
     }
 
     # 같은 조항은 같은 라벨 — 조항 원문을 열쇠로 처음 받은 라벨을 기억한다(labeling_memory).

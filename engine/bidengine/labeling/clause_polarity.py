@@ -31,6 +31,8 @@ from bidengine.labeling.requirement_extraction import StructuredExtractor
 
 POLARITIES = ("POSITIVE", "EXCLUSION", "EXCEPTION", "NOT_REQUIREMENT", "EVALUATION", "UNSURE")
 POLARITY_KEY = "_clause_polarity"
+# 극성 프롬프트·값 목록을 바꾸면 올린다. 기억 열쇠에 섞여 예전 답을 새 규칙의 답으로 쓰지 않는다.
+POLARITY_PROMPT_VERSION = "polarity-v2"
 MAX_BODY_CHARS = 24_000
 
 POLARITY_SCHEMA: dict[str, Any] = {

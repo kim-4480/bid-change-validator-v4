@@ -214,3 +214,43 @@ def test_a_label_that_fails_validation_is_not_remembered():
     assert result["dropped_requirements"]
     assert clause_label_key(clauses["C003"]) not in memory
     assert clause_label_key(clauses["C004"]) in memory
+
+
+def test_memories_are_split_by_model_and_prompt_version():
+    """모델을 바꾸면 예전 모델의 답을 쓰지 않는다 — 기억은 '모델|프롬프트 판|' 이름공간으로 갈린다."""
+    from bidengine.pipeline.memory import namespaced
+
+    store: dict = {}
+    first = namespaced(store, "gpt-6-luna", "v1")
+    first["k"] = "POSITIVE"
+    assert "k" in first and "k" not in namespaced(store, "glm-5.3-flash", "v1")
+    assert "k" not in namespaced(store, "gpt-6-luna", "v2")
+    assert namespaced(store, None, "v1") is store
+
+
+def test_every_selected_clause_ends_in_exactly_one_visible_outcome():
+    """고른 조항은 요건·공백·이유가 보이는 제외 중 하나로 남는다. 흔적 없이 사라지는 조항이 없어야 한다."""
+    from bidengine.pipeline.analysis_result import clause_accounting
+
+    def partial_model(system, body, schema):
+        if schema is CLAUSE_SCHEMA:
+            # C004(규모)와 C005(지역)만 라벨을 붙이고 나머지는 빈다 — 모델이 요건 아님으로 본 조항이다.
+            return {"clauses": [
+                {"clause_id": "C004", "requirements": [_slot("기업규모요건", 기업규모_raw="대기업 및 중견기업")]},
+                {"clause_id": "C005", "requirements": [_slot("지역요건", 지역_raw="서울특별시 또는 경기도")]},
+            ]}
+        return {"clauses": []}
+
+    result = analyze_qualification_documents(
+        QualificationAnalysisInput(notice_id="n", notice_version_id="v",
+                                   documents=[QualificationDocumentInput(document_id="d", extracted_blocks=[{"block_index": 0, "text": SECTION}])]),
+        structured_extract=partial_model, extraction_mode="clause", polarity_guard=False, clause_selection="code",
+    )
+    from bidengine.pipeline.analysis_pipeline import _build_global_chunks
+
+    chunks = _build_global_chunks([QualificationDocumentInput(document_id="d", extracted_blocks=[{"block_index": 0, "text": SECTION}])],
+                                  max_chunk_chars=1800)
+    clauses = extract_clause_slots(chunks, structured_extract=partial_model)["clause_texts"]
+    assert len(clauses) >= 5
+    assert clause_accounting(clauses, result) == []
+    assert {gap.reason for gap in result.coverage.ignored} >= {"MODEL_NO_REQUIREMENT"}

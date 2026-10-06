@@ -123,8 +123,20 @@ def analyze_qualification_documents(
     clause_selection: str | None = None,
     selection_memory: MutableMapping[str, bool] | None = None,
     labeling_memory: MutableMapping[str, list[dict[str, Any]]] | None = None,
+    memory_namespace: str | None = None,
 ) -> RequirementAnalysisResult:
-    """Run one qualification Requirement analysis without touching Backend state."""
+    """Run one qualification Requirement analysis without touching Backend state.
+
+    memory_namespace: 기억을 나누는 이름(대개 모델 이름). 주면 기억 열쇠가 "모델|프롬프트 판|" 으로 갈린다.
+    """
+    from bidengine.labeling.clause_labeling import LABEL_PROMPT_VERSION
+    from bidengine.labeling.clause_polarity import POLARITY_PROMPT_VERSION
+    from bidengine.labeling.clause_selection import SELECTION_PROMPT_VERSION
+    from bidengine.pipeline.memory import namespaced
+
+    labeling_memory = namespaced(labeling_memory, memory_namespace, LABEL_PROMPT_VERSION)
+    polarity_memory = namespaced(polarity_memory, memory_namespace, POLARITY_PROMPT_VERSION)
+    selection_memory = namespaced(selection_memory, memory_namespace, SELECTION_PROMPT_VERSION)
     document_ids = [document.document_id for document in analysis_input.documents]
     chunks = _build_global_chunks(analysis_input.documents, max_chunk_chars=max_chunk_chars)
 
@@ -266,6 +278,22 @@ def analyze_qualification_documents(
                     }
                     for item in exempted
                 ])
+
+    if mode == "clause":
+        # 조항마다 결과가 하나는 남아야 한다. 모델이 라벨을 붙이지 않은 조항은 '모델이 요건 아님으로 봄' 으로
+        # 기록한다 — 법령 문구로 분류된 전주시 조항처럼 흔적 없이 사라지는 일을 막는다.
+        def _compact(text: object) -> str:
+            return "".join(str(text or "").split())
+
+        accounted = {_compact(item.raw) for item in canonicalized["requirements"]}
+        accounted |= {_compact(item.get("raw")) for item in canonicalized["diagnostics"] if isinstance(item, dict)}
+        accounted |= {_compact(item.get("raw")) for item in extraction.get("dropped_requirements") or []}
+        for text in extraction.get("clause_texts") or []:
+            if _compact(text) and _compact(text) not in accounted:
+                accounted.add(_compact(text))
+                canonicalized["diagnostics"].append(
+                    {"code": "CLAUSE_NOT_LABELLED", "raw": text, "reason": "MODEL_NO_REQUIREMENT"}
+                )
 
     return build_requirement_analysis_result(
         notice_id=analysis_input.notice_id,

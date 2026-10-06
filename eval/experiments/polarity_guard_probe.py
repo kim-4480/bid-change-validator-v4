@@ -125,6 +125,7 @@ def _extract(version: SampleVersion, mode: str, model: str, run: int, memory: Fi
             clause_selection=clause_selection,
             selection_memory=selection_memory,
             labeling_memory=LABELING_MEMORY if USE_LABELING_MEMORY else None,
+            memory_namespace=model,
         )
     except Exception as error:  # noqa: BLE001
         return {"version": version.label, "mode": mode, "model": model, "run": run, "error": repr(error)[:300]}

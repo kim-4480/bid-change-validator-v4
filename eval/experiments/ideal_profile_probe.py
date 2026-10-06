@@ -60,6 +60,7 @@ def _run(version: SampleVersion, profile: CompanyProfileSnapshot, expects: bool,
             clause_selection=clause_selection,
             selection_memory=selection_memory,
             labeling_memory=labeling_memory,
+            memory_namespace=model,
         )
         evaluation = judge_requirements(
             result.requirements, profile, preflight_case_id=f"{version.label}-{run}", reference_date=REFERENCE_DATE,

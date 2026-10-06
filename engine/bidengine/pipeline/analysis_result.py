@@ -50,7 +50,7 @@ class DroppedRequirement(BaseModel):
     detail_value: str | None = None
 
 
-CoverageGapKind = Literal["UNREPRESENTABLE", "UNCLASSIFIED", "DROPPED", "SECTION", "TRUNCATED"]
+CoverageGapKind = Literal["UNREPRESENTABLE", "UNCLASSIFIED", "DROPPED", "SECTION", "TRUNCATED", "IGNORED"]
 
 # 매핑 실패 조항을 세 갈래로 나눈다 (docs/experiments/2026-09-30).
 #   절차 조항 — 코드가 절차 규칙으로 식별했다. 회사 프로필로 판정할 조건이 아니므로 공백이 아니다.
@@ -97,6 +97,9 @@ class AnalysisCoverage(BaseModel):
     unclassified: int = 0
     dropped: int = 0
     gaps: list[CoverageGap] = Field(default_factory=list)
+    # 요건도 공백도 아닌 것으로 처리한 조항과 그 이유(법령 절차 문구, 공통 결격, 모델이 요건 아님으로 본 조항).
+    # 완료 여부에는 영향이 없다. 조항이 소리 없이 사라지지 않게 원문을 남긴다(clause_accounting).
+    ignored: list[CoverageGap] = Field(default_factory=list)
     unclassified_blocks_eligibility: bool = False
 
     @computed_field  # type: ignore[prop-decorator]
@@ -122,6 +125,7 @@ def build_analysis_coverage(
     unclassified_blocks_eligibility: bool = False,
 ) -> AnalysisCoverage:
     gaps: list[CoverageGap] = []
+    ignored: list[CoverageGap] = []
     procedural = unrepresentable = unclassified = 0
     seen: set[tuple[str, str]] = set()  # 모델이 같은 조항을 두 번 올리는 일이 있다 (C03 실측)
     for item in diagnostics:
@@ -135,12 +139,15 @@ def build_analysis_coverage(
         if item.code == "UNMAPPED_REQUIREMENT":
             if reason in _PROCEDURAL_REASONS:
                 procedural += 1
+                ignored.append(CoverageGap(kind="IGNORED", raw=raw, reason=str(reason)))
             elif reason:
                 unrepresentable += 1
                 gaps.append(CoverageGap(kind="UNREPRESENTABLE", raw=raw, reason=str(reason)))
             else:
                 unclassified += 1
                 gaps.append(CoverageGap(kind="UNCLASSIFIED", raw=raw))
+        elif item.code == "CLAUSE_NOT_LABELLED":
+            ignored.append(CoverageGap(kind="IGNORED", raw=raw, reason=str(reason or "MODEL_NO_REQUIREMENT")))
         elif item.code in _UNREPRESENTABLE_CODES:
             unrepresentable += 1
             gaps.append(CoverageGap(kind="UNREPRESENTABLE", raw=raw, reason=item.code))
@@ -161,8 +168,21 @@ def build_analysis_coverage(
         unclassified=unclassified,
         dropped=len(dropped),
         gaps=gaps,
+        ignored=ignored,
         unclassified_blocks_eligibility=unclassified_blocks_eligibility,
     )
+
+
+def _compact(text: str) -> str:
+    return "".join((text or "").split())
+
+
+def clause_accounting(clause_texts: list[str], result: "RequirementAnalysisResult") -> list[str]:
+    """고른 조항 중 결과 어디에도 남지 않은 조항(요건·공백·제외 이유 어느 것도 아님). 비어 있어야 한다."""
+    seen = {_compact(item.raw) for item in result.requirements}
+    if result.coverage is not None:
+        seen |= {_compact(gap.raw) for gap in [*result.coverage.gaps, *result.coverage.ignored]}
+    return [text for text in clause_texts if _compact(text) and _compact(text) not in seen]
 
 
 class RequirementAnalysisResult(BaseModel):
@@ -226,6 +246,7 @@ class RequirementAnalysisResult(BaseModel):
 
 
 _DIAGNOSTIC_MESSAGES = {
+    "CLAUSE_NOT_LABELLED": "모델이 요건이 아니라고 본 조항입니다. 판정하지 않고 원문을 기록합니다.",
     "UNMAPPED_REQUIREMENT": "공고에서 확인했으나 회사 프로필과 대조할 자격요건이 아닙니다. 판정하지 않고 근거와 함께 기록합니다.",
     "UNMAPPED_PERFORMANCE": "실적요건을 판정 가능한 원자 조건으로 구조화하지 못했습니다.",
     "UNMAPPED_EXPERIENCE_FIELD": "경험분야 요건의 비교값을 구조화하지 못했습니다.",
@@ -251,6 +272,8 @@ _NOTICE_FACT_CODES = {"UNMAPPED_REQUIREMENT", "UNKNOWN_LEGACY_TYPE"}
 # 요건을 하나 **살려낸** 기록이다. 무엇이 안 된 기록이 아니므로 분석을 PARTIAL 로
 # 내리지 않는다. 그래도 남기는 이유는 모델 분류가 틀렸다는 신호이기 때문이다.
 _INFORMATIONAL_PIPELINE_CODES = {
+    # 모델이 요건 아님으로 본 조항의 기록. 분석 상태를 낮출 이유가 아니다.
+    "CLAUSE_NOT_LABELLED",
     "COMPANY_SIZE_FROM_CERTIFICATE",
     # 예외 단서가 붙은 코드는 요건 행 자체가 composite(확인 필요)로 남는다 — 불확실성은
     # 구조가 들고 있으므로 분석을 PARTIAL 로 내릴 이유가 없다.
