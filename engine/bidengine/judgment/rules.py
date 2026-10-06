@@ -109,6 +109,9 @@ _EVIDENCE_REQUIRED_TYPES = {
 _COMPANY_SIZE_ALIASES: dict[str, set[str]] = {
     "소상공인": {"MICRO"},
     "소기업": {"MICRO", "SMALL"},
+    # "중기업·소기업 또는 소상공인" — 중기업이 없으면 이 문장이 '소기업' 으로 좁혀져 중기업 회사가 미달이 된다
+    # (2026-10-06 무작위 표본). 합집합 중기업∪소기업∪소상공인 = 중소기업.
+    "중기업": {"MEDIUM"},
     "중소기업": {"MICRO", "SMALL", "MEDIUM"},
     "중견기업": {"MID_SIZED"},
     "대기업": {"LARGE"},
@@ -465,7 +468,7 @@ def _judge_region(
     )
 
 
-_SIZE_WORDS_RE = re.compile(r"중견기업|대기업|중소기업|소기업|소상공인")
+_SIZE_WORDS_RE = re.compile(r"중견기업|대기업|중소기업|중기업|소기업|소상공인")
 _SIZE_FILLER_RE = re.compile(r"[\s,，·ㆍ/]|및|와|과|또는|이나|자")
 
 
@@ -611,18 +614,12 @@ def _judge_staff(
         if matched_role is None:
             if not profile.completeness.staff_roles:
                 return _unknown(requirement, preflight_case_id)
-            if staff.roles:
-                return _vocabulary_unknown(
-                    requirement, preflight_case_id,
-                    [("staff_role", "role_name", item.role_name) for item in staff.roles],
-                )
-            return _judgment(
-                requirement=requirement,
-                preflight_case_id=preflight_case_id,
-                status="UNSATISFIED",
-                basis_type="PROFILE",
-                reason_code="RULE_MISMATCH",
-                profile_refs=[],
+            # 역할 이름은 자유 문자열이다. 회사의 역할 목록이 비어 있어도 그 역할이 없다고 확정하지 않는다 — 모델이
+            # "입찰대리인은 입찰참가 업체에 재직중인 임·직원이어야" 같은 문장에서 역할을 뽑아 자격 있는 회사가
+            # 부적합이 됐다(2026-10-06 무작위 표본). 등록·인증 이름(6b21430)과 같은 원칙.
+            return _vocabulary_unknown(
+                requirement, preflight_case_id,
+                [("staff_role", "role_name", item.role_name) for item in staff.roles],
             )
         if requirement.operator == "MATCH" and requirement.value is not None:
             matched = _string_match(matched_role.role_name, requirement.value)

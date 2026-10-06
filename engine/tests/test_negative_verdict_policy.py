@@ -112,7 +112,8 @@ def test_having_nothing_at_all_is_still_unsatisfied():
     # 등록·인증은 이름으로 요구하면 목록이 비어 있어도 확인 필요다(2026-10-06 정책 변경). 번호로 요구하면 미달이다.
     assert _judge(_req("REGISTRATION_CERTIFICATION", "ISMS-P 인증", scope={"kind": "CERTIFICATION"}), empty).status == "UNKNOWN"
     assert _judge(_req("REGISTRATION_CERTIFICATION", "4320140101", scope={"kind": "REGISTRATION"}), empty).status == "UNSATISFIED"
-    assert _judge(_req("STAFF", 2, operator=">=", scope={"role": "소프트웨어 개발"}), empty).status == "UNSATISFIED"
+    # 인력 역할도 이름이라 목록이 비어 있으면 확인 필요다(2026-10-06 정책 변경).
+    assert _judge(_req("STAFF", 2, operator=">=", scope={"role": "소프트웨어 개발"}), empty).status == "UNKNOWN"
 
 
 def test_expired_certification_is_unsatisfied_even_when_named():

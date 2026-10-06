@@ -351,3 +351,30 @@ def test_a_location_clause_labelled_as_other_still_becomes_a_region(raw, expecte
 def test_closed_values_survive_statute_wording_and_generic_words_are_dropped(slot, expected):
     requirements, _ = _adapt_master(slot)
     assert [(r.type, r.value) for r in requirements] == expected
+
+
+def test_medium_enterprise_word_widens_the_size_union():
+    """'중기업·소기업 또는 소상공인' 은 중소기업이다. 중기업을 모르면 소기업으로 좁혀 중기업 회사가 미달이 된다."""
+    raw = ("다. ｢중소기업기본법｣ 제2조에 따른 중기업·소기업 또는 ｢소상공인 보호 및 지원에 관한 법률｣ 제2조에 따른 "
+           "소상공인으로서 ｢중소기업 범위 및 확인에 관한 규정｣에 따라 발급된 중기업·소기업·소상공인 확인서를 소지한 자이어야 합니다.")
+    requirements, _ = _adapt_master({"유형": "기업규모요건", "raw": raw, "기업규모_raw": "중기업·소기업 또는 소상공인"})
+    assert [(r.type, r.value) for r in requirements] == [("COMPANY_SIZE", "중소기업")]
+
+
+def test_sejong_si_is_a_region_name():
+    raw = "가. 입찰공고일 전일부터 법인등기부상 본점소재지를 세종시에 둔 자이어야 합니다."
+    requirements, _ = _adapt_master({"유형": "지역요건", "raw": raw, "지역_raw": "세종시"})
+    assert [r.value for r in requirements] == ["세종특별자치시"]
+
+
+def test_spaced_industry_codes_inside_alternative_names_are_read():
+    """띄어 쓴 PDF 판: '종합여행업 [ 업종코드 1 2 6 1 ] 또는 …' 의 대안마다 업종코드가 읽혀야 한다."""
+    raw = ("제 2 조에 의한 종합여행업 [ 업종코드 1 2 6 1 ] 또는 국내외여행업 [ 업종코드 1 2 6 2 ] 또는국내여행업 "
+           "[ 업종코드 1 2 6 3 ] 으로 등록한 자이어야 합니다 .")
+    from bidengine.requirements.legacy_slots import industry_code_for_name
+
+    assert industry_code_for_name("종합여행업[업종코드 1 2 6 1]", None) == "1261"
+    requirements, _ = _adapt_master({"유형": "등록요건", "raw": raw,
+                                     "등록인증_raw": "종합여행업 [ 업종코드 1 2 6 1 ] 또는 국내외여행업 [ 업종코드 1 2 6 2 ] 또는국내여행업 [ 업종코드 1 2 6 3 ]"})
+    assert sorted((r.type, r.value) for r in requirements) == [("INDUSTRY", "1261"), ("INDUSTRY", "1262"), ("INDUSTRY", "1263")]
+    assert {r.group_operator for r in requirements} == {"ANY_OF"}
