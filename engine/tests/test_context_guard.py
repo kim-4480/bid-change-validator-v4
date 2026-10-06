@@ -299,3 +299,18 @@ def test_two_product_numbers_joined_by_and_are_two_requirements():
     assert sorted(r.value for r in requirements) == ["4010178701", "4010180601"]
     assert len({r.requirement_key for r in requirements}) == 2
     assert all(r.group_operator == "ALL_OF" for r in requirements)
+
+
+@pytest.mark.parametrize(("slot", "reason"), [
+    ({"유형": "업종요건", "업종_raw": "주력분야가 기계설비공사)로 등록된 자에 한하여 입찰참가가 가능합니다."}, "MAIN_FIELD_DETAIL"),
+    ({"유형": "등록요건", "등록인증_raw": "주력분야가 기계설비공사"}, "MAIN_FIELD_DETAIL"),
+    ({"유형": "면허요건", "등록인증_raw": "주력분야 철근·콘크리트공사 면허"}, "MAIN_FIELD_DETAIL"),
+    ({"유형": "등록요건", "등록인증_raw": "조달청에 입찰참가자격이 등록된"}, None),
+    ({"유형": "인증요건", "등록인증_raw": "제안서 제출이 가능합니다."}, "SENTENCE_VALUE"),
+])
+def test_fragments_and_sentences_are_not_requirement_values(slot, reason):
+    raw = "※ 주력분야가 기계설비공사로 등록된 자에 한하여 입찰참가가 가능합니다."
+    requirements, diagnostics = _adapt_master({"raw": raw, **slot})
+    assert requirements == []
+    if reason:
+        assert reason in {d.get("reason") for d in diagnostics}

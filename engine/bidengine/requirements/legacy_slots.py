@@ -80,7 +80,16 @@ _HANGUL_GAP_RE = re.compile(r"(?<=[가-힣])\s+(?=[가-힣])")
 # 낼 때가 있다(gpt-6-luna 2/3). 이것은 요건이 아니라 쪼개다 남은 조각이다.
 _GENERIC_REGISTRATION_WORDS = {
     "실적", "등록", "신고", "자격", "인증", "면허", "허가", "업체", "사업자", "증명서", "확인서", "등록증",
+    # 조항에서 떼어 낸 조각(2026-10-06 가상 회사 시험). 나라장터 참가 등록은 공통 항목이고, 주력분야는
+    # 업종 요건에 딸린 세부라 회사 프로필로 판정할 수 없다.
+    "입찰참가자격", "조달청입찰참가자격", "조달청에입찰참가자격", "주력분야",
 }
+# 값이 이름이 아니라 문장이다("주력분야가 기계설비공사)로 등록된 자에 한하여 입찰참가가 가능합니다.").
+# 문장을 값으로 담으면 실행마다 자르는 자리가 달라 흔들리고, 업종이면 어떤 회사와도 안 맞는다.
+_SENTENCE_VALUE_RE = re.compile(r"(?:니다|한다|된다|있다|없다|하여야|해야|가능|불가)\s*[.。]?\s*$")
+# 주력분야는 업종에 딸린 세부다. "주력분야 철근·콘크리트공사 면허", "주력분야가 기계설비공사" 처럼 나오면
+# 프로필로 판정할 수 없어 확인 필요로 둔다.
+_MAIN_FIELD_VALUE_RE = re.compile(r"^주력\s*(?:\(전문\)\s*)?(?:업무\s*)?분야")
 
 
 def _tidy_punctuation(match: re.Match[str]) -> str:
@@ -736,6 +745,17 @@ def adapt_legacy_slot(
                 "code": "UNMAPPED_REGISTRATION_CERTIFICATION",
                 "raw": raw,
                 "reason": f"'{value}' 는 등록·면허 이름으로 쓸 수 없는 낱말입니다.",
+            })
+            return
+        if (
+            req_type in {"REGISTRATION_CERTIFICATION", "INDUSTRY", "STAFF", "EXPERIENCE_FIELD"}
+            and isinstance(value, str)
+            and (_SENTENCE_VALUE_RE.search(value) or _MAIN_FIELD_VALUE_RE.search(value))
+        ):
+            diagnostics.append({
+                "code": f"UNMAPPED_{req_type}",
+                "raw": raw,
+                "reason": "MAIN_FIELD_DETAIL" if _MAIN_FIELD_VALUE_RE.search(value) else "SENTENCE_VALUE",
             })
             return
         requirements.append(
