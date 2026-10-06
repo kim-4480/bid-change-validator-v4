@@ -525,6 +525,35 @@ def registration_alternation(raw: str) -> list[str] | None:
     return names
 
 
+_INDUSTRY_NAME_WRAP_RE = re.compile(r"[「」『』《》<>\"“”‘’]")
+_INDUSTRY_NAME_TAIL_RE = re.compile(r"\s*(?:면허|등록증|등록|신고|허가)$")
+
+
+def industry_code_for_name(name: str, resolver: IndustryNameResolver | None) -> str | None:
+    """업종 이름을 업종 사전의 코드로. 사전 이름과 **정확히** 같을 때만(가운데점·공백 차이는 무시).
+
+    모델은 같은 업종을 실행마다 "전문공사업 중 「철근·콘크리트공사업」", "「철근·콘크리트공사업」면허",
+    "철근·콘크리트공사업" 으로 낸다. 이름이 사전에 있으면 코드 하나로 모아, 유형(업종/등록)과 값이 실행마다
+    갈리지 않게 한다(2026-10-06 가상 회사 시험). 사전에 없으면 None — 이름을 추측하지 않는다.
+    """
+    if resolver is None or not name:
+        return None
+    text = " ".join(_INDUSTRY_NAME_WRAP_RE.sub(" ", strip_name_particles(" ".join(name.split()))).split())
+    candidates = [text]
+    if " 중 " in text:
+        candidates.append(text.rsplit(" 중 ", 1)[1])
+    for candidate in list(candidates):
+        trimmed = _INDUSTRY_NAME_TAIL_RE.sub("", candidate).strip()
+        if trimmed != candidate:
+            candidates.append(trimmed)
+    for candidate in candidates:
+        if len(candidate) >= 3:
+            code = resolver.code_for(candidate)
+            if code is not None:
+                return code
+    return None
+
+
 def salvage_closed_identifier(raw: str) -> tuple[RequirementType, str] | None:
     """분류가 '기타요건' 으로 와도 원문의 닫힌 식별자로 유형을 되살린다.
 
@@ -844,7 +873,9 @@ def adapt_legacy_slot(
         elif industry_codes:
             add("INDUSTRY", "INDUSTRY", operator="MATCH", value=next(iter(industry_codes)), scope={"industry_name": industry} if industry else {})
         elif industry:
-            add("INDUSTRY", "INDUSTRY", operator="MATCH", value=industry)
+            code = industry_code_for_name(industry, industry_resolver)
+            add("INDUSTRY", "INDUSTRY", operator="MATCH", value=code or industry,
+                scope={"industry_name": industry} if code else {})
         else:
             diagnostics.append({"code": "UNMAPPED_INDUSTRY", "raw": raw})
 
@@ -964,16 +995,32 @@ def adapt_legacy_slot(
                 "certificate_name": name,
                 "company_size": size_alias,
             })
+        elif slot_type in {"등록요건", "면허요건"} and (named_code := industry_code_for_name(name, industry_resolver)):
+            # 등록·면허 이름이 업종 사전의 이름이다("「철근·콘크리트공사업」면허"). 업종 요건이다.
+            add("INDUSTRY", "INDUSTRY", operator="MATCH", value=named_code, scope={"kind": kind, "industry_name": name})
         elif name:
             scope: dict[str, Any] = {"kind": kind}
             if issuer:
                 scope["issuer"] = issuer
-            product_codes = set(_PRODUCT_CODE_RE.findall(_compact(name)))
+            product_codes = list(dict.fromkeys(_PRODUCT_CODE_RE.findall(_compact(name))))
+            if not product_codes and (_PRODUCT_CONTEXT_RE.search(name) or "직접생산" in _compact(name)):
+                # 값은 "직접생산확인증명서" 뿐인데 번호는 원문에 있다. 원문의 번호가 하나면 그것이 값이다 —
+                # 같은 조항이 실행마다 번호 / 이름+번호 / 이름 세 꼴로 갈렸다(2026-10-06 가상 회사 시험).
+                product_codes = list(dict.fromkeys(_PRODUCT_CODE_RE.findall(_compact(raw))))
+            if (
+                guard_lifted and len(product_codes) >= 2 and _PRODUCT_CONTEXT_RE.search(raw)
+                and not re.search(r"또는|중\s*하나|어느\s*하나", name)
+            ):
+                # "전기히트펌프(4010180601) 및 히트펌프용실내기(4010178701)" — 번호마다 요건 하나, 둘 다 필요하다.
+                for index, code in enumerate(product_codes, start=1):
+                    add(f"CERT-{index}", "REGISTRATION_CERTIFICATION", operator="MATCH", value=code,
+                        scope={**scope, "source_name": name})
+                return requirements, diagnostics
             if guard_lifted and len(product_codes) == 1 and _PRODUCT_CONTEXT_RE.search(raw):
                 # 세부품명번호는 닫힌 식별자다. "무선송수신기(세부품명번호: 4319151001)" 와 "4319151001" 이
                 # 다른 값으로 남으면 같은 요건이 두 번 판정된다. 번호로 통일하고 이름은 설명으로 둔다.
                 scope["source_name"] = name
-                name = next(iter(product_codes))
+                name = product_codes[0]
             add(
                 "CERT",
                 "REGISTRATION_CERTIFICATION",

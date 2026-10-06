@@ -265,3 +265,37 @@ def test_a_positive_region_clause_citing_statutes_is_not_procedural():
 def test_region_value_is_the_region_name_not_the_sentence(raw, span, expected):
     requirements, _ = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": span}, "POSITIVE")
     assert [r.value for r in requirements] == expected
+
+
+def _adapt_master(slot, polarity="POSITIVE"):
+    from bideval.master_vocabulary import CsvIndustryNameResolver
+
+    return adapt_legacy_slot({**slot, POLARITY_KEY: polarity}, notice_version_id="v", key_prefix="REQ-001",
+                             industry_resolver=CsvIndustryNameResolver())
+
+
+@pytest.mark.parametrize(("slot_type", "field", "value"), [
+    ("업종요건", "업종_raw", "전문공사업 중 「철근·콘크리트공사업」"),
+    ("면허요건", "등록인증_raw", "「철근·콘크리트공사업」면허를 보유"),
+    ("등록요건", "등록인증_raw", "철근·콘크리트공사업"),
+])
+def test_an_industry_name_in_the_master_becomes_one_industry_code(slot_type, field, value):
+    """같은 업종이 실행마다 업종/면허/등록, 세 가지 표기로 나왔다. 사전에 있는 이름이면 코드 하나로 모은다."""
+    raw = "가. 건설산업기본법에 의한 전문공사업 중 「철근·콘크리트공사업」면허를 보유한 업체이어야 합니다."
+    requirements, _ = _adapt_master({"유형": slot_type, "raw": raw, field: value})
+    assert [(r.type, r.value) for r in requirements] == [("INDUSTRY", "4994")]
+
+
+def test_product_number_only_in_the_clause_becomes_the_value():
+    raw = "③ 직접생산확인증명서 [세부품명: 정보시스템개발서비스, 세부품명번호 10자리: 8111159901]를 소지한 자"
+    requirements, _ = _adapt_master({"유형": "인증요건", "raw": raw, "등록인증_raw": "직접생산확인증명서"})
+    assert [(r.type, r.value) for r in requirements] == [("REGISTRATION_CERTIFICATION", "8111159901")]
+
+
+def test_two_product_numbers_joined_by_and_are_two_requirements():
+    raw = "- 전기히트펌프(세부품명번호: 4010180601) 및 히트펌프용실내기(세부품명번호: 4010178701)를 제조 또는 공급물품으로 입찰참가 등록한 자"
+    name = "전기히트펌프(세부품명번호: 4010180601) 및 히트펌프용실내기(세부품명번호: 4010178701)"
+    requirements, _ = _adapt_master({"유형": "등록요건", "raw": raw, "등록인증_raw": name})
+    assert sorted(r.value for r in requirements) == ["4010178701", "4010180601"]
+    assert len({r.requirement_key for r in requirements}) == 2
+    assert all(r.group_operator == "ALL_OF" for r in requirements)
