@@ -541,6 +541,9 @@ def _judge_company_size(
     )
 
 
+_INDUSTRY_CODE_VALUE_RE = re.compile(r"[0-9]{4}")
+
+
 def _judge_industry(
     requirement: QualificationRequirement,
     profile: CompanyProfileSnapshot,
@@ -573,6 +576,13 @@ def _judge_industry(
         )
     if not profile.completeness.industries:
         return _unknown(requirement, preflight_case_id)
+    if not _INDUSTRY_CODE_VALUE_RE.fullmatch(str(requirement.value).strip()):
+        # 값이 업종코드가 아니라 이름이다("위생관리용역업(건물청소용역업)"). 이름은 표기가 갈려서
+        # ("건물위생관리업", "철근ㆍ콘크리트공사업") 글자가 안 맞는다고 그 업종이 없다고 할 수 없다. 미달로
+        # 확정하면 자격 있는 회사가 부적합이 된다(2026-10-06 가상 회사 시험의 틀린 미달 대부분).
+        return _vocabulary_unknown(
+            requirement, preflight_case_id, [("industry", "name", item.name) for item in profile.industries]
+        )
     return _judgment(
         requirement=requirement,
         preflight_case_id=preflight_case_id,

@@ -97,3 +97,21 @@ def test_staff_role_in_scope_is_normalized_with_the_value():
 )
 def test_particles_and_predicates_after_a_name_are_removed(value, req_type, expected):
     assert normalize_value_text(value, req_type=req_type) == expected
+
+
+def test_industry_name_that_does_not_match_is_unknown_not_unsatisfied():
+    """업종 이름은 표기가 갈린다. 글자가 안 맞는다고 미달로 확정하지 않는다. 코드가 안 맞으면 미달이다."""
+    profile = CompanyProfileSnapshot.model_validate({
+        "company_id": "c", "industries": [{"code": "1162", "name": "건물위생관리업", "verified": True}],
+        "completeness": {"industries": True},
+    })
+
+    def judge(value):
+        req = QualificationRequirement(requirement_key="R", notice_version_id="v", type="INDUSTRY", operator="MATCH",
+                                       value=value, scope={}, raw=value)
+        return judge_requirement(req, profile, preflight_case_id="c", reference_date=date(2026, 10, 6)).status
+
+    assert judge("위생관리용역업(건물청소용역업)") == "UNKNOWN"
+    assert judge("1162") == "SATISFIED"
+    assert judge("건물위생관리업") == "SATISFIED"
+    assert judge("4994") == "UNSATISFIED"
