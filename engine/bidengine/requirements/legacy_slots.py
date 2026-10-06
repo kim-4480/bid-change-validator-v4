@@ -39,7 +39,11 @@ _SIZE_EXCLUSION_RE = re.compile(
 # 모델이 유형을 뭐라고 붙이든 이 숫자는 원문에 그대로 있다.
 _PRODUCT_CODE_RE = re.compile(r"(?<![0-9])([0-9]{10})(?![0-9])")
 _REGISTRATION_CONTEXT_RE = re.compile(r"등록|신고|영업|허가|면허")
-_PRODUCT_CONTEXT_RE = re.compile(r"직접\s*생산\s*확인|세부\s*품명|품명\s*번호")
+_PRODUCT_CONTEXT_RE = re.compile(
+    r"직접\s*생산\s*확인|세부\s*품명|품명\s*번호|물품\s*분류|분류\s*번호"
+    # "그래픽용어댑터(4320140101)로 입찰 참가를 등록한" — 이름 바로 뒤 괄호 속 10자리 번호도 품명번호다.
+    r"|[가-힣]\s*\(\s*[0-9]{10}\s*\)"
+)
 
 
 # 건설 업종은 "실내건축공사(4990)" 처럼 '업' 없이 적기도 한다. 뒤에 등록·면허가 바로 이어질 때만 업종코드로
@@ -83,6 +87,9 @@ _GENERIC_REGISTRATION_WORDS = {
     # 조항에서 떼어 낸 조각(2026-10-06 가상 회사 시험). 나라장터 참가 등록은 공통 항목이고, 주력분야는
     # 업종 요건에 딸린 세부라 회사 프로필로 판정할 수 없다.
     "입찰참가자격", "조달청입찰참가자격", "조달청에입찰참가자격", "주력분야",
+    # "본 입찰은 조달청에 등록한 업체만 입찰에 참여할 수 있으며" 에서 서술을 걷으면 "조달청" 만 남는다. 나라장터
+    # 참가 등록(공통 항목)이지 등록·인증 이름이 아니다 — 등록 이름으로 판정하면 모든 회사가 미달이다.
+    "조달청", "나라장터", "입찰참가등록", "조달청입찰참가등록", "전자입찰이용자등록",
 }
 # 값이 이름이 아니라 문장이다("주력분야가 기계설비공사)로 등록된 자에 한하여 입찰참가가 가능합니다.").
 # 문장을 값으로 담으면 실행마다 자르는 자리가 달라 흔들리고, 업종이면 어떤 회사와도 안 맞는다.
@@ -202,8 +209,19 @@ _SIZE_CERT_NAME_RE = re.compile(
 )
 
 
+# 괄호 없이 쓴 법령·규정 이름. 그 안의 "중소기업" 은 규모 요건이 아니다 — "중소기업 기본법 제2조에 따른 소기업 또는
+# 소상공인기본법에 따른 소상공인으로서 중소기업 범위 및 확인에 관한 규정에 따라" 를 중소기업 요건으로 넓혀 읽었다
+# (2026-10-06 네 번째 표본). 낫표(「」)로 감싼 이름은 strip_decorations 가 이미 지운다.
+_SIZE_STATUTE_RE = re.compile(
+    r"(?:중소기업|소상공인|중소벤처기업)\s*(?:기본\s*법|보호\s*및\s*지원에\s*관한\s*법률|범위\s*및\s*확인에\s*관한\s*규정)"
+    r"(?:\s*시행령)?"
+    r"|중소기업\s*제품\s*구매\s*촉진[^,.。]*?법률(?:\s*시행령)?"
+    r"|중소기업\s*(?:공공\s*구매|제품\s*공공\s*구매)\s*종합\s*정보망"
+)
+
+
 def _size_text(text: str) -> str:
-    return _SIZE_JOINERS_RE.sub("", strip_decorations(text or ""))
+    return _SIZE_JOINERS_RE.sub("", _SIZE_STATUTE_RE.sub(" ", strip_decorations(text or "")))
 
 
 def company_size_alias(text: str) -> str | None:
@@ -535,7 +553,8 @@ def registration_alternation(raw: str) -> list[str] | None:
 
 
 _INDUSTRY_NAME_WRAP_RE = re.compile(r"[「」『』《》<>\"“”‘’]")
-_INDUSTRY_NAME_TAIL_RE = re.compile(r"\s*(?:면허|등록증|등록|신고|허가)$")
+_INDUSTRY_NAME_TAIL_RE = re.compile(r"\s*(?:면허|등록증|등록\s*업체|등록을\s*필한\s*업체|등록|신고|허가|업체)$")
+_INDUSTRY_NAME_DETAIL_RE = re.compile(r"\s*\((?:주력|전문|업무)[^)]*\)")
 
 
 def industry_code_for_name(name: str, resolver: IndustryNameResolver | None) -> str | None:
@@ -552,7 +571,10 @@ def industry_code_for_name(name: str, resolver: IndustryNameResolver | None) -> 
     if " 중 " in text:
         candidates.append(text.rsplit(" 중 ", 1)[1])
     for candidate in list(candidates):
-        trimmed = _INDUSTRY_NAME_TAIL_RE.sub("", candidate).strip()
+        # "기계설비·가스공사업(주력분야: 기계설비공사) 등록업체" → 괄호 속 세부(주력분야)와 꼬리를 뗀다.
+        trimmed = candidate
+        for _ in range(3):
+            trimmed = _INDUSTRY_NAME_TAIL_RE.sub("", _INDUSTRY_NAME_DETAIL_RE.sub("", trimmed)).strip()
         if trimmed != candidate:
             candidates.append(trimmed)
     for candidate in candidates:
@@ -626,6 +648,25 @@ def salvage_region_span(raw: str) -> str | None:
     return None
 
 
+def _has_closed_value(slot_type: str | None, slot: dict[str, Any], raw: str) -> bool:
+    """값이 닫힌 어휘로 확인되는가. 그러면 법령 인용 낱말의 절차 가드를 풀어도 된다(context_guard.decide).
+
+    업종코드는 clause_safety 가 이미 그렇게 한다. 지역 이름·품명번호·기업 규모 낱말도 같다 — "국가종합전자조달
+    시스템 입찰참가자격등록규정에 의하여 … 그래픽용어댑터(4320140101)로 등록한 업체", "… 규정에 따라 발급된
+    소기업·소상공인 확인서" 가 절차 문구로 버려져 공고 두 건이 요건 0건이 됐다(2026-10-06 네 번째 표본).
+    """
+    if slot_type == "지역요건":
+        return any(find_regions(strip_decorations(slot.get("지역_raw") or "")))
+    if slot_type in {"등록요건", "인증요건", "면허요건"}:
+        name = slot.get("등록인증_raw") or ""
+        if is_company_size_certificate_name(name) or ("확인서" in _compact(name) and _SIZE_WORD_RE.search(name)):
+            return True
+        return bool(_PRODUCT_CODE_RE.search(_compact(raw)) and _PRODUCT_CONTEXT_RE.search(raw))
+    if slot_type == "기업규모요건":
+        return bool(company_size_alias(slot.get("기업규모_raw") or "") or company_size_alias(raw))
+    return False
+
+
 def adapt_legacy_slot(
     slot: dict[str, Any],
     *,
@@ -662,7 +703,7 @@ def adapt_legacy_slot(
         slot.get("_clause_polarity"),
         exclusion_representable=bool(excluded_sizes)
         or (slot_type == "기업규모요건" and bool(_SIZE_EXCLUSION_RE.search(raw))),
-        closed_value=slot_type == "지역요건" and any(find_regions(strip_decorations(slot.get("지역_raw") or ""))),
+        closed_value=_has_closed_value(slot_type, slot, raw),
     )
     has_polarity = slot.get("_clause_polarity") is not None
     if context.action == "ABSTAIN":
@@ -1159,7 +1200,7 @@ def _registration_alternation_requirements(
     requirements: list[QualificationRequirement] = []
     resolved: dict[str, str] = {}
     for index, name in enumerate(names, start=1):
-        code = industry_resolver.code_for(name) if industry_resolver is not None else None
+        code = industry_code_for_name(name, industry_resolver)
         if code is not None:
             resolved[name] = code
         requirements.append(

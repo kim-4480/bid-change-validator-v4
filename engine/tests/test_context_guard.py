@@ -325,3 +325,29 @@ def test_fragments_and_sentences_are_not_requirement_values(slot, reason):
 def test_a_location_clause_labelled_as_other_still_becomes_a_region(raw, expected):
     requirements, _ = _adapt({"유형": "기타요건", "raw": raw}, "POSITIVE")
     assert [r.value for r in requirements if r.type == "REGION"] == expected
+
+
+@pytest.mark.parametrize(("slot", "expected"), [
+    # 나라장터 등록 규정 인용이 있어도 품명번호가 있으면 요건이다(2026-10-06 네 번째 표본, 공고 두 건이 요건 0건)
+    ({"유형": "등록요건", "등록인증_raw": "그래픽용어댑터(4320140101)",
+      "raw": "나. 국가종합전자조달시스템(나라장터) 입찰참가자격등록규정에 의하여 입찰 참가 자격등록 마감일시까지 그래픽용어댑터(4320140101)로 입찰 참가를 등록한 업체"},
+     [("REGISTRATION_CERTIFICATION", "4320140101")]),
+    ({"유형": "등록요건", "등록인증_raw": "세부품명번호 10자리(3010990201 혼합골재)",
+      "raw": "나. 국가종합전자조달시스템 입찰참가자격 등록규정에 의하여 입찰마감일 전일까지 나라장터(G2B)에 세부품명번호 10자리(3010990201 혼합골재)를 제조 물품으로 입찰 참가등록한 업체"},
+     [("REGISTRATION_CERTIFICATION", "3010990201")]),
+    # 확인서 발급 '규정에 따라' 가 있어도 기업 규모 요건이다
+    ({"유형": "기업규모요건", "기업규모_raw": "소기업 또는 소상공인",
+      "raw": "다. 중소기업 기본법 제2조 2항에 따른 소기업 또는 소상공인기본법 2조에 따른 소상공인으로서 중소기업 범위 및 확인에 관한 규정에 따라 발급된 소기업․소상공인 확인서를 소지한 업체"},
+     [("COMPANY_SIZE", "소기업")]),
+    # 업종 이름에 등록업체 꼬리·주력분야 괄호가 붙어도 업종 사전으로 찾는다
+    ({"유형": "등록요건", "등록인증_raw": "전기공사업 등록업체",
+      "raw": "가. 전기공사업법의 규정에 따른 전기공사업 등록업체로서, 주된 영업소재지가 서울특별시 소재한 업체이어야 합니다."},
+     [("INDUSTRY", "0037")]),
+    # 나라장터 등록은 공통 항목이다 — "조달청" 은 등록 이름이 아니다
+    ({"유형": "등록요건", "등록인증_raw": "조달청에 등록한 업체만",
+      "raw": "마. 본 입찰은 조달청에 등록한 업체만 입찰에 참여할 수 있으며 입찰서는 반드시 국가종합전자조달시스템을 이용하여 제출합니다."},
+     []),
+])
+def test_closed_values_survive_statute_wording_and_generic_words_are_dropped(slot, expected):
+    requirements, _ = _adapt_master(slot)
+    assert [(r.type, r.value) for r in requirements] == expected
