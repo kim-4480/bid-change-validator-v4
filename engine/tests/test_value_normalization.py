@@ -78,3 +78,22 @@ def test_staff_role_in_scope_is_normalized_with_the_value():
     assert {(r.value, r.scope.get("role")) for r in reqs} == {
         ("건축분야 고급기술자 이상의 자격소지자", "건축분야 고급기술자 이상의 자격소지자")
     }
+
+
+@pytest.mark.parametrize(
+    ("value", "req_type", "expected"),
+    [
+        # 이름 값에 조사와 서술이 딸려 왔다(2026-10-06 세 번째 표본 실측). 공백을 없애기 전에 걷는다.
+        ("「철근·콘크리트공사업」면허를 보유한", "REGISTRATION_CERTIFICATION", "「철근·콘크리트공사업」면허"),
+        ("직접생산확인증명서는", "REGISTRATION_CERTIFICATION", "직접생산확인증명서"),
+        ("전기중형승합차(세부품명번호: 2510152103)로 입찰참가 등록", "REGISTRATION_CERTIFICATION", "전기중형승합차(세부품명번호: 2510152103)"),
+        ("사업관리자(PM)는 공고일 이전부터 제안서 평가일까지 계속 재직자", "STAFF", "사업관리자(PM)"),
+        ("병의원에 청소 용역 실적이 있는 업체", "EXPERIENCE_FIELD", "병의원 청소 용역 실적"),
+        # 이름 글자인 '가'·'을'·'에' 는 건드리지 않는다
+        ("전문가 보유", "STAFF", "전문가 보유"),
+        ("마을기업", "REGISTRATION_CERTIFICATION", "마을기업"),
+        ("에너지 진단", "EXPERIENCE_FIELD", "에너지 진단"),
+    ],
+)
+def test_particles_and_predicates_after_a_name_are_removed(value, req_type, expected):
+    assert normalize_value_text(value, req_type=req_type) == expected

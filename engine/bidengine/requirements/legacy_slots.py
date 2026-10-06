@@ -101,13 +101,52 @@ _LEADING_STATUTE_RE = re.compile(r"^[^,，]*?(?:법|법령|법률|시행령|규�
 _REGISTRATION_PREDICATE_TAIL_RE = re.compile(r"(?<=[가-힣)])\s*(?:으로|로)\s*(?:신고|등록)\S*(?:\s.*)?$")
 
 
+# 이름 값에 딸려 온 조사와 서술. 이름은 조사 앞에서 끝난다(2026-10-06 세 번째 표본 실측):
+#   "「철근·콘크리트공사업」면허를 보유한" → 면허,  "기계설비공사업에 등록한 자" → 기계설비공사업,
+#   "직접생산확인증명서는" → 직접생산확인증명서,  "사업관리자(PM)는 공고일 이전부터 …" → 사업관리자(PM),
+#   "병의원에 청소 용역 실적이 있는 업체" → 병의원 청소 용역 실적.
+# 주격 조사 "가" 는 걷지 않는다 — "전문가 보유" 의 가는 이름 글자다.
+# 한글 사이 공백을 없애기(_HANGUL_GAP_RE) **전에** 걷어낸다. 공백이 사라지면 "면허를보유한" 처럼 굳어
+# 조사와 이름 글자를 가를 수 없다.
+_NAME_PREDICATE_VERB = (
+    r"(?:보유|등록|신고|소지|필(?:한|하)|갖추|갖춘|갖고|취득|발급|받은|받아|있는|있고|있어야|있을|한정|한하|해당|구비"
+    r"|제조|공급)"
+)
+_NAME_PARTICLE_PREDICATE_RE = re.compile(
+    r"(?<=[가-힣)」』\]>])\s*(?:(?:을|를|이|에서|에|으로|로)\s*" + _NAME_PREDICATE_VERB
+    + r"|(?:으로|로)\s*입찰\s*참가)" + r".*$"
+)
+_NAME_TOPIC_RE = re.compile(r"(?<=[가-힣)」』\]>])는(?:\s.*)?$")
+_NAME_INNER_LOCATIVE_RE = re.compile(r"(?<=[가-힣)])(?:에서|에)\s+(?=[가-힣])")
+_NAME_TRAILING_PARTICLE_RE = re.compile(r"(?:(?<=[가-힣]{2})(?:를|에서|에|으로)|(?<=[)」』\]>])(?:로|으로|를|을|에|는))$")
+_NAME_TYPES = {"REGISTRATION_CERTIFICATION", "STAFF", "EXPERIENCE_FIELD"}
+
+
+def strip_name_particles(text: str, *, inner: bool = False) -> str:
+    """이름 값에서 조사와 그 뒤의 서술을 걷어낸다. 공백이 남아 있는 원문 꼴에 쓴다.
+
+    inner 는 이름 중간의 "에" 도 걷는다(실적 분야). 등록·면허 이름은 한글 사이 공백을 없애므로 걷지 않는다 —
+    붙여 쓴 "분야에엔지니어링" 에서는 걷을 수 없어 띄어 쓴 꼴과 값이 갈린다.
+    """
+    text = _NAME_PARTICLE_PREDICATE_RE.sub("", text)
+    text = _NAME_TOPIC_RE.sub("", text)
+    if inner:
+        text = _NAME_INNER_LOCATIVE_RE.sub(" ", text)
+    text = _NAME_TRAILING_PARTICLE_RE.sub("", text.strip())
+    if text.count(")") > text.count("("):
+        text = text.rstrip(")")  # 문장 중간에서 잘려 짝 없는 닫는 괄호("기계설비공사)")
+    return " ".join(text.split())
+
+
 def normalize_value_text(value: str, *, req_type: str) -> str:
-    """값의 표기를 하나로 맞춘다. 공백, 이름 앞 법령 인용, 등록 이름 뒤 서술부만 다룬다."""
+    """값의 표기를 하나로 맞춘다. 공백, 이름 앞 법령 인용, 등록 이름 뒤 서술부, 이름에 붙은 조사를 다룬다."""
     text = " ".join(str(value).split())
     if req_type in {"REGISTRATION_CERTIFICATION", "STAFF"}:
         text = _LEADING_STATUTE_RE.sub("", text)
     if req_type == "REGISTRATION_CERTIFICATION":
         text = _REGISTRATION_PREDICATE_TAIL_RE.sub("", text)
+    if req_type in _NAME_TYPES:
+        text = strip_name_particles(text, inner=req_type == "EXPERIENCE_FIELD") or text
     text = _SPACE_AROUND_PUNCT_RE.sub(_tidy_punctuation, text)
     text = " ".join(text.split())
     if req_type == "REGISTRATION_CERTIFICATION":

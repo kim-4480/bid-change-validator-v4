@@ -1,6 +1,8 @@
 """맥락 가드: 조항의 극성(모델)과 닫힌 값의 개수(코드)로 낱말 가드를 다시 판단한다 (2026-10-02)."""
 from __future__ import annotations
 
+import pytest
+
 from bidengine.judgment.context_guard import decide
 from bidengine.labeling.clause_polarity import POLARITY_KEY, attach_clause_polarity
 from bidengine.requirements.legacy_slots import adapt_legacy_slot, sido_names, value_name_alternatives
@@ -213,3 +215,18 @@ def test_regions_are_judged_by_name():
     assert _region_relation("대구광역시 북구", "전남광주통합특별시 북구") == "none"      # 같은 이름의 다른 북구
     assert _region_relation("강원도 춘천시", "강원특별자치도") == "match"
     assert _region_relation("충청남도", "충청남도 보령시") == "too_coarse"
+
+
+@pytest.mark.parametrize("text", [
+    "본점 소재지가 전주시인 업체", "전주시이며", "전주시이고", "전주시이어야", "전주시일 것", "전주시만", "전주시여야",
+])
+def test_copula_and_auxiliary_particles_after_a_sub_region_are_removed(text):
+    from bidengine.normalization.regions import find_regions
+
+    assert find_regions(text)[1] == ["전주시"]
+
+
+def test_a_sub_region_followed_by_a_copula_becomes_a_region_requirement():
+    raw = "가. 견적제출 공고일 전일부터 법인등기부상 본점 소재지가 전주시인 업체로서 계약체결일까지 유지되어야 합니다."
+    requirements, _ = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": "전주시인 업체"}, "POSITIVE")
+    assert [r.value for r in requirements] and all("전주시" in r.value for r in requirements)
