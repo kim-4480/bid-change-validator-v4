@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 
 from bidengine.contracts import Judgment, QualificationRequirement
 from bidengine.judgment.clause_safety import GUARD_REASON_EXCEPTION, is_guard_assessed, unsafe_clause_reason
+from bidengine.normalization.regions import region_name_relation
 
 
 RULE_VERSION = "qualification-rules-v0.3"
@@ -414,6 +415,11 @@ def _region_relation(observed: str, required: object) -> str:
     obs, req = _norm(observed), _norm(required)
     if not obs or not req:
         return "none"
+    # 양쪽에 사전에 있는 지역 이름이 있으면 이름끼리 맞춘다 — 같은 시·군·구인가, 같은(또는 통합된) 시·도인가.
+    # 문자열 포함으로 맞추면 "충청남도" 회사가 "충청남도 보령시" 요건에 맞고, "의북구" 같은 값이 누구와도 안 맞는다.
+    by_name = region_name_relation(str(observed), str(required))
+    if by_name is not None:
+        return by_name
     obs_key, req_key = _region_key(observed), _region_key(required)
     if obs_key and obs_key == req_key:
         # 꾸밈말만 다른 같은 지역. "종전 광주광역시" 와 "광주광역시(종전)".

@@ -189,3 +189,27 @@ def test_a_province_only_profile_cannot_satisfy_a_city_requirement():
     assert _region_relation("경상북도 봉화군", "봉화군") == "match"
     assert _region_relation("충청남도 천안시", "충청남도 보령시") == "none"
     assert _region_relation("서울특별시", "서울특별시 소재") == "match"       # 꾸밈말만 다른 같은 지역
+
+
+def test_particles_are_removed_before_reading_region_names():
+    raw = "다. 주된 영업소의 소재지가 전남광주통합특별시의 북구, 서구, 남구, 동구, 광산구로 된 업체에 한합니다."
+    span = "전남광주통합특별시의 북구, 서구, 남구, 동구, 광산구"
+    requirements, _ = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": span}, "POSITIVE")
+    assert [r.value for r in requirements] == [f"전남광주통합특별시 {name}" for name in ("북구", "서구", "남구", "동구", "광산구")]
+
+
+def test_region_value_without_any_region_name_is_not_confirmed():
+    """지명이 없는 값은 어떤 회사와도 일치하지 않아 모든 회사를 미달로 만든다(2026-10-06 표본)."""
+    for span in ("국내에 본사와 생산공장을 갖추어야", "지역제한", "해당 시․도의 관할구역 안"):
+        requirements, diagnostics = _adapt({"유형": "지역요건", "raw": f"나. {span} 합니다.", "지역_raw": span}, "POSITIVE")
+        assert requirements == []
+        assert diagnostics[0]["reason"] == "NO_REGION_NAME"
+
+
+def test_regions_are_judged_by_name():
+    from bidengine.judgment.rules import _region_relation
+
+    assert _region_relation("광주광역시 북구", "전남광주통합특별시 북구") == "match"     # 통합 전 시·도 이름의 회사
+    assert _region_relation("대구광역시 북구", "전남광주통합특별시 북구") == "none"      # 같은 이름의 다른 북구
+    assert _region_relation("강원도 춘천시", "강원특별자치도") == "match"
+    assert _region_relation("충청남도", "충청남도 보령시") == "too_coarse"

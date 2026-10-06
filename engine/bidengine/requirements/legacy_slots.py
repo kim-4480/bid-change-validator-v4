@@ -15,6 +15,7 @@ from bidengine.contracts import QualificationRequirement, RequirementOperator, R
 from bidengine.ports import IndustryNameResolver
 from bidengine.judgment.clause_safety import GUARD_ASSESSED, assess_clause, strip_decorations, unsafe_clause_reason
 from bidengine.judgment.context_guard import decide as decide_context
+from bidengine.normalization.regions import SIDO_CANONICAL, find_regions, sigungu_after
 from bidengine.judgment.rules import _COMPANY_SIZE_ALIASES
 from bidengine.requirements.deduplicate import _INDUSTRY_NAME_VALUE_RE, _REGISTRATION_ACT_VALUE_RE
 
@@ -351,42 +352,33 @@ def excluded_company_sizes(raw: str) -> list[str]:
 
 
 # 시·도 아래의 시·군·구. 이름 끝이 시·군·구인 2~6자 낱말이다. 시·도 이름(…특별시·광역시·특별자치시)은 뺀다.
-_SUB_REGION_RE = re.compile(r"[가-힣]{1,5}(?:시|군|구)")
-_REGION_PARTICLE_RE = re.compile(r"(?:에|의|내|안|소재|관내|일원|전역|지역에|로|으로)")
-_REGION_SPLIT_RE = re.compile(r"\s*(?:,|，|·|ㆍ|/|또는|및)\s*")
+
+
+# 지역 값에 붙는 서술 낱말. 이것만 남으면 시·도 요건이다("경상남도에 있고" → 경상남도).
+_REGION_FILLER_WORDS = frozenset({"있고", "있는", "둔", "두고", "소재", "소재한", "소재하는", "위치한", "업체", "자", "내", "안", "관내"})
+
+
+def find_regions_tokens(text: str) -> list[str]:
+    from bidengine.normalization.regions import region_tokens
+
+    return region_tokens(strip_decorations(text or ""))
 
 
 def _sub_region_names(text: str) -> list[str]:
-    """값 구간에 적힌 시·군·구 이름들(나온 순서). 시·도 이름을 걷어낸 뒤 조각마다 통째로 맞는 것만 센다.
+    """값 구간에 적힌 시·군·구 이름들. 조사를 걷어내고 시·군·구 사전에 있는 이름만 읽는다.
 
-    "충청남도 보령시" → ["보령시"], "[수원시, 용인시]" → ["수원시", "용인시"], "경상남도" → [].
-    조각이 시·군·구 이름 하나로 끝나지 않으면("입찰공고일 전일부터 …") 지역 이름으로 보지 않는다.
+    "전남광주통합특별시의 북구, 서구" → ["북구", "서구"]. 사전에 없는 낱말("의북구")은 지역이 아니다.
     """
-    names: list[str] = []
-    for part in _REGION_SPLIT_RE.split(_SIDO_RE.sub(" ", strip_decorations(text or ""))):
-        part = re.sub(r"[\[\]()「」｢｣]", "", part).strip()
-        part = _REGION_TAIL_RE.sub("", part).strip()
-        if part and _SUB_REGION_RE.fullmatch(part.replace(" ", "")):
-            names.append(part.replace(" ", ""))
-    return list(dict.fromkeys(names))
+    return find_regions(text)[1]
 
 
 def _sub_region_after(raw: str, sido: str) -> str | None:
-    """조항에서 시·도 이름 바로 뒤에 붙은 시·군·구. 모델이 값으로 시·도만 짚었을 때 코드가 원문으로 채운다.
+    """조항에서 시·도 이름 바로 뒤에 붙은 시·군·구. 모델이 값으로 시·도만 짚었을 때 원문대로 좁힌다.
 
     "본점 소재지 … 「전남광주통합특별시 장흥군」에 있는 업체" 에서 모델이 "전남광주통합특별시" 만 짚으면 장흥군
     한정 요건이 시·도 전체로 넓어진다. 넓어진 요건은 자격 없는 회사에 '충족' 을 준다.
     """
-    compact = _compact(raw)
-    for name in (sido, *[k for k, v in _SIDO_ALIASES.items() if v == sido]):
-        index = compact.find(name)
-        while index >= 0:
-            match = _SUB_REGION_RE.match(compact, index + len(name))
-            if (match and not _SIDO_RE.match(compact, index + len(name))
-                    and not match.group(0).startswith(("또는", "및", "과", "와", "이나", "에", "의", "을", "를", "로"))):
-                return match.group(0)
-            index = compact.find(name, index + 1)
-    return None
+    return sigungu_after(raw, sido)
 
 
 def value_name_alternatives(value: str) -> list[str] | None:
@@ -819,6 +811,11 @@ def adapt_legacy_slot(
         # 있다. 판정은 포함 비교라 통과하지만 값이 달라져 실행마다 요건 지문이 갈렸다. 지역명은
         # 행정구역 이름이지 문장이 아니다 — 꼬리를 뗀다.
         region = _REGION_TAIL_RE.sub("", (slot.get("지역_raw") or "").strip()).strip()
+        if guard_lifted and region and not any(find_regions(region)):
+            # 값 구간에 시·도·시·군·구 이름이 하나도 없다("국내에 본사와 생산공장을 갖추어야", "지역제한",
+            # "해당 시·도의 관할구역 안"). 그런 값은 어떤 회사와도 일치하지 않아 모든 회사를 미달로 만든다.
+            diagnostics.append({"code": "UNMAPPED_REGION", "raw": raw, "reason": "NO_REGION_NAME"})
+            return requirements, diagnostics
         span_regions = sido_names(region) if guard_lifted else []
         clause_regions = sido_names(raw) if guard_lifted else []
         sub_regions = _sub_region_names(region) if guard_lifted else []
@@ -853,8 +850,11 @@ def adapt_legacy_slot(
             # 값 구간이 시·도 이름 하나로만 이뤄졌을 때만 정식 이름으로 정규화한다("강원도" → "강원특별자치도").
             # 시·도 뒤에 남은 말이 조사·서술어("에 있고", "내 소재")면 시·도 요건이고, "남부"·"영동지역" 처럼 장소를
             # 좁히는 말이면 넓히지 않도록 원문 값을 그대로 둔다.
-            rest = _SIDO_RE.sub("", _compact(strip_decorations(region))).strip("[]()「」｢｣")
-            only_sido = len(known_sido) == 1 and (not rest or bool(_REGION_PARTICLE_RE.match(rest)))
+            # 조사를 걷어낸 낱말이 전부 그 시·도 이름이면 시·도 요건이다.
+            words = [w for w in find_regions_tokens(region) if w]
+            only_sido = len(known_sido) == 1 and bool(words) and all(
+                SIDO_CANONICAL.get(w) == known_sido[0] or w in _REGION_FILLER_WORDS for w in words
+            )
             add("REGION", "REGION", operator="MATCH", value=known_sido[0] if only_sido else region)
         else:
             diagnostics.append({"code": "UNMAPPED_REGION", "raw": raw})
