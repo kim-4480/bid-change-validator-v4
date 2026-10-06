@@ -1,0 +1,754 @@
+{
+  "status": "draft",
+  "labelled_on": "2026-10-06",
+  "note": "2026-10-06 두 번째 수집에서 이전 두 표본(20261001·20261006)과 겹치지 않는 공고 12건. 시험판·모델을 돌리기 전에 원문 자격 절만 읽고 만든 초안이다. 실적·인력 같은 열린 조건은 자격 절에 있을 때만 적었다.",
+  "policy": {
+    "core": "회사 프로필로 판정하는 참가자격 요건. 유형과 값이 모두 맞아야 찾은 것으로 본다. values 가 여럿이면 대안(하나만 갖추면 됨)이다.",
+    "confirm": "공동수급 불허·단독 이행처럼 충족/미충족으로 단정하면 안 되는 조건. 조항을 찾아 '확인 필요'로 남겼으면 맞다.",
+    "excluded.common": "나라장터 참가등록, 부정당업자 제재·조세포탈 해당 없음 등 거의 모든 공고에 있는 항목. 채점하지 않는다.",
+    "excluded.conditional": "'적용되는 경우' 처럼 조건이 붙은 문장. 채점하지 않는다.",
+    "excluded.subjective": "'이행할 수 있는 업체' 처럼 프로필로 판정할 수 없는 서술. 요건으로 뽑으면 오답이다.",
+    "excluded.not_requirement": "요건이 아닌 안내 문장. 요건으로 뽑으면 오답이다.",
+    "excluded.product": "납품 물품에 대한 조건. 회사 자격으로 뽑으면 오답이다.",
+    "core.exclusion": "exclusion=true 인 core 는 배제 조건이다. 배제로 담겨야(scope.restriction=EXCLUDE) 찾은 것이고, 같은 값을 요구로 확정하면 뜻이 뒤집힌 확정(inverted)이다.",
+    "excluded.detail": "core 요건에 딸린 세부(실적의 인정 분야 등). 따로 요건으로 나와도 오답으로 세지 않는다."
+  },
+  "notices": {
+    "R26BK01736206-002": {
+      "title": "2026 강릉 초당 K-푸드로드 문화관광 융복합 거점거리 조성사업 행사 대행",
+      "core": [
+        {
+          "id": "M1a",
+          "type": "INDUSTRY",
+          "values": [
+            "9901"
+          ],
+          "source": "① 기타자유업(행사대행업, 업종코드 9901)으로 입찰참가자격을 등록한 업체"
+        },
+        {
+          "id": "M1b",
+          "type": "REGION",
+          "values": [
+            "강원특별자치도"
+          ],
+          "source": "② 본점 소재지를 강원특별자치도에 두고 있는 업체"
+        }
+      ],
+      "confirm": [
+        {
+          "id": "M1c",
+          "phrase": "공동도급",
+          "source": "나. 공동도급가능 — 대표사 포함 5인 이하, 지분 5% 이상, 구성원 전원 자격 보유"
+        }
+      ],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "이용자 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "휴업"
+        },
+        {
+          "reason": "common",
+          "phrase": "지문"
+        }
+      ]
+    },
+    "R26BK01754149-000": {
+      "title": "경상남도 환경교육 효과 제고를 위한 도민 환경인식 조사",
+      "core": [
+        {
+          "id": "M2a",
+          "type": "INDUSTRY",
+          "values": [
+            "1169"
+          ],
+          "source": "나. 학술연구용역[업종코드 : 1169]의 입찰 자격을 등록한 자"
+        },
+        {
+          "id": "M2b",
+          "type": "COMPANY_SIZE",
+          "values": [
+            "소기업"
+          ],
+          "source": "다. 소기업 또는 소상공인으로서 소기업·소상공인확인서를 소지한 자"
+        },
+        {
+          "id": "M2c",
+          "type": "PERFORMANCE_AMOUNT",
+          "values": [
+            "20000000"
+          ],
+          "source": "라. 최근 3년 이내 계약금액 20,000천원 이상 단일건 설문조사 수행 실적",
+          "period_months": 36
+        }
+      ],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "이용자 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "휴업"
+        },
+        {
+          "reason": "common",
+          "phrase": "지문"
+        },
+        {
+          "reason": "not_requirement",
+          "phrase": "계약체결일까지 제출"
+        }
+      ]
+    },
+    "R26BK01753429-000": {
+      "title": "동현지구 스마트 창조도시 조성사업 건축물 해체(철거) 공사 폐기물처리용역",
+      "core": [
+        {
+          "id": "M3a",
+          "type": "REGION",
+          "values": [
+            "공주"
+          ],
+          "source": "가. 본점소재지가 공주시 내에 위치한 업체"
+        },
+        {
+          "id": "M3b",
+          "type": "INDUSTRY",
+          "values": [
+            "1253"
+          ],
+          "source": "나. ① 6728 과 1253 을 등록 또는 ② 1253 등록 + 장비기준 충족 — 어느 쪽이든 1253 은 필요"
+        }
+      ],
+      "confirm": [
+        {
+          "id": "M3c",
+          "phrase": "장비기준을 충족한",
+          "source": "나. ② 1253 등록자로서 장비기준을 충족하면 6728 없이 가능 — 6728 은 대안이 붙은 조건"
+        },
+        {
+          "id": "M3d",
+          "phrase": "공동도급",
+          "source": "5. 공동도급 : 불허"
+        }
+      ],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "이용자 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "휴업"
+        },
+        {
+          "reason": "common",
+          "phrase": "지문"
+        },
+        {
+          "reason": "not_requirement",
+          "phrase": "우선조달계약에 대한 예외"
+        },
+        {
+          "reason": "common",
+          "phrase": "결격사유"
+        }
+      ]
+    },
+    "R26BK01748264-000": {
+      "title": "2027년 경기도 광역이동지원센터 콜센터 운영 용역",
+      "core": [],
+      "confirm": [
+        {
+          "id": "M4a",
+          "phrase": "공동수급 또는 하도급을 불가",
+          "source": "용역의 특성을 감안하여 공동수급 또는 하도급을 불가함"
+        }
+      ],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "이용자 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "휴업"
+        },
+        {
+          "reason": "common",
+          "phrase": "지문"
+        },
+        {
+          "reason": "not_requirement",
+          "phrase": "KS S 1006"
+        },
+        {
+          "reason": "not_requirement",
+          "phrase": "KS, ISO"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "이의가 없음"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "결격 사유가 없는"
+        },
+        {
+          "reason": "common",
+          "phrase": "협상절차를 거쳐"
+        }
+      ]
+    },
+    "R26BK01755704-000": {
+      "title": "신종 해외 가축질병 유입차단 예찰(거점센터 운영 2차) 용역 — 특정 기관 수의계약",
+      "core": [],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "이용자 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "휴업"
+        },
+        {
+          "reason": "common",
+          "phrase": "지문"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "분류가 가능한 장비"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "연구실"
+        }
+      ]
+    },
+    "R26BK01756287-000": {
+      "title": "2026년 친환경농업기반구축사업 시설장비구입(지게차)",
+      "core": [
+        {
+          "id": "M6a",
+          "type": "REGISTRATION_CERTIFICATION",
+          "values": [
+            "2410160301"
+          ],
+          "source": "가. 지게차 물품분류(G2B 10자리 2410160301) 제조 또는 공급으로 입찰참가 등록"
+        },
+        {
+          "id": "M6b",
+          "type": "REGION",
+          "values": [
+            "나주"
+          ],
+          "source": "다. 본점 소재지를 전남광주통합특별시 나주시에 둔 업체"
+        },
+        {
+          "id": "M6c",
+          "type": "COMPANY_SIZE",
+          "values": [
+            "소기업"
+          ],
+          "source": "라. 소기업 또는 소상공인으로서 확인서를 소지한 업체"
+        }
+      ],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "이용자 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "휴업"
+        },
+        {
+          "reason": "common",
+          "phrase": "지문"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "A/S"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "국내 생산품"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "공급확약서"
+        }
+      ]
+    },
+    "R26BK01756290-000": {
+      "title": "2026년 펌프차구조대 구조장비 구매(2차)",
+      "core": [
+        {
+          "id": "M7a",
+          "type": "REGISTRATION_CERTIFICATION",
+          "values": [
+            "2110220401"
+          ],
+          "source": "가. 세부품명번호[체인톱기계, 2110220401]로 제조 또는 공급으로 입찰참가 등록"
+        },
+        {
+          "id": "M7b",
+          "type": "REGION",
+          "values": [
+            "전북특별자치도"
+          ],
+          "source": "다. 주된 영업소의 소재지가 전북특별자치도 내"
+        },
+        {
+          "id": "M7c",
+          "type": "COMPANY_SIZE",
+          "values": [
+            "소기업"
+          ],
+          "source": "라. 소기업 또는 소상공인으로서 소상공인ㆍ소기업확인서를 소지"
+        }
+      ],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "이용자 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "휴업"
+        },
+        {
+          "reason": "common",
+          "phrase": "지문"
+        },
+        {
+          "reason": "common",
+          "phrase": "미 자격자"
+        }
+      ]
+    },
+    "R26BK01756302-000": {
+      "title": "메타융합관 Ⅱ 건물 내부 사인물 및 유리 썬팅 설치",
+      "core": [
+        {
+          "id": "M8a",
+          "type": "INDUSTRY",
+          "values": [
+            "2604"
+          ],
+          "source": "(업종) 옥외광고사업(업종코드 2604) 등록 업체 — 아래와 모두"
+        },
+        {
+          "id": "M8b",
+          "type": "INDUSTRY",
+          "values": [
+            "4444",
+            "4442",
+            "4440"
+          ],
+          "source": "(업종) 산업디자인 전문회사 종합(4444)·환경(4442)·시각(4440) 중 하나"
+        },
+        {
+          "id": "M8c",
+          "type": "REGISTRATION_CERTIFICATION",
+          "values": [
+            "5512171801"
+          ],
+          "source": "직접생산확인증명서 [안내판(물품분류번호 10자리 : 5512171801)]"
+        },
+        {
+          "id": "M8d",
+          "type": "COMPANY_SIZE",
+          "values": [
+            "중소기업"
+          ],
+          "source": "중소기업자 또는 소상공인으로서 중·소기업ㆍ소상공인 확인서 소지"
+        },
+        {
+          "id": "M8e",
+          "type": "REGION",
+          "values": [
+            "대전광역시"
+          ],
+          "source": "본점소재지가 대전광역시에 있는 업체"
+        }
+      ],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "이용자 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "휴업"
+        },
+        {
+          "reason": "common",
+          "phrase": "지문"
+        },
+        {
+          "reason": "not_requirement",
+          "phrase": "확인되지 않을 경우"
+        },
+        {
+          "reason": "conditional",
+          "phrase": "신청한 사항이 확인된"
+        },
+        {
+          "reason": "common",
+          "phrase": "제8조의2"
+        }
+      ]
+    },
+    "R26BK01754848-001": {
+      "title": "봉제공 스판담보루 원단",
+      "core": [
+        {
+          "id": "M9a",
+          "type": "COMPANY_SIZE",
+          "values": [
+            "소기업"
+          ],
+          "source": "나. 소기업 및 소상공인으로 제한"
+        },
+        {
+          "id": "M9b",
+          "type": "REGION",
+          "values": [
+            "북구",
+            "서구",
+            "남구",
+            "동구",
+            "광산구"
+          ],
+          "source": "다. 주된 영업소의 소재지가 전남광주통합특별시의 북구, 서구, 남구, 동구, 광산구"
+        }
+      ],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "이용자 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "휴업"
+        },
+        {
+          "reason": "common",
+          "phrase": "지문"
+        },
+        {
+          "reason": "not_requirement",
+          "phrase": "KS K"
+        },
+        {
+          "reason": "not_requirement",
+          "phrase": "확인서류"
+        }
+      ]
+    },
+    "R26BK01756249-001": {
+      "title": "(입찰대행) 장흥군 유치면 공동창고 신축공사",
+      "core": [
+        {
+          "id": "M10a",
+          "type": "INDUSTRY",
+          "values": [
+            "0002",
+            "0003"
+          ],
+          "source": "가. 종합건설업 중 건축공사업(0002) 또는 토목건축공사업(0003)을 등록"
+        },
+        {
+          "id": "M10b",
+          "type": "REGION",
+          "values": [
+            "장흥"
+          ],
+          "source": "가. 본점소재지가 「전남광주통합특별시 장흥군」에 있는 업체"
+        }
+      ],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "이용자 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "휴업"
+        },
+        {
+          "reason": "common",
+          "phrase": "지문"
+        }
+      ]
+    },
+    "R26BK01756309-000": {
+      "title": "2026년 상수도시설 확충공사(사농동 760번지 일원)",
+      "core": [
+        {
+          "id": "M11a",
+          "type": "REGION",
+          "values": [
+            "춘천"
+          ],
+          "source": "가. 춘천시에 본점소재지를 두고"
+        },
+        {
+          "id": "M11b",
+          "type": "INDUSTRY",
+          "values": [
+            "4996"
+          ],
+          "source": "가. 전문공사업 상·하수도설비공사업(주력분야: 상하수도설비공사) 등록 — 업종 4996"
+        }
+      ],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "이용자 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "휴업"
+        },
+        {
+          "reason": "common",
+          "phrase": "지문"
+        },
+        {
+          "reason": "common",
+          "phrase": "수의계약 배제사유"
+        }
+      ]
+    },
+    "R26BK01755931-000": {
+      "title": "대학로지점 이전 레이아웃 전기공사 — 지명경쟁",
+      "core": [],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "이용자 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "휴업"
+        },
+        {
+          "reason": "common",
+          "phrase": "지문"
+        },
+        {
+          "reason": "common",
+          "phrase": "지명통지"
+        }
+      ]
+    }
+  }
+}
