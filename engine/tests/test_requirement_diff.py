@@ -91,3 +91,18 @@ def test_descriptive_industry_name_span_does_not_make_a_change():
     before = _alt("A", "1169", raw=clause).model_copy(update={"scope": {"industry_name": "학술·연구용역(업종코드:1169)", "guard": "assessed"}})
     after = _alt("B", "1169", raw=clause).model_copy(update={"scope": {"industry_name": "학술·연구용역(업종코드:1169)으로 경쟁입찰 참가자격을 등록한 자", "guard": "assessed"}})
     assert [c.change_type for c in diff_requirements([before], [after])] == ["UNCHANGED"]
+
+
+def test_same_documents_never_report_a_change():
+    """문서가 같은 두 차수(일정·공고번호만 바뀐 변경공고)는 분석 결과가 달라도 변경이 아니다."""
+    from bidengine.diff.requirement_diff import diff_same_documents, documents_fingerprint
+
+    baseline = [_req("A", req_type="INDUSTRY", value="1468", raw="업종코드 1468 등록"),
+                _req("B", req_type="INDUSTRY", value="9901", raw="업종코드 9901 등록")]
+    current = [_req("A", req_type="INDUSTRY", value="1468", raw="업종코드 1468 등록"),
+               _req("C", req_type="INDUSTRY", value="0037", raw="전기공사업 등록")]
+    changes = diff_same_documents(baseline, current)
+    assert {c.change_type for c in changes} == {"UNCHANGED"}
+    assert {c.current_key for c in changes} == {"A", "C"}
+    assert documents_fingerprint(["a", "b"]) == documents_fingerprint(["a", "b"])
+    assert documents_fingerprint(["a", None]) is None

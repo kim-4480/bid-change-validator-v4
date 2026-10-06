@@ -105,3 +105,28 @@ def diff_requirements(baseline:list[QualificationRequirement], current:list[Qual
 
 def requirements_to_revalidate(changes:list[RequirementChange])->list[str]:
     return [item.current_key for item in changes if item.change_type in {"MODIFIED","ADDED"} and item.current_key is not None]
+
+
+def documents_fingerprint(document_hashes: list[str | None]) -> str | None:
+    """한 차수의 문서 지문. 추출 문서 해시를 문서 순서대로 이은 것이다. 해시가 하나라도 없으면 None(비교 불가)."""
+    if not document_hashes or any(not item for item in document_hashes):
+        return None
+    return "|".join(str(item) for item in document_hashes)
+
+
+def diff_same_documents(baseline: list[QualificationRequirement], current: list[QualificationRequirement]) -> list[RequirementChange]:
+    """두 차수의 문서가 같을 때의 차수 비교: 자격 변경은 없다.
+
+    변경공고의 상당수는 일정·공고번호만 바뀌고 문서는 그대로다(2026-10-06 최근 30일 변경공고 12쌍 중 8쌍).
+    문서가 같은데 요건이 다르게 나왔다면 그것은 분석의 흔들림이지 공고의 변경이 아니다. 짝이 맞는 요건은
+    UNCHANGED 로 잇고, 짝이 없는 현재 요건도 UNCHANGED(기준 없음, 새로 판정)로 둔다. 기준에만 있는 요건은
+    삭제로 내보내지 않는다.
+    """
+    out: list[RequirementChange] = []
+    for change in diff_requirements(baseline, current):
+        if change.change_type == "REMOVED":
+            continue
+        if change.change_type != "UNCHANGED":
+            change = change.model_copy(update={"change_type": "UNCHANGED"})
+        out.append(change)
+    return out

@@ -10,10 +10,10 @@ from sqlalchemy.orm import Session
 
 from bidengine.contracts import Judgment
 from bidengine.judgment.rules import RULE_VERSION, derive_overall_status, judge_requirement
-from bidengine.diff.requirement_diff import RequirementChange, diff_requirements
+from bidengine.diff.requirement_diff import RequirementChange, diff_requirements, diff_same_documents, documents_fingerprint
 from ..analysis_models import QualificationAnalysisRun
 from ..judgment_models import CompanyQualificationProfileCompleteness, QualificationJudgmentRecord, QualificationJudgmentRun
-from ..models import PreflightCase
+from ..models import NoticeDocument, PreflightCase
 from .analysis import analysis_run_response
 from .judgment import (
     load_judgment_analysis,
@@ -64,6 +64,16 @@ def _copy_judgment(record: QualificationJudgmentRecord, *, notice_version_id: UU
     )
 
 
+def _documents_fingerprint(db: Session, version_id: UUID) -> str | None:
+    """한 차수의 추출된 문서 해시를 문서 순서대로 이은 지문. 추출되지 않은 문서는 뺀다."""
+    rows = db.execute(
+        select(NoticeDocument.extracted_text_sha256)
+        .where(NoticeDocument.notice_version_id == version_id, NoticeDocument.extraction_status == "EXTRACTED")
+        .order_by(NoticeDocument.document_order)
+    ).scalars().all()
+    return documents_fingerprint(list(rows))
+
+
 def run_qualification_revalidation(db: Session, *, case_id: UUID, payload: QualificationRevalidationCreate) -> QualificationRevalidationRead:
     case = _load_case(db, case_id)
     source = load_qualification_judgment_run(db, payload.source_judgment_run_id)
@@ -87,7 +97,16 @@ def run_qualification_revalidation(db: Session, *, case_id: UUID, payload: Quali
     current_analysis = _select_analysis_run(db, notice_version_id=case.current_version_id, explicit_run_id=payload.current_analysis_run_id, label="현재")
     baseline = analysis_run_response(baseline_analysis)
     current = analysis_run_response(current_analysis)
-    changes = diff_requirements(baseline.requirements, current.requirements)
+    # 두 차수의 문서가 같으면(일정·공고번호만 바뀐 변경공고) 자격 변경은 없다 — 분석 결과의 차이를 변경으로
+    # 내보내지 않는다.
+    same_documents = _documents_fingerprint(db, case.baseline_version_id) is not None and (
+        _documents_fingerprint(db, case.baseline_version_id) == _documents_fingerprint(db, case.current_version_id)
+    )
+    changes = (
+        diff_same_documents(baseline.requirements, current.requirements)
+        if same_documents
+        else diff_requirements(baseline.requirements, current.requirements)
+    )
 
     company = _load_company(db, case.company_id)
     completeness = _record_to_completeness(db.get(CompanyQualificationProfileCompleteness, company.id))
