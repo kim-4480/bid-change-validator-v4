@@ -150,3 +150,49 @@ def test_mode_is_taken_from_environment_when_not_given(monkeypatch):
     monkeypatch.setenv("BIDENGINE_EXTRACTION_MODE", "legacy")
     analyze_qualification_documents(doc, structured_extract=recorder)
     assert calls == ["clause_labels", "eligibility_slots"]
+
+
+def test_labels_are_remembered_per_clause_and_reused():
+    """같은 조항은 같은 라벨. 두 번째 분석은 모델을 부르지 않고, 처음 받은 라벨을 쓴다."""
+    calls = []
+
+    def first(system, body, schema):
+        calls.append(body)
+        return fake_extractor(system, body, schema)
+
+    memory: dict = {}
+    once = extract_clause_slots([CHUNK], structured_extract=first, labeling_memory=memory)
+    assert len(calls) == 1
+
+    def different(system, body, schema):  # 다시 물으면 다른 답을 내는 모델
+        calls.append(body)
+        return {"clauses": [{"clause_id": "C003", "requirements": [_slot("인증요건", 등록인증_raw="소프트웨어사업")]}]}
+
+    again = extract_clause_slots([CHUNK], structured_extract=different, labeling_memory=memory)
+    assert len(calls) == 1
+    assert [(s["유형"], s["raw"]) for s in again["slots"]] == [(s["유형"], s["raw"]) for s in once["slots"]]
+    assert again["labels_reused"] == again["clause_count"]
+
+
+def test_only_new_clauses_are_asked():
+    memory: dict = {}
+    extract_clause_slots([CHUNK], structured_extract=fake_extractor, labeling_memory=memory)
+    changed = {**CHUNK, "text": SECTION.replace("서울특별시 또는 경기도", "부산광역시")}
+    asked = []
+
+    def model(system, body, schema):
+        asked.append(body)
+        return {"clauses": []}
+
+    extract_clause_slots([changed], structured_extract=model, labeling_memory=memory)
+    assert len(asked) == 1 and "부산광역시" in asked[0] and "업종코드: 1468" not in asked[0]
+
+
+def test_failed_call_is_not_remembered():
+    memory: dict = {}
+
+    def broken(system, body, schema):
+        raise RuntimeError("down")
+
+    result = extract_clause_slots([CHUNK], structured_extract=broken, labeling_memory=memory, max_retry=0)
+    assert result["status"] == "failed" and memory == {}

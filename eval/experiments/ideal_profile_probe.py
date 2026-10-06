@@ -41,7 +41,8 @@ REFERENCE_DATE = date(2026, 10, 6)
 
 
 def _run(version: SampleVersion, profile: CompanyProfileSnapshot, mode: str, model: str, run: int,
-         polarity_memory: FirstAnswerMemory, selection_memory: FirstAnswerMemory) -> dict:
+         polarity_memory: FirstAnswerMemory, selection_memory: FirstAnswerMemory,
+         labeling_memory: FirstAnswerMemory | None) -> dict:
     polarity_guard, clause_selection = CONFIG[mode]
     started = time.monotonic()
     try:
@@ -58,6 +59,7 @@ def _run(version: SampleVersion, profile: CompanyProfileSnapshot, mode: str, mod
             polarity_memory=polarity_memory if polarity_guard else None,
             clause_selection=clause_selection,
             selection_memory=selection_memory,
+            labeling_memory=labeling_memory,
         )
         evaluation = judge_requirements(
             result.requirements, profile, preflight_case_id=f"{version.label}-{run}", reference_date=REFERENCE_DATE,
@@ -132,6 +134,7 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--reuse", action="store_true")
+    parser.add_argument("--no-labeling-memory", action="store_true", help="조항 라벨을 기억하지 않는다(전후 비교용)")
     args = parser.parse_args()
 
     labels = json.loads(args.labels.read_text(encoding="utf-8"))["notices"]
@@ -149,7 +152,8 @@ def main() -> None:
         runs = json.loads(args.out.read_text(encoding="utf-8"))["runs"]
     else:
         polarity_memory, selection_memory = FirstAnswerMemory(), FirstAnswerMemory()
-        jobs = [(versions[label], profiles[label], mode, args.model, run, polarity_memory, selection_memory)
+        labeling_memory = None if args.no_labeling_memory else FirstAnswerMemory()
+        jobs = [(versions[label], profiles[label], mode, args.model, run, polarity_memory, selection_memory, labeling_memory)
                 for label in versions for mode in args.modes for run in range(args.runs)]
         print(f"notices={len(versions)} calls={len(jobs)}")
         with ThreadPoolExecutor(max_workers=args.workers) as pool:

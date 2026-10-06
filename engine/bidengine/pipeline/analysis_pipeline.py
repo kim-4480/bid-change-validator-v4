@@ -122,6 +122,7 @@ def analyze_qualification_documents(
     polarity_memory: MutableMapping[str, str] | None = None,
     clause_selection: str | None = None,
     selection_memory: MutableMapping[str, bool] | None = None,
+    labeling_memory: MutableMapping[str, list[dict[str, Any]]] | None = None,
 ) -> RequirementAnalysisResult:
     """Run one qualification Requirement analysis without touching Backend state."""
     document_ids = [document.document_id for document in analysis_input.documents]
@@ -153,6 +154,7 @@ def analyze_qualification_documents(
             max_retry=max_retry,
             clause_selection=clause_selection or os.getenv("BIDENGINE_CLAUSE_SELECTION", "code").strip().lower(),
             selection_memory=selection_memory,
+            labeling_memory=labeling_memory,
         )
     else:
         extraction = extract_legacy_slots(

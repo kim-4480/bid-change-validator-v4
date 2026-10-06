@@ -48,6 +48,10 @@ CONFIG = {
 MODES = tuple(CONFIG)
 
 
+# 조항 라벨 기억. --no-labeling-memory 로 끈다(전후 비교용).
+USE_LABELING_MEMORY = True
+
+
 class FirstAnswerMemory(dict):
     """조항마다 처음 받은 답을 지킨다. 여러 실행이 동시에 같은 조항을 물어도 답은 하나다."""
 
@@ -59,6 +63,9 @@ class FirstAnswerMemory(dict):
         with self._lock:
             if key not in self:
                 super().__setitem__(key, value)
+
+
+LABELING_MEMORY = FirstAnswerMemory()
 
 
 class RetryingExtractor:
@@ -117,6 +124,7 @@ def _extract(version: SampleVersion, mode: str, model: str, run: int, memory: Fi
             polarity_memory=memory if polarity_guard else None,
             clause_selection=clause_selection,
             selection_memory=selection_memory,
+            labeling_memory=LABELING_MEMORY if USE_LABELING_MEMORY else None,
         )
     except Exception as error:  # noqa: BLE001
         return {"version": version.label, "mode": mode, "model": model, "run": run, "error": repr(error)[:300]}
@@ -144,7 +152,10 @@ def main() -> None:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--reuse", action="store_true", help="--out 의 호출 결과로 다시 계산만 한다")
     parser.add_argument("--only-labelled", action="store_true", help="정답이 붙은 차수만 돌린다")
+    parser.add_argument("--no-labeling-memory", action="store_true", help="조항 라벨을 기억하지 않는다(실행마다 새로 묻는다)")
     args = parser.parse_args()
+    global USE_LABELING_MEMORY
+    USE_LABELING_MEMORY = not args.no_labeling_memory
 
     notices, changed = load_sample(args.sample)
     versions = {v.label: v for v in notices}
