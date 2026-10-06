@@ -44,7 +44,11 @@ CONFIG = {
     "clause_polarity": (True, "code"),
     "hybrid_polarity": (True, "hybrid"),
     "model_polarity": (True, "model"),
+    # B안: 닫힌 값은 코드가, 모델은 조항당 한 번 극성·역할·열린 조건(극성 호출 없음)
+    "closed_first": (False, "hybrid"),
 }
+# 방식마다 추출 방식(extraction_mode). 표에 없으면 clause.
+EXTRACTION = {"closed_first": "closed_first"}
 MODES = tuple(CONFIG)
 
 
@@ -119,7 +123,7 @@ def _extract(version: SampleVersion, mode: str, model: str, run: int, memory: Fi
             ),
             structured_extract=RetryingExtractor(model),
             industry_resolver=CsvIndustryNameResolver(),
-            extraction_mode="clause",
+            extraction_mode=EXTRACTION.get(mode, "clause"),
             polarity_guard=polarity_guard,
             polarity_memory=memory if polarity_guard else None,
             clause_selection=clause_selection,

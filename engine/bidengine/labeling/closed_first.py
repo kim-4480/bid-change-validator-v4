@@ -203,11 +203,18 @@ def _closed_requirements(polarity: str, text: str, candidates: list[Candidate], 
         excluded_sizes = [c.value for c in by_role["EXCLUDED"] if c.kind == "SIZE"]
         if excluded_sizes and set(excluded_sizes) <= {"대기업", "중견기업"}:
             reqs.append({"type": "COMPANY_SIZE", "value": " 및 ".join(excluded_sizes), "scope": {"restriction": "EXCLUDE"}})
+        elif is_common_disqualification(text):
+            # 부정당업자·조세포탈처럼 모든 입찰자에게 똑같이 걸리는 결격 — 회사 프로필과 대조할 자격이 아니다(clause 방식과 같은 기준).
+            diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": "COMMON_DISQUALIFICATION"})
         else:
             diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": "MODEL_POLARITY_EXCLUSION"})
         return reqs, diags
     if polarity != "POSITIVE":
-        diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": f"MODEL_POLARITY_{polarity}"})
+        if not candidates and len(_compact(text)) <= 20 and not re.search(r"[.。]|이어야|하여야|한다|합니다", text):
+            # 값도 서술도 없는 절 제목("3. 입찰참가 자격") — 요건이 아니다.
+            diags.append({"code": "CLAUSE_NOT_LABELLED", "raw": text, "reason": "HEADING"})
+        else:
+            diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": f"MODEL_POLARITY_{polarity}"})
         return reqs, diags
 
     wanted = by_role["REQUIRED"] + by_role["ALTERNATIVE"]

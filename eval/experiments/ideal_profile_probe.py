@@ -35,7 +35,7 @@ from bideval.master_vocabulary import CsvIndustryNameResolver
 from bideval.notice_sample import SampleVersion, load_sample
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from polarity_guard_probe import CONFIG, FirstAnswerMemory, RetryingExtractor, _labelled_unselected  # noqa: E402
+from polarity_guard_probe import CONFIG, EXTRACTION, FirstAnswerMemory, RetryingExtractor, _labelled_unselected  # noqa: E402
 
 REFERENCE_DATE = date(2026, 10, 6)
 
@@ -54,7 +54,7 @@ def _run(version: SampleVersion, profile: CompanyProfileSnapshot, expects: bool,
             ),
             structured_extract=RetryingExtractor(model),
             industry_resolver=CsvIndustryNameResolver(),
-            extraction_mode="clause",
+            extraction_mode=EXTRACTION.get(mode, "clause"),
             polarity_guard=polarity_guard,
             polarity_memory=polarity_memory if polarity_guard else None,
             clause_selection=clause_selection,
