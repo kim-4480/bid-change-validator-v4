@@ -23,6 +23,7 @@ from ..analysis_models import (
 )
 from ..analysis_schemas import QualificationAnalysisRunRead, QualificationAnalysisRunSummary
 from ..models import BidNoticeVersion, NoticeDocument
+from .answer_memory import DbAnswerMemory, DbIndustryNameResolver
 
 
 class QualificationAnalysisError(ValueError):
@@ -153,9 +154,16 @@ def run_qualification_analysis(
         db, notice_id=notice_id, version_number=version_number
     )
     analysis_input = build_qualification_analysis_input(version)
+    # 같은 조항은 같은 답 — 조항 라벨·극성·조항 선택의 첫 답을 DB 에 두고 다시 묻지 않는다. 모델이 temperature 를
+    # 받지 않고 seed 로도 답이 고정되지 않아, 이것 없이는 같은 공고를 다시 분석하면 요건이 달라졌다.
+    # 업종 이름은 기준정보 테이블로 코드화한다.
     result = analyze_qualification_documents(
         analysis_input,
         structured_extract=structured_extract,
+        industry_resolver=DbIndustryNameResolver(db),
+        labeling_memory=DbAnswerMemory(db, "label"),
+        polarity_memory=DbAnswerMemory(db, "polarity"),
+        selection_memory=DbAnswerMemory(db, "selection"),
     )
     return _persist_result(db, version=version, result=result)
 
