@@ -143,6 +143,7 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--reuse", action="store_true", help="--out 의 호출 결과로 다시 계산만 한다")
+    parser.add_argument("--only-labelled", action="store_true", help="정답이 붙은 차수만 돌린다")
     args = parser.parse_args()
 
     notices, changed = load_sample(args.sample)
@@ -151,7 +152,10 @@ def main() -> None:
         versions.update({v.label: v for v in chain})
     for version in _labelled_unselected(args.sample, args.labels, set(versions)):
         versions[version.label] = version
-    changed_labels = [[v.label for v in chain] for chain in changed]
+    if args.only_labelled and args.labels is not None:
+        labelled = set(json.loads(args.labels.read_text(encoding="utf-8"))["notices"])
+        versions = {label: version for label, version in versions.items() if label in labelled}
+    changed_labels = [[v.label for v in chain if v.label in versions] for chain in changed]
 
     memory = FirstAnswerMemory()
     selection_memory = FirstAnswerMemory()
