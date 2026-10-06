@@ -71,11 +71,12 @@ def test_folding_prevents_a_wrong_unsatisfied() -> None:
         "A", "REGISTRATION_CERTIFICATION", "단체급식업등록", SHORT_RAW
     )
 
-    # 정리 전에는 업종을 보유한 회사가 인증 쪽에서 미달을 받았다.
+    # 정리 전에는 업종을 보유한 회사가 인증 쪽에서 미달을 받았다. 지금은 이름 요건이 확인 필요로 떨어지지만
+    # (2026-10-06 정책), 충족도 아니다 — 정리가 업종 코드로 모아야 충족이 된다.
     before = judge_requirement(
         registration, profile, preflight_case_id="X", reference_date=date(2026, 9, 14)
     )
-    assert before.status == "UNSATISFIED"
+    assert before.status != "SATISFIED"
 
     kept, _ = deduplicate_requirements([
         registration, _requirement("B", "INDUSTRY", "1450", LONG_RAW)

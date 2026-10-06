@@ -79,10 +79,15 @@ def test_none_company_size_means_unknown_not_large_company_mismatch():
 
 
 def test_complete_missing_certification_is_unsatisfied():
-    requirement = _requirement("REQ-CERT", "REGISTRATION_CERTIFICATION", value="정보통신공사업")
+    """번호로 요구한 등록이 목록에 없으면 미달이다. 이름으로 요구한 것은 표기가 갈려 확인 필요다."""
+    requirement = _requirement("REQ-CERT", "REGISTRATION_CERTIFICATION", value="4321150102")
     result = judge_requirements([requirement], _profile(completeness=ProfileCompleteness(certifications=True)), preflight_case_id="case-1", reference_date=REFERENCE_DATE)
     assert result.judgments[0].status == "UNSATISFIED"
     assert result.overall_status == "ineligible"
+
+    named = _requirement("REQ-CERT", "REGISTRATION_CERTIFICATION", value="정보통신공사업")
+    result = judge_requirements([named], _profile(completeness=ProfileCompleteness(certifications=True)), preflight_case_id="case-1", reference_date=REFERENCE_DATE)
+    assert result.judgments[0].status == "UNKNOWN"
 
 
 def test_present_valid_certification_is_satisfied_even_before_collection_is_complete():

@@ -109,7 +109,9 @@ def test_having_nothing_at_all_is_still_unsatisfied():
         staff=ProfileStaffFact(total_count=10, roles=[]),
     )
     assert _judge(_req("EXPERIENCE_FIELD", "단체급식 운영", period_months=24), empty).status == "UNSATISFIED"
-    assert _judge(_req("REGISTRATION_CERTIFICATION", "ISMS-P 인증", scope={"kind": "CERTIFICATION"}), empty).status == "UNSATISFIED"
+    # 등록·인증은 이름으로 요구하면 목록이 비어 있어도 확인 필요다(2026-10-06 정책 변경). 번호로 요구하면 미달이다.
+    assert _judge(_req("REGISTRATION_CERTIFICATION", "ISMS-P 인증", scope={"kind": "CERTIFICATION"}), empty).status == "UNKNOWN"
+    assert _judge(_req("REGISTRATION_CERTIFICATION", "4320140101", scope={"kind": "REGISTRATION"}), empty).status == "UNSATISFIED"
     assert _judge(_req("STAFF", 2, operator=">=", scope={"role": "소프트웨어 개발"}), empty).status == "UNSATISFIED"
 
 

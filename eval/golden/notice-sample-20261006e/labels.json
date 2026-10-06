@@ -288,7 +288,21 @@
      "total_count": 30,
      "roles": []
     },
-    "performances": [],
+    "performances": [
+     {
+      "ref": "p1",
+      "name": "OO고등학교 교복 제조·판매",
+      "client_name": "OO고등학교",
+      "amount": 40000000,
+      "started_at": "2024-01-01",
+      "completed_at": "2025-03-31",
+      "completed_year": 2025,
+      "fields": [
+       "교복 제조 판매",
+       "교복"
+      ]
+     }
+    ],
     "certifications": [],
     "extensions": {},
     "completeness": {
@@ -300,7 +314,8 @@
      "performances": true,
      "certifications": true
     }
-   }
+   },
+   "ideal_profile_note": "측정 후 정정(2026-10-06): '1년 이상 교복을 제조, 판매한 업체' 를 갖춘 회사여야 하므로 교복 제조·판매 이력을 넣었다."
   },
   "R26BK01756252-000": {
    "title": "한지 카렌더(롤프레스) 장치 구매·설치",

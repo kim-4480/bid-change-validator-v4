@@ -902,7 +902,11 @@ def _judge_certification(
         and (item.issued_at is None or item.issued_at <= reference_date)
     ]
     held_industries = profile.industries if registration_kind else []
-    if not name_matches and not required_is_code and (held or held_industries):
+    # 이름으로 요구한 것은 회사가 등록·인증을 하나도 갖지 않았어도 미달로 확정하지 않는다. 모델이 서술형 조항에서
+    # 뽑은 이름("제조", "공급관련입찰참가자격", "이에준하")은 표기도 뜻도 열려 있어, 목록에 없다고 그 자격이
+    # 없다고 할 수 없다(2026-10-06 다섯 번째 표본: 자격 있는 회사가 이 경로로 3개 공고에서 부적합).
+    # 번호(품명번호 등)로 요구한 것은 닫힌 비교라 그대로 미달이다.
+    if not name_matches and not required_is_code:
         return _vocabulary_unknown(
             requirement, preflight_case_id,
             [("certification", "name", item.name) for item in held]
