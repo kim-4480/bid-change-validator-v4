@@ -350,6 +350,45 @@ def excluded_company_sizes(raw: str) -> list[str]:
     return words if words and set(words) <= {"대기업", "중견기업"} else []
 
 
+# 시·도 아래의 시·군·구. 이름 끝이 시·군·구인 2~6자 낱말이다. 시·도 이름(…특별시·광역시·특별자치시)은 뺀다.
+_SUB_REGION_RE = re.compile(r"[가-힣]{1,5}(?:시|군|구)")
+_REGION_PARTICLE_RE = re.compile(r"(?:에|의|내|안|소재|관내|일원|전역|지역에|로|으로)")
+_REGION_SPLIT_RE = re.compile(r"\s*(?:,|，|·|ㆍ|/|또는|및)\s*")
+
+
+def _sub_region_names(text: str) -> list[str]:
+    """값 구간에 적힌 시·군·구 이름들(나온 순서). 시·도 이름을 걷어낸 뒤 조각마다 통째로 맞는 것만 센다.
+
+    "충청남도 보령시" → ["보령시"], "[수원시, 용인시]" → ["수원시", "용인시"], "경상남도" → [].
+    조각이 시·군·구 이름 하나로 끝나지 않으면("입찰공고일 전일부터 …") 지역 이름으로 보지 않는다.
+    """
+    names: list[str] = []
+    for part in _REGION_SPLIT_RE.split(_SIDO_RE.sub(" ", strip_decorations(text or ""))):
+        part = re.sub(r"[\[\]()「」｢｣]", "", part).strip()
+        part = _REGION_TAIL_RE.sub("", part).strip()
+        if part and _SUB_REGION_RE.fullmatch(part.replace(" ", "")):
+            names.append(part.replace(" ", ""))
+    return list(dict.fromkeys(names))
+
+
+def _sub_region_after(raw: str, sido: str) -> str | None:
+    """조항에서 시·도 이름 바로 뒤에 붙은 시·군·구. 모델이 값으로 시·도만 짚었을 때 코드가 원문으로 채운다.
+
+    "본점 소재지 … 「전남광주통합특별시 장흥군」에 있는 업체" 에서 모델이 "전남광주통합특별시" 만 짚으면 장흥군
+    한정 요건이 시·도 전체로 넓어진다. 넓어진 요건은 자격 없는 회사에 '충족' 을 준다.
+    """
+    compact = _compact(raw)
+    for name in (sido, *[k for k, v in _SIDO_ALIASES.items() if v == sido]):
+        index = compact.find(name)
+        while index >= 0:
+            match = _SUB_REGION_RE.match(compact, index + len(name))
+            if (match and not _SIDO_RE.match(compact, index + len(name))
+                    and not match.group(0).startswith(("또는", "및", "과", "와", "이나", "에", "의", "을", "를", "로"))):
+                return match.group(0)
+            index = compact.find(name, index + 1)
+    return None
+
+
 def value_name_alternatives(value: str) -> list[str] | None:
     """값 구간 안에서 '또는' 으로 나열된 이름들. "건축공사업(또는 토목건축공사업)" → 두 이름. 아니면 None.
 
@@ -782,7 +821,22 @@ def adapt_legacy_slot(
         region = _REGION_TAIL_RE.sub("", (slot.get("지역_raw") or "").strip()).strip()
         span_regions = sido_names(region) if guard_lifted else []
         clause_regions = sido_names(raw) if guard_lifted else []
-        if len(span_regions) >= 2 and "미상 시·도" not in span_regions and not re.search(r"및|과\s|와\s", region):
+        sub_regions = _sub_region_names(region) if guard_lifted else []
+        known_sido = [name for name in span_regions if name != "미상 시·도"]
+        if guard_lifted and not sub_regions and len(known_sido) == 1:
+            # 값 구간이 시·도뿐인데 조항에는 그 뒤에 시·군·구가 붙어 있다 — 원문대로 좁힌다.
+            narrowed = _sub_region_after(raw, known_sido[0])
+            sub_regions = [narrowed] if narrowed else []
+        if sub_regions and len(known_sido) <= 1:
+            # 시·군·구 단위 요건이다. 시·도로 정규화하지 않는다 — 넓히면 자격 없는 회사에 '충족' 이 나간다.
+            values = [f"{known_sido[0]} {name}" if known_sido else name for name in sub_regions]
+            requirements.extend(
+                item.model_copy(update={"scope": {**item.scope, "guard_basis": context.basis}})
+                for item in _region_requirements(raw, values, notice_version_id=notice_version_id, key_prefix=key_prefix)
+            )
+            if len(values) > 1:
+                diagnostics.append({"code": "REGION_ALTERNATION", "raw": raw, "regions": values})
+        elif len(span_regions) >= 2 and "미상 시·도" not in span_regions and not re.search(r"및|과\s|와\s", region):
             # 값 구간에 시·도가 둘 이상 나열됐다 — 지역끼리의 대안이다("충청남도 또는 세종특별시").
             requirements.extend(
                 item.model_copy(update={"scope": {**item.scope, "guard_basis": context.basis}})
@@ -796,8 +850,12 @@ def adapt_legacy_slot(
             # 다른 지역의 회사를 미달로 만든다.
             diagnostics.append({"code": "UNMAPPED_REGION", "raw": raw, "reason": "REGION_RELATION_UNCLEAR"})
         elif region:
-            known = [name for name in span_regions if name != "미상 시·도"]
-            add("REGION", "REGION", operator="MATCH", value=known[0] if len(span_regions) == 1 and known else region)
+            # 값 구간이 시·도 이름 하나로만 이뤄졌을 때만 정식 이름으로 정규화한다("강원도" → "강원특별자치도").
+            # 시·도 뒤에 남은 말이 조사·서술어("에 있고", "내 소재")면 시·도 요건이고, "남부"·"영동지역" 처럼 장소를
+            # 좁히는 말이면 넓히지 않도록 원문 값을 그대로 둔다.
+            rest = _SIDO_RE.sub("", _compact(strip_decorations(region))).strip("[]()「」｢｣")
+            only_sido = len(known_sido) == 1 and (not rest or bool(_REGION_PARTICLE_RE.match(rest)))
+            add("REGION", "REGION", operator="MATCH", value=known_sido[0] if only_sido else region)
         else:
             diagnostics.append({"code": "UNMAPPED_REGION", "raw": raw})
 

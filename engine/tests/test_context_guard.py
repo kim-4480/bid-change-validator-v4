@@ -157,3 +157,35 @@ def test_failed_call_or_missing_answer_is_unsure():
     slots = [{"유형": "지역요건", "raw": REGION_CLAUSE}]
     attach_clause_polarity(slots, structured_extract=lambda *_: {"clauses": []}, memory={})
     assert slots[0][POLARITY_KEY] == "UNSURE"
+
+
+def test_city_or_county_requirement_is_not_widened_to_its_province():
+    """시·군 한정 요건을 시·도로 넓혀 확정하면 자격 없는 회사에 '충족' 이 나간다(2026-10-06 표본)."""
+    raw = "가. 전기공사업(0037)을 등록한 업체로 본점소재지가「전남광주통합특별시 장흥군」에 있는 업체이어야 합니다."
+    for span in ("전남광주통합특별시 장흥군", "전남광주통합특별시"):   # 모델이 시·도만 짚어도 원문대로 좁힌다
+        requirements, _ = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": span}, "POSITIVE")
+        assert [(r.type, r.value) for r in requirements] == [("REGION", "전남광주통합특별시 장흥군")]
+
+    cities = "라. 본점 소재지를 수원시, 용인시, 화성시, 안산시, 의왕시에 둔 업체이어야 합니다."
+    requirements, _ = _adapt({"유형": "지역요건", "raw": cities, "지역_raw": "수원시, 용인시, 화성시, 안산시, 의왕시"}, "POSITIVE")
+    assert [(r.value, r.group_operator) for r in requirements] == [
+        (name, "ANY_OF") for name in ("수원시", "용인시", "화성시", "안산시", "의왕시")
+    ]
+
+    province = "본점 소재지가 강원도에 있는 업체"
+    requirements, _ = _adapt({"유형": "지역요건", "raw": province, "지역_raw": "강원도"}, "POSITIVE")
+    assert [r.value for r in requirements] == ["강원특별자치도"]       # 시·도뿐일 때만 정식 이름으로
+    narrower = "본점 소재지가 경기도 남부에 있는 업체"
+    requirements, _ = _adapt({"유형": "지역요건", "raw": narrower, "지역_raw": "경기도 남부"}, "POSITIVE")
+    assert [r.value for r in requirements] == ["경기도 남부"]          # 장소를 좁히는 말은 지우지 않는다
+
+
+def test_a_province_only_profile_cannot_satisfy_a_city_requirement():
+    from bidengine.judgment.rules import _region_relation
+
+    assert _region_relation("충청남도", "충청남도 보령시") == "too_coarse"    # 예전에는 문자열 포함으로 match
+    assert _region_relation("충청남도 보령시", "충청남도 보령시") == "match"
+    assert _region_relation("충청남도 보령시", "충청남도") == "match"
+    assert _region_relation("경상북도 봉화군", "봉화군") == "match"
+    assert _region_relation("충청남도 천안시", "충청남도 보령시") == "none"
+    assert _region_relation("서울특별시", "서울특별시 소재") == "match"       # 꾸밈말만 다른 같은 지역

@@ -414,11 +414,15 @@ def _region_relation(observed: str, required: object) -> str:
     obs, req = _norm(observed), _norm(required)
     if not obs or not req:
         return "none"
-    if _string_match(observed, required):
-        return "match"
     obs_key, req_key = _region_key(observed), _region_key(required)
     if obs_key and obs_key == req_key:
         # 꾸밈말만 다른 같은 지역. "종전 광주광역시" 와 "광주광역시(종전)".
+        return "match"
+    if obs_key and len(req_key) > len(obs_key) and req_key.startswith(obs_key):
+        # 프로필이 요건보다 넓다 — "충청남도" 로만 등록된 회사로는 "충청남도 보령시" 안인지 알 수 없다.
+        # 문자열 포함으로 맞다고 하면 자격 없는 회사에 '충족' 이 나간다(2026-10-06 표본).
+        return "too_coarse"
+    if _string_match(observed, required):
         return "match"
     if _REGION_PARENT.get(obs_key) == req_key:
         return "contained"
