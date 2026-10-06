@@ -685,6 +685,25 @@ def adapt_legacy_slot(
     """Map one validated extraction slot into zero or more canonical requirements."""
     slot_type = slot.get("유형")
     raw = (slot.get("raw") or "").strip()
+    if slot_type == "_CLOSED":
+        # 닫힌 값 먼저(closed_first): 코드가 사전으로 찾은 값과 모델이 정한 역할로 이미 정한 요건이다. 유형을
+        # 다시 고르거나 낱말 가드를 거치지 않는다. 대안 묶음(group)은 ANY_OF 로 담는다.
+        built: list[QualificationRequirement] = []
+        for index, item in enumerate(slot.get("_closed_requirements") or [], start=1):
+            group = item.get("group")
+            built.append(QualificationRequirement(
+                requirement_key=f"{key_prefix}-C{index:02d}",
+                requirement_group_key=f"{key_prefix}-G-{group}" if group else f"{key_prefix}-C{index:02d}-GROUP",
+                group_operator="ANY_OF" if group else "ALL_OF",
+                notice_version_id=notice_version_id,
+                type=item["type"],
+                operator="MATCH",
+                value=item["value"],
+                scope={**(item.get("scope") or {}), "guard": GUARD_ASSESSED, "guard_basis": "closed_first"},
+                condition_complexity="simple",
+                raw=raw,
+            ))
+        return built, [dict(d) for d in slot.get("_closed_diagnostics") or []]
     if slot_type == "기타요건" and slot.get("_clause_polarity") is not None and salvage_closed_identifier(raw) is None:
         region_span = salvage_region_span(raw)
         if region_span is not None:

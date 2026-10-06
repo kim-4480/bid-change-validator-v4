@@ -155,9 +155,23 @@ def analyze_qualification_documents(
     # "legacy": 자격 절 본문을 통째로 주고 모델이 경계와 원문까지 정한다(현재 기본값).
     # 지정하지 않으면 BIDENGINE_EXTRACTION_MODE 를 본다. 전환은 배포 설정으로 한다.
     mode = extraction_mode or os.getenv("BIDENGINE_EXTRACTION_MODE", "legacy")
-    if mode not in {"legacy", "clause"}:
+    if mode not in {"legacy", "clause", "closed_first"}:
         raise ValueError(f"알 수 없는 추출 방식: {mode}")
-    if mode == "clause":
+    if mode == "closed_first":
+        # 닫힌 값 먼저(B안): 닫힌 값은 코드가 사전으로 찾고, 모델은 조항마다 한 번 극성·값의 역할·열린 조건만 낸다.
+        from bidengine.labeling.closed_first import CLOSED_FIRST_VERSION, extract_closed_first
+
+        extraction = extract_closed_first(
+            chunks,
+            structured_extract=structured_extract,
+            industry_resolver=industry_resolver,
+            max_retry=max_retry,
+            clause_selection=clause_selection or os.getenv("BIDENGINE_CLAUSE_SELECTION", "hybrid").strip().lower(),
+            selection_memory=selection_memory,
+            memory=namespaced(labeling_memory, memory_namespace or "default", CLOSED_FIRST_VERSION)
+            if labeling_memory is not None else None,
+        )
+    elif mode == "clause":
         # 조항 선택 방식: code(제목·키워드) | hybrid(코드 ∪ 모델) | model(모델만). 지정하지 않으면
         # BIDENGINE_CLAUSE_SELECTION 을 본다(기본 code). clause 방식에서만 쓴다.
         extraction = extract_clause_slots(
@@ -185,7 +199,7 @@ def analyze_qualification_documents(
     use_polarity = (
         polarity_guard if polarity_guard is not None
         else os.getenv("BIDENGINE_POLARITY_GUARD", "off").strip().lower() == "on"
-    )
+    ) and mode != "closed_first"  # closed_first 는 극성을 같은 호출에서 받는다
     paths = section_paths(chunks) if use_polarity else {}
     if use_polarity:
         for slot in normalized_slots:
@@ -214,7 +228,7 @@ def analyze_qualification_documents(
                     {"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": "COMPOSITE_PARTY_RULE"}
                 )
 
-    if chunks:
+    if chunks and mode != "closed_first":  # closed_first 는 업종코드를 처음부터 원문에서 읽는다
         # 모델이 빠뜨린 업종코드 조항을 원문에서 채운다. 같은 공고를 반복해 돌리면 어떤
         # 실행에서는 업종 조항이 안 올라오거나, 올라와도 매핑이 못 푼다 — 원문의 숫자는
         # 그대로인데. 기준은 **요건으로 도달한 코드**다. 코드가 확신할 수 있는 것은 코드가
@@ -279,7 +293,7 @@ def analyze_qualification_documents(
                     for item in exempted
                 ])
 
-    if mode == "clause":
+    if mode in {"clause", "closed_first"}:
         # 조항마다 결과가 하나는 남아야 한다. 모델이 라벨을 붙이지 않은 조항은 '모델이 요건 아님으로 봄' 으로
         # 기록한다 — 법령 문구로 분류된 전주시 조항처럼 흔적 없이 사라지는 일을 막는다.
         def _compact(text: object) -> str:

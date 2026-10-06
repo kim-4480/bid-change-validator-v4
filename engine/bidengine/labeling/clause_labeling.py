@@ -87,20 +87,15 @@ def _body(clauses: list[Clause]) -> str:
 SELECTION_MODES = ("code", "hybrid", "model")
 
 
-def extract_clause_slots(
+def select_clauses(
     chunks: list[dict[str, Any]],
     *,
     structured_extract: StructuredExtractor,
     max_retry: int = 1,
     clause_selection: str = "code",
     selection_memory: MutableMapping[str, bool] | None = None,
-    labeling_memory: MutableMapping[str, list[dict[str, Any]]] | None = None,
-) -> dict[str, Any]:
-    """clause_selection
-      code   제목·키워드로 고른 자격 절의 조항 (기본)
-      hybrid 코드가 고른 조항 ∪ 모델이 문서 전체에서 고른 조항
-      model  모델이 고른 조항만. 모델이 아무것도 고르지 않거나 호출이 실패하면 코드 선택으로 돌아간다.
-    """
+) -> tuple[list[Clause], list[dict[str, Any]], dict[str, Any], str]:
+    """요건 후보 조항을 고른다(code | hybrid | model). (조항, 대상 청크, 결과 공통 필드, 조항 선택 메모)."""
     if clause_selection not in SELECTION_MODES:
         raise ValueError(f"알 수 없는 조항 선택 방식: {clause_selection}")
     target, selection_mode = select_eligibility_chunks_with_mode(chunks)
@@ -148,6 +143,28 @@ def extract_clause_slots(
         "clause_texts": [clause.text for clause in kept],
     }
 
+    return kept, target, base, selection_note
+
+
+def extract_clause_slots(
+    chunks: list[dict[str, Any]],
+    *,
+    structured_extract: StructuredExtractor,
+    max_retry: int = 1,
+    clause_selection: str = "code",
+    selection_memory: MutableMapping[str, bool] | None = None,
+    labeling_memory: MutableMapping[str, list[dict[str, Any]]] | None = None,
+) -> dict[str, Any]:
+    """clause_selection
+      code   제목·키워드로 고른 자격 절의 조항 (기본)
+      hybrid 코드가 고른 조항 ∪ 모델이 문서 전체에서 고른 조항
+      model  모델이 고른 조항만. 모델이 아무것도 고르지 않거나 호출이 실패하면 코드 선택으로 돌아간다.
+    """
+    kept, target, base, selection_note = select_clauses(
+        chunks, structured_extract=structured_extract, max_retry=max_retry,
+        clause_selection=clause_selection, selection_memory=selection_memory,
+    )
+    by_id = {clause.clause_id: clause for clause in kept}
     # 같은 조항은 같은 라벨 — 조항 원문을 열쇠로 처음 받은 라벨을 기억한다(labeling_memory).
     # 같은 공고를 다시 분석해도, 다음 차수에서 바뀌지 않은 조항도 모델에게 다시 묻지 않는다. 실행마다 같은 조항이
     # 업종/등록, 번호/이름, 있다/없다로 갈리던 흔들림(2026-10-06 가상 회사 시험)이 구조적으로 사라진다.

@@ -1,0 +1,393 @@
+"""닫힌 값 먼저(closed_first, B안): 닫힌 값은 코드가 찾고, 모델은 조항마다 한 번 그 값의 역할만 정한다.
+
+왜
+--
+조항 단위 추출(clause)에서는 모델이 슬롯 유형(업종/등록/면허/인증/지역/기타)을 고르고, 코드가 그 선택을 다시
+뒤집었다. 2026-10-06 세션의 수정 대부분이 "모델이 어떤 유형을 골랐든 원문에서 닫힌 값을 다시 읽는" 패치였다
+(업종 이름이 등록요건으로, 소재지 조항이 기타요건으로, 품명번호가 이름 문자열 속으로). 닫힌 값을 코드가 확정한다면
+모델에게 그 유형을 고르게 할 이유가 없다.
+
+흐름
+----
+1. 조항 고르기는 clause 방식과 같다(select_clauses).
+2. 코드가 조항에서 닫힌 값 후보를 사전으로 모두 찾는다 — 지역(시·도, 시·군·구), 업종코드(띄어 쓴 숫자 포함),
+   업종 이름(업종 사전), 품명번호(10자리), 기업 규모 낱말.
+3. 모델은 조항마다 한 번: 조항의 극성, 후보마다 역할(REQUIRED / ALTERNATIVE+group / EXCLUDED / NOT_RELATED),
+   그리고 후보로 표현되지 않는 열린 조건(실적·인력·인증·면허)만 낸다.
+4. 코드가 역할대로 요건을 만든다. 닫힌 값 요건은 유형 재분류와 낱말 가드를 거치지 않는다(_CLOSED 슬롯).
+   열린 조건만 기존 변환을 탄다.
+"""
+from __future__ import annotations
+
+import hashlib
+import re
+from collections.abc import MutableMapping
+from dataclasses import dataclass
+from typing import Any
+
+from bidengine.clauses.enumerate import Clause
+from bidengine.judgment.clause_safety import guard_reasons, strip_decorations
+from bidengine.judgment.context_guard import _NEGATION_VETO_RE
+from bidengine.labeling.clause_labeling import CLAUSE_SCHEMA, select_clauses
+from bidengine.labeling.clause_polarity import POLARITIES
+from bidengine.labeling.requirement_extraction import (
+    StructuredExtractor,
+    _notice_haystack,
+    _rejection_reason_code,
+    section_paths,
+    validate_extracted_slot,
+)
+from bidengine.normalization.region_vocab import SIGUNGU_PARENTS
+from bidengine.normalization.regions import SIDO_CANONICAL, find_regions
+from bidengine.ports import IndustryNameResolver
+from bidengine.requirements.legacy_slots import (
+    _NAMED_INDUSTRY_CODE_RE,
+    _PRODUCT_CODE_RE,
+    _PRODUCT_CONTEXT_RE,
+    _SIZE_WORD_RE,
+    _compact,
+    _size_text,
+    company_size_alias,
+    industry_code_for_name,
+    is_common_disqualification,
+    labelled_industry_codes,
+)
+
+CLOSED_FIRST_VERSION = "closed-first-v1"
+MAX_BODY_CHARS = 24_000
+ROLES = ("REQUIRED", "ALTERNATIVE", "EXCLUDED", "NOT_RELATED")
+_PARTY_CLAUSE_RE = re.compile(r"공동\s*(?:수급|계약|도급|이행)|분담\s*이행")
+_PARTY_PROCEDURE_RE = re.compile(r"협정서|제출|승인|서식|간주")
+_INDUSTRY_NAME_SPAN_RE = re.compile(r"[가-힣][가-힣·ㆍ∙․]{1,24}업")
+_REGION_NARROWING_RE = re.compile(r"(?:동|서|남|북|중)부|영동|영서|권역|도서지역")
+_PROCEDURAL_POLARITIES = {"NOT_REQUIREMENT", "EVALUATION"}
+
+
+@dataclass(frozen=True)
+class Candidate:
+    id: str
+    kind: str      # REGION | INDUSTRY | PRODUCT | SIZE
+    value: str     # 정규 값: "전북특별자치도 전주시", "1468", "4320140101", "소기업"
+    surface: str   # 원문에서 찾은 표기
+
+
+def scan_candidates(text: str, resolver: IndustryNameResolver | None) -> list[Candidate]:
+    """조항에서 닫힌 값 후보를 모두 찾는다. 요건인지는 모르는 채로 — 그 판단은 모델이 한다."""
+    found: list[tuple[str, str, str]] = []
+    plain = strip_decorations(text or "")
+    compact = _compact(text or "")
+
+    sidos, subs = find_regions(plain)
+    used_sidos: set[str] = set()
+    for sub in subs:
+        parents = {SIDO_CANONICAL.get(p, p) for p in SIGUNGU_PARENTS.get(sub, ())}
+        parent = next((s for s in sidos if s in parents), None)
+        if parent:
+            used_sidos.add(parent)
+        found.append(("REGION", f"{parent} {sub}" if parent else sub, sub))
+    for sido in sidos:
+        if sido not in used_sidos:
+            found.append(("REGION", sido, sido))
+
+    codes: dict[str, str] = {}
+    for code in sorted(labelled_industry_codes(text)):
+        codes.setdefault(code, f"업종코드 {code}")
+    for code in _NAMED_INDUSTRY_CODE_RE.findall(compact):
+        codes.setdefault(code, code)
+    for match in _INDUSTRY_NAME_SPAN_RE.finditer(plain):
+        code = industry_code_for_name(match.group(0), resolver)
+        if code:
+            codes.setdefault(code, match.group(0))
+    for code, surface in codes.items():
+        found.append(("INDUSTRY", code, surface))
+
+    if _PRODUCT_CONTEXT_RE.search(text or ""):
+        for code in dict.fromkeys(_PRODUCT_CODE_RE.findall(compact)):
+            found.append(("PRODUCT", code, code))
+
+    for word in dict.fromkeys(_SIZE_WORD_RE.findall(_size_text(text or ""))):
+        found.append(("SIZE", word, word))
+
+    seen: set[tuple[str, str]] = set()
+    out: list[Candidate] = []
+    for kind, value, surface in found:
+        if (kind, value) in seen:
+            continue
+        seen.add((kind, value))
+        out.append(Candidate(id=f"V{len(out) + 1}", kind=kind, value=value, surface=surface))
+    return out
+
+
+_KIND_LABEL = {"REGION": "지역", "INDUSTRY": "업종코드", "PRODUCT": "품명번호", "SIZE": "기업규모"}
+
+
+def _schema() -> dict[str, Any]:
+    open_item = CLAUSE_SCHEMA["schema"]["properties"]["clauses"]["items"]["properties"]["requirements"]["items"]
+    return {
+        "name": "closed_first",
+        "schema": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "clauses": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "properties": {
+                            "clause_id": {"type": "string"},
+                            "polarity": {"type": "string", "enum": list(POLARITIES)},
+                            "candidates": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": False,
+                                    "properties": {
+                                        "id": {"type": "string"},
+                                        "role": {"type": "string", "enum": list(ROLES)},
+                                        "group": {"type": "string"},
+                                    },
+                                    "required": ["id", "role", "group"],
+                                },
+                            },
+                            "open_requirements": {"type": "array", "items": open_item},
+                        },
+                        "required": ["clause_id", "polarity", "candidates", "open_requirements"],
+                    },
+                }
+            },
+            "required": ["clauses"],
+        },
+    }
+
+
+SCHEMA = _schema()
+
+SYSTEM_PROMPT = """너는 입찰공고의 참가자격 조항을 읽는 도구다. 조항은 [C001] 같은 id 로 주어지고, 각 조항에는 그것이 놓인 절의 위치와, 코드가 조항에서 찾은 값 후보(지역·업종코드·품명번호·기업규모)가 V1, V2 … 로 붙어 있다.
+
+조항마다 세 가지를 낸다.
+1. polarity: 조항이 업체에 무엇을 요구하는지.
+   - POSITIVE: 업체가 갖추어야 하는 자격을 정한다. 문장 속 '또는'·'다만'·괄호가 서류나 대상 범위를 설명할 뿐이면 POSITIVE 다.
+   - EXCLUSION: 해당하는 업체는 참가할 수 없다고 정한다.
+   - EXCEPTION: 단서·예외 때문에 일부 업체에는 요건이 적용되지 않거나 다른 것으로 갈음된다.
+   - EVALUATION: 참가 자격이 아니라 평가·심사·배점 기준이다.
+   - NOT_REQUIREMENT: 업체의 자격이 아니다(절차·일정·제출 서류, 납품 물품의 조건, 계약 후 과업 수행 조건, 투입 인력 조건).
+   - UNSURE: 분명하지 않다.
+2. candidates: 받은 후보마다 role 을 고른다. 받은 id 를 그대로 쓰고, 받은 후보는 모두 답한다.
+   - REQUIRED: 참가 업체가 갖추어야 하는 값이다(소재지, 등록 업종, 등록 물품, 기업 규모).
+   - ALTERNATIVE: '또는'으로 나열된 대안 중 하나다. 같은 대안 묶음끼리 같은 group 이름(G1, G2 …)을 쓴다.
+   - EXCLUDED: 이 값에 해당하면 참가할 수 없다(예: 대기업 참여 제한).
+   - NOT_RELATED: 요건과 무관하다(납품·수행 장소, 발주기관·학교 이름, 법령 이름 속 낱말, 평가 기준).
+   group 은 ALTERNATIVE 일 때만 쓰고, 나머지는 빈 문자열이다.
+3. open_requirements: 후보로 표현되지 않는 참가 자격만 낸다(실적, 인력, 인증·면허·등록 이름). 지역·업종·품명번호·기업규모는 후보로 이미 받았으므로 여기에 내지 않는다. 각 *_raw 필드는 그 조항 안의 연속된 구간을 그대로 복사한다. 없으면 빈 배열이다.
+
+규칙: 원문을 쓰지 않는다. 확신이 없으면 polarity 를 UNSURE 로 둔다. 받은 clause_id 를 그대로 쓴다."""
+
+
+def _key(section: str, text: str) -> str:
+    return hashlib.sha256((CLOSED_FIRST_VERSION + "\n" + section + "\n" + "".join((text or "").split())).encode("utf-8")).hexdigest()[:24]
+
+
+def _entry_body(clause_id: str, section: str, clause: Clause, candidates: list[Candidate]) -> str:
+    listed = "; ".join(f"{c.id} {_KIND_LABEL[c.kind]} {c.value}" + (f" (원문: {c.surface})" if c.surface != c.value else "") for c in candidates)
+    return f"[{clause_id}] 위치: {section or '알 수 없음'} | 후보: {listed or '없음'}\n{clause.text}"
+
+
+def _closed_requirements(polarity: str, text: str, candidates: list[Candidate], roles: dict[str, tuple[str, str]]) -> tuple[list[dict], list[dict]]:
+    """역할을 받은 후보로 요건(정의)과 진단을 만든다."""
+    reqs: list[dict] = []
+    diags: list[dict] = []
+    by_role = {role: [c for c in candidates if roles.get(c.id, ("NOT_RELATED", ""))[0] == role] for role in ROLES}
+
+    if polarity == "EXCLUSION":
+        excluded_sizes = [c.value for c in by_role["EXCLUDED"] if c.kind == "SIZE"]
+        if excluded_sizes and set(excluded_sizes) <= {"대기업", "중견기업"}:
+            reqs.append({"type": "COMPANY_SIZE", "value": " 및 ".join(excluded_sizes), "scope": {"restriction": "EXCLUDE"}})
+        else:
+            diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": "MODEL_POLARITY_EXCLUSION"})
+        return reqs, diags
+    if polarity != "POSITIVE":
+        diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": f"MODEL_POLARITY_{polarity}"})
+        return reqs, diags
+
+    wanted = by_role["REQUIRED"] + by_role["ALTERNATIVE"]
+    if wanted and _NEGATION_VETO_RE.search(strip_decorations(text)):
+        # 모델은 요구라는데 문장에 부정 낱말이 있다 — 이견이라 확정하지 않는다.
+        diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": "POLARITY_DISAGREEMENT"})
+        return reqs, diags
+
+    sizes = [c for c in wanted if c.kind == "SIZE"]
+    if sizes:
+        alias = company_size_alias(" ".join(c.value for c in sizes))
+        if alias:
+            reqs.append({"type": "COMPANY_SIZE", "value": alias, "scope": {}})
+        else:
+            diags.append({"code": "UNMAPPED_COMPANY_SIZE", "raw": text, "reason": "SIZE_UNION_UNKNOWN"})
+
+    def build(c: Candidate) -> dict | None:
+        if c.kind == "REGION":
+            if _REGION_NARROWING_RE.search(text) and " " not in c.value:
+                diags.append({"code": "UNMAPPED_REGION", "raw": text, "reason": "REGION_NARROWED"})
+                return None
+            return {"type": "REGION", "value": c.value, "scope": {}}
+        if c.kind == "INDUSTRY":
+            return {"type": "INDUSTRY", "value": c.value, "scope": {"industry_name": c.surface}}
+        if c.kind == "PRODUCT":
+            return {"type": "REGISTRATION_CERTIFICATION", "value": c.value, "scope": {"kind": "REGISTRATION", "source_name": c.surface}}
+        return None
+
+    for c in by_role["REQUIRED"]:
+        item = build(c)
+        if item:
+            reqs.append(item)
+    groups: dict[str, list[Candidate]] = {}
+    for c in by_role["ALTERNATIVE"]:
+        if c.kind != "SIZE":
+            groups.setdefault(roles[c.id][1] or "G", []).append(c)
+    for name, members in groups.items():
+        built = [b for b in (build(c) for c in members) if b]
+        if len(built) == 1:
+            reqs.append(built[0])
+        elif built:
+            reqs.extend({**b, "group": name} for b in built)
+    return reqs, diags
+
+
+def extract_closed_first(
+    chunks: list[dict[str, Any]],
+    *,
+    structured_extract: StructuredExtractor,
+    industry_resolver: IndustryNameResolver | None = None,
+    max_retry: int = 1,
+    clause_selection: str = "hybrid",
+    selection_memory: MutableMapping[str, bool] | None = None,
+    memory: MutableMapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    kept, target, base, selection_note = select_clauses(
+        chunks, structured_extract=structured_extract, max_retry=max_retry,
+        clause_selection=clause_selection, selection_memory=selection_memory,
+    )
+    paths = section_paths(chunks)
+    known: MutableMapping[str, Any] = memory if memory is not None else {}
+    notice_text = _notice_haystack(target)
+
+    prepared = []
+    for clause in kept:
+        section = paths.get(str(clause.chunk_id), "")
+        prepared.append((clause, section, scan_candidates(clause.text, industry_resolver), _key(section, clause.text)))
+
+    pending = [item for item in prepared if item[3] not in known]
+    answers: dict[str, dict] = {}
+    last_error = ""
+    failed = False
+    batch: list = []
+    size = 0
+
+    def flush() -> None:
+        nonlocal batch, size, last_error, failed
+        if not batch:
+            return
+        ids = {f"C{index:03d}": item for index, item in enumerate(batch, start=1)}
+        body = "\n\n".join(_entry_body(cid, item[1], item[0], item[2]) for cid, item in ids.items())
+        result = None
+        for _attempt in range(max_retry + 1):
+            try:
+                result = structured_extract(SYSTEM_PROMPT, body, SCHEMA)
+                break
+            except Exception as error:  # noqa: BLE001 - 호출 실패는 결과 상태로 알린다
+                last_error = f"구조화 추출 호출 실패: {type(error).__name__}"
+        if result is None:
+            failed = True
+        else:
+            for entry in (result.get("clauses") or []) if isinstance(result, dict) else []:
+                item = ids.get(str(entry.get("clause_id") or ""))
+                if item is not None:
+                    answers[item[3]] = {
+                        "polarity": entry.get("polarity") if entry.get("polarity") in POLARITIES else "UNSURE",
+                        "roles": {str(c.get("id")): [c.get("role") if c.get("role") in ROLES else "NOT_RELATED", str(c.get("group") or "")]
+                                  for c in entry.get("candidates") or []},
+                        "open": [dict(x) for x in entry.get("open_requirements") or []],
+                    }
+            for cid, item in ids.items():  # 응답에 없는 조항은 '요건 아님'
+                answers.setdefault(item[3], {"polarity": "NOT_REQUIREMENT", "roles": {}, "open": []})
+        batch, size = [], 0
+
+    for item in pending:
+        length = len(item[0].text) + 60 * (len(item[2]) + 1)
+        if batch and size + length > MAX_BODY_CHARS:
+            flush()
+        batch.append(item)
+        size += length
+    flush()
+    if failed and not answers and pending:
+        return {**base, "slots": [], "dropped_requirements": [], "status": "failed", "notes": last_error,
+                "candidate_count": 0, "clause_texts": [c.text for c in kept]}
+
+    slots: list[dict[str, Any]] = []
+    rejected: list[dict[str, str]] = []
+    candidates_total = 0
+    for clause, section, candidates, key in prepared:
+        answer = known[key] if key in known else answers.get(key)
+        if answer is None:  # 호출 실패로 답이 없는 조항
+            slots.append({"유형": "_CLOSED", "raw": clause.text, "_closed_requirements": [],
+                          "_closed_diagnostics": [{"code": "UNMAPPED_REQUIREMENT", "raw": clause.text, "reason": "MODEL_POLARITY_UNSURE"}],
+                          "_clause_id": clause.clause_id, "_source_chunk_id": clause.chunk_id, "_source_blocks": list(clause.source_blocks)})
+            continue
+        polarity = answer["polarity"]
+        roles = {cid: (role, group) for cid, (role, group) in answer["roles"].items()}
+        source = {"_clause_id": clause.clause_id, "_source_chunk_id": clause.chunk_id, "_source_blocks": list(clause.source_blocks),
+                  "_section_path": section, "근거조항": None}
+        if _PARTY_CLAUSE_RE.search(clause.text) and not _PARTY_PROCEDURE_RE.search(clause.text):
+            slots.append({"유형": "_CLOSED", "raw": clause.text, "_closed_requirements": [],
+                          "_closed_diagnostics": [{"code": "UNMAPPED_REQUIREMENT", "raw": clause.text, "reason": "COMPOSITE_PARTY_RULE"}], **source})
+            continue
+        reqs, diags = _closed_requirements(polarity, clause.text, candidates, roles)
+
+        clause_rejected = False
+        open_slots = []
+        closed_values = {c.value for c in candidates}
+        for labelled in answer["open"] if polarity == "POSITIVE" else []:
+            if labelled.get("유형") in {"지역요건", "업종요건", "기업규모요건"}:
+                continue
+            name = str(labelled.get("등록인증_raw") or "")
+            if name and any(v in _compact(name) for v in closed_values if v.isdigit()):
+                continue  # 후보로 이미 담은 번호
+            slot = {**dict(labelled), "raw": clause.text, **source, "_clause_polarity": "POSITIVE"}
+            candidates_total += 1
+            valid, reason, _chunk = validate_extracted_slot(slot, target, notice_text=notice_text)
+            if not valid:
+                clause_rejected = True
+                rejected.append({"raw": clause.text, "reason_code": _rejection_reason_code(reason)})
+                continue
+            open_slots.append(slot)
+
+        if not reqs and not diags and not open_slots and polarity == "POSITIVE":
+            # 요구라는데 담을 값이 없다 — 공통 결격·법령 절차면 제외로, 아니면 표현 못 한 요건(공백)으로 남긴다.
+            if is_common_disqualification(clause.text):
+                diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": clause.text, "reason": "COMMON_DISQUALIFICATION"})
+            elif "LEGAL_PROCEDURAL_RULE" in guard_reasons(clause.text):
+                diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": clause.text, "reason": "LEGAL_PROCEDURAL_RULE"})
+            else:
+                diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": clause.text})
+        if reqs or diags:
+            slots.append({"유형": "_CLOSED", "raw": clause.text, "_closed_requirements": reqs, "_closed_diagnostics": diags, **source})
+        slots.extend(open_slots)
+        candidates_total += len(reqs)
+        if key not in known and key in answers and not clause_rejected:
+            known[key] = answers[key]  # 검증을 통과한 답만 기억한다
+
+    notes = [selection_note] if selection_note else []
+    if rejected:
+        notes.append(f"검증 탈락 {len(rejected)}건")
+    if base["input_truncated"]:
+        notes.append("입력 길이 제한으로 뒤쪽 조항을 분석하지 못했습니다.")
+    return {
+        **base,
+        "slots": slots,
+        "dropped_requirements": rejected,
+        "status": "partial" if rejected or base["input_truncated"] or failed else "ok",
+        "notes": " ".join(notes) + (f" {last_error}" if failed else ""),
+        "candidate_count": candidates_total,
+        "clause_texts": [clause.text for clause in kept],
+        "labels_reused": len(prepared) - len(pending),
+    }
