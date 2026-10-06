@@ -40,7 +40,7 @@ from polarity_guard_probe import CONFIG, FirstAnswerMemory, RetryingExtractor, _
 REFERENCE_DATE = date(2026, 10, 6)
 
 
-def _run(version: SampleVersion, profile: CompanyProfileSnapshot, mode: str, model: str, run: int,
+def _run(version: SampleVersion, profile: CompanyProfileSnapshot, expects: bool, mode: str, model: str, run: int,
          polarity_memory: FirstAnswerMemory, selection_memory: FirstAnswerMemory,
          labeling_memory: FirstAnswerMemory | None) -> dict:
     polarity_guard, clause_selection = CONFIG[mode]
@@ -67,8 +67,9 @@ def _run(version: SampleVersion, profile: CompanyProfileSnapshot, mode: str, mod
         )
     except Exception as error:  # noqa: BLE001
         return {"version": version.label, "mode": mode, "run": run, "error": repr(error)[:300]}
-    if not result.requirements:
+    if not result.requirements and expects:
         # 모델 호출이 전부 실패해도(키 없음 등) 요건 0건이 '틀린 미달 0' 으로 세어진다. 실패로 남긴다.
+        # 정답에도 요건이 없는 공고(민간 보조사업 구매처럼 참가자격 조항이 없는 공고)는 0건이 맞다.
         return {"version": version.label, "mode": mode, "run": run, "error": f"요건 0건 (상태 {result.status})"}
     by_key = {r.requirement_key: r for r in result.requirements}
     judgments = []
@@ -156,7 +157,8 @@ def main() -> None:
     else:
         polarity_memory, selection_memory = FirstAnswerMemory(), FirstAnswerMemory()
         labeling_memory = None if args.no_labeling_memory else FirstAnswerMemory()
-        jobs = [(versions[label], profiles[label], mode, args.model, run, polarity_memory, selection_memory, labeling_memory)
+        jobs = [(versions[label], profiles[label], bool(labels[label].get("core")), mode, args.model, run,
+                 polarity_memory, selection_memory, labeling_memory)
                 for label in versions for mode in args.modes for run in range(args.runs)]
         print(f"notices={len(versions)} calls={len(jobs)}")
         with ThreadPoolExecutor(max_workers=args.workers) as pool:
