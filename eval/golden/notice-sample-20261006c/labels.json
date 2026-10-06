@@ -497,6 +497,10 @@
     {
      "reason": "evaluation",
      "phrase": "창업기업"
+    },
+    {
+     "reason": "not_requirement",
+     "phrase": "사업관리자(PM)는 공고일"
     }
    ],
    "ideal_profile": {

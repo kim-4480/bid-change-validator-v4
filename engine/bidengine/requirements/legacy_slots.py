@@ -372,7 +372,9 @@ def is_common_disqualification(raw: str) -> bool:
     compact = _compact(raw)
     if not _COMMON_DISQUALIFICATION_RE.search(" ".join((raw or "").split())):
         return False
-    if sido_names(raw) or _SIZE_WORD_RE.search(_size_text(raw)):
+    # 지역은 시·도뿐 아니라 시·군·구 이름도 본다. "제92조에 해당되지 않으며, … 소재지가 전주시인 업체" 를
+    # 시·도 이름만 보고 공통 결격으로 버려, 전주시 요건이 공백 기록도 없이 사라졌다(2026-10-06 세 번째 표본).
+    if any(find_regions(strip_decorations(raw))) or _SIZE_WORD_RE.search(_size_text(raw)):
         return False
     return not (_INDUSTRY_CODE_RE.search(compact) or _NAMED_INDUSTRY_CODE_RE.search(compact) or _PRODUCT_CODE_RE.search(compact))
 
@@ -593,6 +595,7 @@ def adapt_legacy_slot(
         slot.get("_clause_polarity"),
         exclusion_representable=bool(excluded_sizes)
         or (slot_type == "기업규모요건" and bool(_SIZE_EXCLUSION_RE.search(raw))),
+        closed_value=slot_type == "지역요건" and any(find_regions(strip_decorations(slot.get("지역_raw") or ""))),
     )
     has_polarity = slot.get("_clause_polarity") is not None
     if context.action == "ABSTAIN":

@@ -230,3 +230,23 @@ def test_a_sub_region_followed_by_a_copula_becomes_a_region_requirement():
     raw = "가. 견적제출 공고일 전일부터 법인등기부상 본점 소재지가 전주시인 업체로서 계약체결일까지 유지되어야 합니다."
     requirements, _ = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": "전주시인 업체"}, "POSITIVE")
     assert [r.value for r in requirements] and all("전주시" in r.value for r in requirements)
+
+
+def test_a_common_disqualification_clause_with_a_sub_region_is_not_common():
+    from bidengine.requirements.legacy_slots import is_common_disqualification
+
+    raw = ("가. 지방자치단체를 당사자로 하는 계약에 관한 법률 시행령 제13조의 자격을 갖추고, 동법 시행령 제92조에 해당되지 "
+           "않으며, 견적제출 공고일 전일부터 법인등기부상 본점 소재지가 전주시인 업체로서 계약체결일까지 유지되어야 합니다.")
+    assert not is_common_disqualification(raw)
+    assert is_common_disqualification("나. 부정당업자로 제재 중인 자는 참가할 수 없습니다.")
+
+
+def test_a_positive_region_clause_citing_statutes_is_not_procedural():
+    raw = ("가. 지방자치단체를 당사자로 하는 계약에 관한 법률 시행령 제13조 및 같은법 시행규칙 제14조의 자격을 갖추고, "
+           "동법 시행령 제92조에 해당되지 않으며, 견적제출 공고일 전일부터 법인등기부상 본점 소재지가 전주시인 업체로서 "
+           "견적제출일까지 당해 자격이 계속 유지되어야 합니다.")
+    requirements, _ = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": "전주시"}, "POSITIVE")
+    assert [r.type for r in requirements] == ["REGION"] and "전주시" in requirements[0].value
+    # 지역 이름이 없는 값이면 예전처럼 절차 문구다
+    requirements, diagnostics = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": "해당 지역"}, "POSITIVE")
+    assert requirements == []
