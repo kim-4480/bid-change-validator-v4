@@ -196,3 +196,21 @@ def test_failed_call_is_not_remembered():
 
     result = extract_clause_slots([CHUNK], structured_extract=broken, labeling_memory=memory, max_retry=0)
     assert result["status"] == "failed" and memory == {}
+
+
+def test_a_label_that_fails_validation_is_not_remembered():
+    """원문에 없는 문구를 적은 답은 탈락한다. 그 답을 기억하면 이후 분석이 모두 같은 탈락을 되풀이한다."""
+    from bidengine.labeling.clause_labeling import clause_label_key
+
+    def invented(system, body, schema):
+        return {"clauses": [
+            {"clause_id": "C003", "requirements": [_slot("지역요건", 지역_raw="부산광역시")]},   # 원문에 없다
+            {"clause_id": "C004", "requirements": [_slot("기업규모요건", 기업규모_raw="대기업 및 중견기업")]},
+        ]}
+
+    memory: dict = {}
+    result = extract_clause_slots([CHUNK], structured_extract=invented, labeling_memory=memory)
+    clauses = {c.clause_id: c.text for c in enumerate_clauses([CHUNK])}
+    assert result["dropped_requirements"]
+    assert clause_label_key(clauses["C003"]) not in memory
+    assert clause_label_key(clauses["C004"]) in memory

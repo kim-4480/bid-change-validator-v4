@@ -153,6 +153,7 @@ def extract_clause_slots(
     pending = [clause for clause in kept if clause_label_key(clause.text) not in known]
     last_error = ""
     unknown_ids = 0
+    fresh: dict[str, list[dict[str, Any]]] = {}
     answered = not pending
     for _attempt in range(max_retry + 1):
         if answered:
@@ -170,9 +171,9 @@ def extract_clause_slots(
                 unknown_ids += 1
                 continue
             labels[clause_id].extend(dict(item) for item in entry.get("requirements") or [])
-        # 응답에 없는 조항은 "요건 아님"(빈 라벨)이다 — 그것도 기억한다.
+        # 응답에 없는 조항은 "요건 아님"(빈 라벨)이다. 기억은 검증을 통과한 뒤에 한다(아래).
         for clause_id, clause in pending_ids.items():
-            known[clause_label_key(clause.text)] = labels[clause_id]
+            fresh[clause_label_key(clause.text)] = labels[clause_id]
         answered = True
     if not answered:
         return {**base, "slots": [], "dropped_requirements": [], "status": "failed", "notes": last_error, "candidate_count": 0}
@@ -182,8 +183,10 @@ def extract_clause_slots(
     rejected: list[dict[str, str]] = []
     candidates = 0
     for clause in kept:
-        # 기억에서 읽는다 — 여러 실행이 동시에 물었어도 처음 기억된 라벨 하나를 쓴다.
-        for labelled in known.get(clause_label_key(clause.text), []):
+        # 기억에서 읽는다 — 여러 실행이 동시에 물었어도 처음 기억된 라벨 하나를 쓴다. 없으면 이번 답.
+        key = clause_label_key(clause.text)
+        clause_rejected = False
+        for labelled in known[key] if key in known else fresh.get(key, []):
             candidates += 1
             slot = dict(labelled)
             slot["raw"] = clause.text
@@ -196,11 +199,16 @@ def extract_clause_slots(
                     record["detail_field"] = str(detail.get("field") or "")
                     record["detail_value"] = str(detail.get("value") or "")
                 rejected.append(record)
+                clause_rejected = True
                 continue
             slot["_clause_id"] = clause.clause_id
             slot["_source_chunk_id"] = clause.chunk_id
             slot["_source_blocks"] = list(clause.source_blocks)
             accepted.append(slot)
+        if key in fresh and key not in known and not clause_rejected:
+            # 검증을 통과한 라벨만 기억한다. 원문에 없는 문구를 적어 탈락한 답을 기억하면, 그 조항은 이후 모든
+            # 분석에서 같은 탈락을 되풀이한다(2026-10-06 네 번째 표본의 실적 조항). 탈락한 조항은 다음에 다시 묻는다.
+            known[key] = fresh[key]
 
     notes = [selection_note] if selection_note else []
     if rejected:
