@@ -558,7 +558,7 @@ def adapt_legacy_slot(
     has_polarity = slot.get("_clause_polarity") is not None
     if context.action == "ABSTAIN":
         reason = context.reason
-        if reason != "MODEL_POLARITY_NOT_REQUIREMENT" and is_common_disqualification(raw):
+        if reason not in ("MODEL_POLARITY_NOT_REQUIREMENT", "MODEL_POLARITY_EVALUATION") and is_common_disqualification(raw):
             reason = "COMMON_DISQUALIFICATION"
         return [], [{"code": "UNMAPPED_REQUIREMENT", "raw": raw, "reason": reason}]
     guard_lifted = context.action == "KEEP"

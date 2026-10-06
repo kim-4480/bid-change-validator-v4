@@ -33,7 +33,7 @@ from bidengine.labeling.code_salvage import exception_guarded_codes, salvage_mis
 from bidengine.judgment.clause_safety import GUARD_ASSESSED, GUARD_REASON_EXCEPTION
 from bidengine.labeling.clause_labeling import extract_clause_slots
 from bidengine.labeling.clause_polarity import attach_clause_polarity
-from bidengine.labeling.requirement_extraction import StructuredExtractor, extract_legacy_slots
+from bidengine.labeling.requirement_extraction import StructuredExtractor, extract_legacy_slots, section_paths
 from bidengine.ports import IndustryNameResolver
 
 ValueNormalizer = Callable[[str], dict[str, Any]]
@@ -172,7 +172,10 @@ def analyze_qualification_documents(
         polarity_guard if polarity_guard is not None
         else os.getenv("BIDENGINE_POLARITY_GUARD", "off").strip().lower() == "on"
     )
+    paths = section_paths(chunks) if use_polarity else {}
     if use_polarity:
+        for slot in normalized_slots:
+            slot["_section_path"] = paths.get(str(slot.get("_source_chunk_id")), "")
         attach_clause_polarity(
             normalized_slots, structured_extract=structured_extract, memory=polarity_memory, max_retry=max_retry
         )
@@ -216,6 +219,8 @@ def analyze_qualification_documents(
         if salvaged:
             salvaged = _normalize_extracted_slots(salvaged, normalize_value=normalize_value)
             if use_polarity:
+                for slot in salvaged:
+                    slot["_section_path"] = paths.get(str(slot.get("_source_chunk_id")), "")
                 attach_clause_polarity(
                     salvaged, structured_extract=structured_extract, memory=polarity_memory, max_retry=max_retry
                 )

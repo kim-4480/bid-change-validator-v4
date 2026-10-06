@@ -188,3 +188,43 @@ def test_construction_work_name_with_a_code_is_an_industry_code():
     year = "가. 체육관 증축공사(2026) 설계 실적이 있는 업체"
     requirements, _ = _adapt({"유형": "등록요건", "raw": year, "등록인증_raw": "증축공사 설계"}, "POSITIVE")
     assert not any(r.type == "INDUSTRY" for r in requirements)
+
+
+def test_section_path_tells_evaluation_items_from_requirements():
+    from bidengine.labeling.clause_polarity import attach_clause_polarity
+    from bidengine.labeling.requirement_extraction import section_paths
+
+    chunks = [
+        _chunk(0, "2", "2. 입찰참가자격"),
+        _chunk(1, "가", "가. 최근 3년 콜센터 운영 실적이 있는 업체"),
+        _chunk(2, "5", "5. 제안서 평가"),
+        _chunk(3, "가", "가. 평가항목"),
+        _chunk(4, None, "최근 3년 콜센터 운영 실적 6점"),
+    ]
+    paths = section_paths(chunks)
+    assert paths["K1"] == "2. 입찰참가자격"
+    assert paths["K4"] == "5. 제안서 평가 > 가. 평가항목"
+
+    bodies = []
+
+    def extractor(_system, body, _schema):
+        bodies.append(body)
+        return {"clauses": [{"clause_id": "P001", "polarity": "POSITIVE"}, {"clause_id": "P002", "polarity": "EVALUATION"}]}
+
+    slots = [{"유형": "실적요건", "raw": "최근 3년 콜센터 운영 실적", "_section_path": paths["K1"]},
+             {"유형": "실적요건", "raw": "최근 3년 콜센터 운영 실적", "_section_path": paths["K4"]}]
+    attach_clause_polarity(slots, structured_extract=extractor, memory={})
+    assert "위치: 5. 제안서 평가 > 가. 평가항목" in bodies[0]
+    assert [slot[POLARITY_KEY] for slot in slots] == ["POSITIVE", "EVALUATION"]   # 같은 문장, 다른 위치, 다른 답
+
+
+def test_evaluation_item_is_procedural_not_a_coverage_gap():
+    raw = "최근 3년간 콜센터 운영 실적 100% 이상 배점의 100%"
+    _requirements, diagnostics = _adapt({"유형": "실적요건", "raw": raw}, "EVALUATION")
+    assert diagnostics[0]["reason"] == "MODEL_POLARITY_EVALUATION"
+    result = build_requirement_analysis_result(
+        notice_id="n", notice_version_id="v", document_ids=["d"],
+        canonicalized={"requirements": [], "evidence": [], "diagnostics": diagnostics},
+        section_selection="anchored", candidate_count=1,
+    )
+    assert result.coverage.procedural == 1 and result.coverage.unrepresentable == 0

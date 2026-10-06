@@ -246,6 +246,29 @@ def _is_eligibility_section_anchor(chunk: dict[str, Any]) -> bool:
 SelectionMode = str  # "anchored" | "keyword_fallback" | "whole_document"
 
 
+def section_paths(chunks: list[dict[str, Any]]) -> dict[str, str]:
+    """청크마다 그것이 놓인 절의 제목 경로("5. 제안서 평가 > 가. 평가항목"). 문서가 바뀌면 처음부터.
+
+    같은 "최근 3년 콜센터 운영 실적" 도 자격 절에 있으면 참가 요건이고 평가 기준표에 있으면 점수 항목이다.
+    조항 문장만으로는 가를 수 없어 극성 판별에 이 경로를 함께 넘긴다.
+    """
+    paths: dict[str, str] = {}
+    stack: list[tuple[int, str]] = []
+    document: str | None = None
+    for chunk in chunks:
+        current = _chunk_document_id(chunk)
+        if current != document:
+            stack, document = [], current
+        rank = _label_rank(chunk)
+        if rank is not None:
+            while stack and stack[-1][0] >= rank:
+                stack.pop()
+        paths[str(chunk.get("chunk_id"))] = " > ".join(heading for _rank, heading in stack)
+        if rank is not None:
+            stack.append((rank, " ".join(_heading_text(chunk).split())[:40]))
+    return paths
+
+
 def select_eligibility_chunks(chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Select eligibility sections and their children without crossing documents."""
     return select_eligibility_chunks_with_mode(chunks)[0]
