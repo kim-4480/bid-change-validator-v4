@@ -1,0 +1,99 @@
+{
+ "note": "원문 대조로 정한 차수 쌍별 자격 변경. 여기 없는 차수 쌍은 문서가 같거나 일정·공고번호만 바뀌어 자격 변경이 없다(정답: 변경 0). kind: REMOVED 는 이전 차수 값, ADDED 는 다음 차수 값, CHANGED 는 다음 차수에 그 값이 생기거나 바뀜.",
+ "pairs": [
+  {
+   "before": "R26BK01711600-000",
+   "after": "R26BK01711600-001",
+   "changes": [
+    {
+     "kind": "REMOVED",
+     "type": "REGION",
+     "value": "강원"
+    }
+   ]
+  },
+  {
+   "before": "R26BK01687326-000",
+   "after": "R26BK01687326-001",
+   "changes": [
+    {
+     "kind": "ADDED",
+     "type": "INDUSTRY",
+     "value": "4440"
+    },
+    {
+     "kind": "ADDED",
+     "type": "INDUSTRY",
+     "value": "4444"
+    },
+    {
+     "kind": "ADDED",
+     "type": "REGISTRATION_CERTIFICATION",
+     "value": "8214150201"
+    },
+    {
+     "kind": "REMOVED",
+     "type": "INDUSTRY",
+     "value": "9901"
+    },
+    {
+     "kind": "REMOVED",
+     "type": "REGISTRATION_CERTIFICATION",
+     "value": "8014199001"
+    },
+    {
+     "kind": "REMOVED",
+     "type": "REGISTRATION_CERTIFICATION",
+     "value": "9015189001"
+    }
+   ]
+  },
+  {
+   "before": "R26BK01687326-001",
+   "after": "R26BK01687326-002",
+   "changes": [
+    {
+     "kind": "ADDED",
+     "type": "INDUSTRY",
+     "value": "9901"
+    },
+    {
+     "kind": "ADDED",
+     "type": "REGISTRATION_CERTIFICATION",
+     "value": "8014199001"
+    },
+    {
+     "kind": "ADDED",
+     "type": "REGISTRATION_CERTIFICATION",
+     "value": "9015189001"
+    },
+    {
+     "kind": "REMOVED",
+     "type": "INDUSTRY",
+     "value": "4440"
+    },
+    {
+     "kind": "REMOVED",
+     "type": "INDUSTRY",
+     "value": "4444"
+    },
+    {
+     "kind": "REMOVED",
+     "type": "REGISTRATION_CERTIFICATION",
+     "value": "8214150201"
+    }
+   ]
+  },
+  {
+   "before": "R26BK01711324-000",
+   "after": "R26BK01711324-001",
+   "changes": [
+    {
+     "kind": "CHANGED",
+     "type": "COMPANY_SIZE",
+     "value": "소기업"
+    }
+   ]
+  }
+ ]
+}
