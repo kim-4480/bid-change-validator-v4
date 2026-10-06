@@ -395,8 +395,8 @@ def excluded_company_sizes(raw: str) -> list[str]:
 # 시·도 아래의 시·군·구. 이름 끝이 시·군·구인 2~6자 낱말이다. 시·도 이름(…특별시·광역시·특별자치시)은 뺀다.
 
 
-# 지역 값에 붙는 서술 낱말. 이것만 남으면 시·도 요건이다("경상남도에 있고" → 경상남도).
-_REGION_FILLER_WORDS = frozenset({"있고", "있는", "둔", "두고", "소재", "소재한", "소재하는", "위치한", "업체", "자", "내", "안", "관내"})
+# 시·도 안을 좁히는 말. 이것이 있으면 시·도로 정규화하지 않는다("경상남도 남부", "강원 영동지역", "수도권").
+_REGION_NARROWING_RE = re.compile(r"^(?:동|서|남|북|중)부|^(?:영동|영서|영남|호남|도서|해안|내륙)|권$")
 
 
 def find_regions_tokens(text: str) -> list[str]:
@@ -892,12 +892,18 @@ def adapt_legacy_slot(
             # 값 구간이 시·도 이름 하나로만 이뤄졌을 때만 정식 이름으로 정규화한다("강원도" → "강원특별자치도").
             # 시·도 뒤에 남은 말이 조사·서술어("에 있고", "내 소재")면 시·도 요건이고, "남부"·"영동지역" 처럼 장소를
             # 좁히는 말이면 넓히지 않도록 원문 값을 그대로 둔다.
-            # 조사를 걷어낸 낱말이 전부 그 시·도 이름이면 시·도 요건이다.
+            # 지역은 이름으로만 본다. 값 구간에 시·도 이름이 하나뿐이고 그 시·도 안을 좁히는 말(남부·영동 같은
+            # 방위·권역)이 없으면 시·도 요건이다 — "90일 이상 계속하여 경상남도에 둔 자(…)", "주된 사업소(본사)가
+            # 서울특별시인 업체(지사투찰 불가)", "지역제한(경상남도)" 의 남은 말은 서술이지 장소가 아니다.
+            # (그대로 두면 같은 요건이 실행마다 다른 값이 되어 중복·흔들림이 된다 — 2026-10-06 세 번째 표본.)
+            names = known_sido or [name for name in sido_names(region) if name != "미상 시·도"]
             words = [w for w in find_regions_tokens(region) if w]
-            only_sido = len(known_sido) == 1 and bool(words) and all(
-                SIDO_CANONICAL.get(w) == known_sido[0] or w in _REGION_FILLER_WORDS for w in words
-            )
-            add("REGION", "REGION", operator="MATCH", value=known_sido[0] if only_sido else region)
+            narrowed = any(_REGION_NARROWING_RE.search(w) for w in words if w not in SIDO_CANONICAL)
+            if narrowed:
+                # 시·도 안의 일부(남부·영동)다. 이름으로 판정하면 그 시·도 전체가 '충족' 이 되어 넓혀 확정하게 된다.
+                diagnostics.append({"code": "UNMAPPED_REGION", "raw": raw, "reason": "REGION_NARROWED"})
+                return requirements, diagnostics
+            add("REGION", "REGION", operator="MATCH", value=names[0] if len(names) == 1 else region)
         else:
             diagnostics.append({"code": "UNMAPPED_REGION", "raw": raw})
 

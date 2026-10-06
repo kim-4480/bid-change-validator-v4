@@ -179,7 +179,7 @@ def test_city_or_county_requirement_is_not_widened_to_its_province():
     assert [r.value for r in requirements] == ["강원특별자치도"]       # 시·도뿐일 때만 정식 이름으로
     narrower = "본점 소재지가 경기도 남부에 있는 업체"
     requirements, _ = _adapt({"유형": "지역요건", "raw": narrower, "지역_raw": "경기도 남부"}, "POSITIVE")
-    assert [r.value for r in requirements] == ["경기도 남부"]          # 장소를 좁히는 말은 지우지 않는다
+    assert [r.value for r in requirements] == []  # 좁히는 말이 있으면 확정하지 않는다 — 이름 판정은 경기도 전체가 된다
 
 
 def test_a_province_only_profile_cannot_satisfy_a_city_requirement():
@@ -250,3 +250,18 @@ def test_a_positive_region_clause_citing_statutes_is_not_procedural():
     # 지역 이름이 없는 값이면 예전처럼 절차 문구다
     requirements, diagnostics = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": "해당 지역"}, "POSITIVE")
     assert requirements == []
+
+
+@pytest.mark.parametrize(("raw", "span", "expected"), [
+    ("② 본점 소재지를 90일 이상 계속하여 경상남도에 둔 자(낙찰자는 계약체결일까지 유지)이어야 합니다.",
+     "90일 이상 계속하여 경상남도에 둔 자(낙찰자는 계약체결일까지 유지)", ["경상남도"]),
+    ("라. 입찰 공고일 현재 주된 사업소(본사)가 서울특별시인 업체(지사투찰 불가)",
+     "주된 사업소(본사)가 서울특별시인 업체(지사투찰 불가)", ["서울특별시"]),
+    ("3) 본 공사는 지역제한(경상남도) 대상 공사입니다.", "지역제한(경상남도)", ["경상남도"]),
+    # 시·도 안을 좁히는 말이 있으면 확정하지 않는다(넓혀 확정하지 않는다)
+    ("본점 소재지가 경상남도 남부에 있는 업체", "경상남도 남부", []),
+    ("본점이 강원특별자치도 영동지역에 있는 업체", "강원특별자치도 영동지역", []),
+])
+def test_region_value_is_the_region_name_not_the_sentence(raw, span, expected):
+    requirements, _ = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": span}, "POSITIVE")
+    assert [r.value for r in requirements] == expected
