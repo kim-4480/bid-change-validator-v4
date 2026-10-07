@@ -58,13 +58,45 @@ def build_changed_notice_request(
     )
 
 
-def _last_completed_window_end(business_type: BusinessType) -> datetime | None:
+def build_foreign_registered_request(
+    settings: Settings,
+    *,
+    now: datetime,
+    last_completed_window_end: datetime | None,
+) -> NoticeSyncRequest:
+    """Seed FOREIGN notices, then keep discovering newly registered notices."""
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=KST)
+    else:
+        now = now.astimezone(KST)
+
+    if last_completed_window_end is None:
+        window_start = now - MAX_RECOVERY_WINDOW
+    else:
+        window_start = last_completed_window_end.astimezone(KST) - timedelta(
+            minutes=settings.notice_poll_overlap_minutes
+        )
+
+    return NoticeSyncRequest(
+        business_type=BusinessType.FOREIGN,
+        inquiry_type=NoticeInquiryType.REGISTERED,
+        window_started_at=max(min(window_start, now), now - MAX_RECOVERY_WINDOW),
+        window_ended_at=now,
+        page_size=settings.notice_poll_page_size,
+        max_pages=settings.notice_poll_max_pages,
+    )
+
+
+def _last_completed_window_end(
+    business_type: BusinessType,
+    inquiry_type: NoticeInquiryType = NoticeInquiryType.CHANGED,
+) -> datetime | None:
     with SessionLocal() as db:
         return db.scalar(
             select(NoticeCollectionRun.window_ended_at)
             .where(
                 NoticeCollectionRun.business_type == business_type.value,
-                NoticeCollectionRun.inquiry_type == NoticeInquiryType.CHANGED.value,
+                NoticeCollectionRun.inquiry_type == inquiry_type.value,
                 NoticeCollectionRun.status == "COMPLETED",
             )
             .order_by(NoticeCollectionRun.window_ended_at.desc())
@@ -86,30 +118,57 @@ def run_poll_cycle(settings: Settings, *, now: datetime | None = None) -> None:
     downloader = build_document_downloader(settings)
 
     for business_type in settings.notice_poll_business_type_list:
-        request = build_changed_notice_request(
-            settings,
-            business_type=business_type,
-            now=cycle_time,
-            last_completed_window_end=_last_completed_window_end(business_type),
-        )
-        try:
-            with SessionLocal() as db:
-                run = run_notice_sync(
-                    db,
-                    request=request,
-                    client=client,
-                    document_downloader=downloader,
+        requests: list[NoticeSyncRequest] = []
+        if business_type == BusinessType.FOREIGN:
+            requests.append(
+                build_foreign_registered_request(
+                    settings,
+                    now=cycle_time,
+                    last_completed_window_end=_last_completed_window_end(
+                        business_type, NoticeInquiryType.REGISTERED
+                    ),
                 )
-            logger.info(
-                "poll completed business_type=%s fetched=%s created=%s versions=%s unchanged=%s",
-                business_type.value,
-                run.fetched_count,
-                run.created_count,
-                run.new_version_count,
-                run.unchanged_count,
             )
-        except Exception:
-            logger.exception("poll failed business_type=%s", business_type.value)
+        requests.append(
+            build_changed_notice_request(
+                settings,
+                business_type=business_type,
+                now=cycle_time,
+                last_completed_window_end=_last_completed_window_end(business_type),
+            )
+        )
+        for request in requests:
+            try:
+                with SessionLocal() as db:
+                    run = run_notice_sync(
+                        db,
+                        request=request,
+                        client=client,
+                        document_downloader=downloader,
+                    )
+                logger.info(
+                    "poll completed business_type=%s inquiry_type=%s fetched=%s created=%s versions=%s unchanged=%s",
+                    business_type.value,
+                    request.inquiry_type.value,
+                    run.fetched_count,
+                    run.created_count,
+                    run.new_version_count,
+                    run.unchanged_count,
+                )
+                if (
+                    request.inquiry_type == NoticeInquiryType.REGISTERED
+                    and run.status != "COMPLETED"
+                ):
+                    logger.error("foreign registered sync incomplete status=%s", run.status)
+                    break
+            except Exception:
+                logger.exception(
+                    "poll failed business_type=%s inquiry_type=%s",
+                    business_type.value,
+                    request.inquiry_type.value,
+                )
+                if request.inquiry_type == NoticeInquiryType.REGISTERED:
+                    break
 
     run_history_backfill_batch(
         settings,

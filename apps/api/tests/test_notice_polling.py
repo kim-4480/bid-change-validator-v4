@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from types import SimpleNamespace
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
@@ -18,14 +19,99 @@ from apps.api.app.services.notice_history_backfill import (
     enqueue_notice_history_backfill,
 )
 from apps.api.app.services.notices import save_notice_snapshot
+from apps.api.app.workers import notice_polling
 from apps.api.app.workers.notice_polling import (
     MAX_RECOVERY_WINDOW,
     build_changed_notice_request,
+    build_foreign_registered_request,
     run_history_backfill_batch,
 )
 
 
 KST = ZoneInfo("Asia/Seoul")
+
+
+def test_first_foreign_registered_poll_seeds_30_days() -> None:
+    settings = Settings(_env_file=None, notice_poll_page_size=25, notice_poll_max_pages=3)
+    now = datetime(2026, 10, 8, 9, 0, tzinfo=KST)
+
+    request = build_foreign_registered_request(
+        settings, now=now, last_completed_window_end=None
+    )
+
+    assert request.business_type == BusinessType.FOREIGN
+    assert request.inquiry_type == NoticeInquiryType.REGISTERED
+    assert request.window_started_at == now - MAX_RECOVERY_WINDOW
+    assert request.window_ended_at == now
+    assert (request.page_size, request.max_pages) == (25, 3)
+
+
+def test_foreign_registered_poll_resumes_with_overlap_and_caps_recovery() -> None:
+    settings = Settings(_env_file=None, notice_poll_overlap_minutes=5)
+    now = datetime(2026, 10, 8, 9, 0, tzinfo=KST)
+
+    recent = build_foreign_registered_request(
+        settings, now=now, last_completed_window_end=now - timedelta(minutes=10)
+    )
+    stale = build_foreign_registered_request(
+        settings, now=now, last_completed_window_end=now - timedelta(days=45)
+    )
+
+    assert recent.window_started_at == now - timedelta(minutes=15)
+    assert stale.window_started_at == now - MAX_RECOVERY_WINDOW
+
+
+def test_foreign_registers_before_changed_and_retries_failed_registration(monkeypatch) -> None:
+    settings = Settings(
+        _env_file=None,
+        g2b_service_key="dummy",
+        notice_poll_business_types="SERVICE,FOREIGN",
+    )
+    now = datetime(2026, 10, 8, 9, 0, tzinfo=KST)
+    calls = []
+    failure = {"registered": False}
+
+    class FakeSession:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+    def fake_sync(_db, *, request, **_kwargs):
+        calls.append((request.business_type, request.inquiry_type))
+        status = (
+            "FAILED"
+            if failure["registered"] and request.inquiry_type == NoticeInquiryType.REGISTERED
+            else "COMPLETED"
+        )
+        return SimpleNamespace(
+            status=status,
+            fetched_count=0,
+            created_count=0,
+            new_version_count=0,
+            unchanged_count=0,
+        )
+
+    monkeypatch.setattr(notice_polling, "G2BClient", lambda **_kwargs: object())
+    monkeypatch.setattr(notice_polling, "build_document_downloader", lambda _settings: None)
+    monkeypatch.setattr(notice_polling, "SessionLocal", FakeSession)
+    monkeypatch.setattr(notice_polling, "_last_completed_window_end", lambda *_args: None)
+    monkeypatch.setattr(notice_polling, "run_notice_sync", fake_sync)
+    monkeypatch.setattr(notice_polling, "run_history_backfill_batch", lambda *_args, **_kwargs: 0)
+
+    expected = [
+        (BusinessType.SERVICE, NoticeInquiryType.CHANGED),
+        (BusinessType.FOREIGN, NoticeInquiryType.REGISTERED),
+        (BusinessType.FOREIGN, NoticeInquiryType.CHANGED),
+    ]
+    notice_polling.run_poll_cycle(settings, now=now)
+    assert calls == expected
+
+    calls.clear()
+    failure["registered"] = True
+    notice_polling.run_poll_cycle(settings, now=now)
+    assert calls == expected[:2]
 
 
 def test_first_changed_poll_uses_configured_lookback() -> None:
