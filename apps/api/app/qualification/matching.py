@@ -11,14 +11,14 @@ from datetime import date
 from uuid import UUID
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session, aliased, selectinload
+from sqlalchemy.orm import Session, selectinload
 
 from bidengine.judgment.rules import judge_requirements
 from ..analysis_models import QualificationAnalysisRun
 from ..judgment_models import CompanyQualificationProfileCompleteness
 from ..matching_schemas import NoticeMatchRead, NoticeMatchSearchResponse
 from ..models import BidNotice, BidNoticeVersion
-from .analysis import analysis_run_response
+from .analysis import analysis_run_response, is_qualification_analysis_run_stale
 from .judgment import _load_company, _record_to_completeness, build_company_profile_snapshot
 
 
@@ -37,33 +37,38 @@ def match_cached_notices(
     profile = build_company_profile_snapshot(company, completeness)
     ref_date = reference_date or date.today()
 
-    latest_run = aliased(QualificationAnalysisRun)
-    latest_run_id = (
-        select(latest_run.id)
-        .where(latest_run.notice_version_id == BidNoticeVersion.id)
-        .order_by(latest_run.created_at.desc(), latest_run.id.desc())
-        .limit(1)
-        .correlate(BidNoticeVersion)
-        .scalar_subquery()
-    )
-
     analyzed_versions = db.execute(
         select(BidNotice, BidNoticeVersion, QualificationAnalysisRun)
         .join(BidNoticeVersion, BidNoticeVersion.notice_id == BidNotice.id)
-        .join(QualificationAnalysisRun, QualificationAnalysisRun.id == latest_run_id)
+        .join(
+            QualificationAnalysisRun,
+            QualificationAnalysisRun.notice_version_id == BidNoticeVersion.id,
+        )
         .where(
             BidNoticeVersion.is_current.is_(True),
-            QualificationAnalysisRun.status != "FAILED",
         )
         .options(
+            selectinload(QualificationAnalysisRun.notice_version).selectinload(
+                BidNoticeVersion.documents
+            ),
             selectinload(QualificationAnalysisRun.requirements),
             selectinload(QualificationAnalysisRun.evidence),
         )
-        .order_by(BidNotice.last_seen_at.desc())
+        .order_by(
+            BidNotice.last_seen_at.desc(),
+            QualificationAnalysisRun.created_at.desc(),
+            QualificationAnalysisRun.id.desc(),
+        )
     ).all()
 
     items: list[NoticeMatchRead] = []
+    selected_notices: set[UUID] = set()
     for notice, version, run in analyzed_versions:
+        if notice.id in selected_notices or is_qualification_analysis_run_stale(run):
+            continue
+        selected_notices.add(notice.id)
+        if run.status == "FAILED":
+            continue
         analysis = analysis_run_response(run)
         evaluation = judge_requirements(
             analysis.requirements,

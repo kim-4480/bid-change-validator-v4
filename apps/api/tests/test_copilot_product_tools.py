@@ -109,6 +109,7 @@ def test_later_judgment_for_older_current_analysis_does_not_hide_latest_analysis
         contract_version=analysis.contract_version,
         analysis_kind=analysis.analysis_kind,
         status='SUCCEEDED',
+        input_fingerprint=analysis.input_fingerprint,
         created_at=analysis.created_at - timedelta(days=1),
     )
     db.add(older_analysis)
@@ -174,6 +175,7 @@ def test_stale_analysis_blocks_every_tool(state, operation):
     db.add(QualificationAnalysisRun(
         notice_version_id=case.current_version_id, contract_version=analysis.contract_version,
         analysis_kind=analysis.analysis_kind, status='SUCCEEDED',
+        input_fingerprint=analysis.input_fingerprint,
         created_at=analysis.created_at + timedelta(days=1),
     ))
     db.flush()

@@ -33,8 +33,9 @@ def test_notice_matching_loads_runs_in_batch_without_per_notice_scalar_queries()
         patch("apps.api.app.qualification.matching._load_company", return_value=object()),
         patch("apps.api.app.qualification.matching._record_to_completeness", return_value=None),
         patch("apps.api.app.qualification.matching.build_company_profile_snapshot", return_value=object()),
-        patch("apps.api.app.qualification.matching.analysis_run_response", return_value=analysis),
-        patch("apps.api.app.qualification.matching.judge_requirements", return_value=evaluation),
+            patch("apps.api.app.qualification.matching.analysis_run_response", return_value=analysis),
+            patch("apps.api.app.qualification.matching.is_qualification_analysis_run_stale", return_value=False),
+            patch("apps.api.app.qualification.matching.judge_requirements", return_value=evaluation),
     ):
         result = match_cached_notices(db, company_id=company_id, limit=12)
 

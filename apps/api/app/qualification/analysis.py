@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from decimal import Decimal
 from uuid import UUID
 
@@ -73,11 +75,74 @@ def build_qualification_analysis_input(version: BidNoticeVersion) -> Qualificati
     )
 
 
+def qualification_analysis_input_fingerprint(
+    analysis_input: QualificationAnalysisInput,
+) -> str:
+    """Fingerprint the exact extracted document revisions supplied to analysis."""
+    lineage = sorted(
+        (
+            {
+                "document_id": document.document_id,
+                "extracted_text_sha256": document.extracted_text_sha256,
+            }
+            for document in analysis_input.documents
+        ),
+        key=lambda item: item["document_id"],
+    )
+    payload = json.dumps(lineage, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(f"qualification-analysis-input-v1\n{payload}".encode()).hexdigest()
+
+
+def is_qualification_analysis_run_stale(run: QualificationAnalysisRun) -> bool:
+    """Return true when a run was not produced from the current extracted texts."""
+    if not run.input_fingerprint:
+        return True
+    current = build_qualification_analysis_input(run.notice_version)
+    return run.input_fingerprint != qualification_analysis_input_fingerprint(current)
+
+
+def qualification_analysis_version_fingerprint(version: BidNoticeVersion) -> str:
+    return qualification_analysis_input_fingerprint(
+        build_qualification_analysis_input(version)
+    )
+
+
+def load_latest_current_qualification_analysis_run(
+    db: Session,
+    *,
+    notice_version_id: UUID,
+    include_failed: bool = False,
+) -> QualificationAnalysisRun | None:
+    """Load the newest run whose persisted input still matches current documents."""
+    runs = db.scalars(
+        select(QualificationAnalysisRun)
+        .where(QualificationAnalysisRun.notice_version_id == notice_version_id)
+        .options(
+            selectinload(QualificationAnalysisRun.notice_version).selectinload(
+                BidNoticeVersion.documents
+            ),
+            selectinload(QualificationAnalysisRun.requirements),
+            selectinload(QualificationAnalysisRun.evidence),
+        )
+        .order_by(QualificationAnalysisRun.created_at.desc(), QualificationAnalysisRun.id.desc())
+    ).all()
+    return next(
+        (
+            run
+            for run in runs
+            if (include_failed or run.status != "FAILED")
+            and not is_qualification_analysis_run_stale(run)
+        ),
+        None,
+    )
+
+
 def _persist_result(
     db: Session,
     *,
     version: BidNoticeVersion,
     result: RequirementAnalysisResult,
+    input_fingerprint: str,
 ) -> QualificationAnalysisRun:
     run = QualificationAnalysisRun(
         notice_version_id=version.id,
@@ -89,6 +154,7 @@ def _persist_result(
         dropped_requirements=[
             item.model_dump(mode="json") for item in result.dropped_requirements
         ],
+        input_fingerprint=input_fingerprint,
         coverage=result.coverage.model_dump(mode="json") if result.coverage is not None else None,
     )
     db.add(run)
@@ -156,6 +222,7 @@ def run_qualification_analysis(
         db, notice_id=notice_id, version_number=version_number
     )
     analysis_input = build_qualification_analysis_input(version)
+    input_fingerprint = qualification_analysis_input_fingerprint(analysis_input)
     # 같은 조항은 같은 답 — 조항 라벨·극성·조항 선택의 첫 답을 DB 에 두고 다시 묻지 않는다. 모델이 temperature 를
     # 받지 않고 seed 로도 답이 고정되지 않아, 이것 없이는 같은 공고를 다시 분석하면 요건이 달라졌다.
     # 업종 이름은 기준정보 테이블로 코드화한다.
@@ -170,7 +237,12 @@ def run_qualification_analysis(
         # 기억은 모델별로 갈린다 — 모델을 바꾸면 예전 모델의 답을 쓰지 않는다.
         memory_namespace=getattr(structured_extract, "model", None) or type(structured_extract).__name__,
     )
-    return _persist_result(db, version=version, result=result)
+    return _persist_result(
+        db,
+        version=version,
+        result=result,
+        input_fingerprint=input_fingerprint,
+    )
 
 
 def load_qualification_analysis_run(
@@ -180,7 +252,9 @@ def load_qualification_analysis_run(
         select(QualificationAnalysisRun)
         .where(QualificationAnalysisRun.id == run_id)
         .options(
-            selectinload(QualificationAnalysisRun.notice_version),
+            selectinload(QualificationAnalysisRun.notice_version).selectinload(
+                BidNoticeVersion.documents
+            ),
             selectinload(QualificationAnalysisRun.requirements),
             selectinload(QualificationAnalysisRun.evidence),
         )
@@ -239,6 +313,8 @@ def analysis_run_response(run: QualificationAnalysisRun) -> QualificationAnalysi
         contract_version=run.contract_version,
         analysis_kind=run.analysis_kind,
         status=run.status,
+        input_fingerprint=run.input_fingerprint,
+        is_stale=is_qualification_analysis_run_stale(run),
         target_chunk_ids=list(run.target_chunk_ids or []),
         diagnostics=list(run.diagnostics or []),
         dropped_requirements=list(run.dropped_requirements or []),
@@ -262,6 +338,9 @@ def list_qualification_analysis_runs(
         select(QualificationAnalysisRun)
         .where(QualificationAnalysisRun.notice_version_id == version.id)
         .options(
+            selectinload(QualificationAnalysisRun.notice_version).selectinload(
+                BidNoticeVersion.documents
+            ),
             selectinload(QualificationAnalysisRun.requirements),
             selectinload(QualificationAnalysisRun.evidence),
         )
@@ -274,6 +353,8 @@ def list_qualification_analysis_runs(
             version_number=version.version_number,
             contract_version=run.contract_version,
             status=run.status,
+            input_fingerprint=run.input_fingerprint,
+            is_stale=is_qualification_analysis_run_stale(run),
             requirement_count=len(run.requirements),
             evidence_count=len(run.evidence),
             created_at=run.created_at,

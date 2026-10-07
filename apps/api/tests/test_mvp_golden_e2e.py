@@ -17,6 +17,7 @@ from apps.api.app.models import (
     CompanyStaffRole,
     PreflightCase,
 )
+from apps.api.app.qualification.analysis import qualification_analysis_version_fingerprint
 
 
 pytestmark = pytest.mark.usefixtures("seed_required_master_codes")
@@ -35,6 +36,7 @@ def _persist_analysis(db, *, version: BidNoticeVersion, performance_amount: int)
         status="SUCCEEDED",
         target_chunk_ids=[],
         diagnostics=[],
+        input_fingerprint=qualification_analysis_version_fingerprint(version),
     )
     db.add(run)
     db.flush()

@@ -181,6 +181,7 @@ def test_context_changes_between_proposal_and_confirm(state, api, change, code):
     if change == 'analysis':
         db.add(QualificationAnalysisRun(notice_version_id=case.current_version_id, status='SUCCEEDED',
                contract_version=analysis.contract_version, analysis_kind=analysis.analysis_kind,
+               input_fingerprint=analysis.input_fingerprint,
                created_at=analysis.created_at + timedelta(days=1)))
     elif change == 'profile':
         db.get(Company, case.company_id).region_name = 'changed'
@@ -364,6 +365,7 @@ def test_changed_notice_stale_or_cross_version_rejected(changed_field):
                 old = db.get(QualificationAnalysisRun, seed[f'{changed_field}_id'])
                 db.add(QualificationAnalysisRun(notice_version_id=old.notice_version_id, status='SUCCEEDED',
                        contract_version=old.contract_version, analysis_kind=old.analysis_kind,
+                       input_fingerprint=old.input_fingerprint,
                        created_at=old.created_at + timedelta(days=1)))
             db.commit()
             with pytest.raises(QualificationJudgmentError) as error:

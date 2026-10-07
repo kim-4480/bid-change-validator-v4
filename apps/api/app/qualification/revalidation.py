@@ -14,7 +14,11 @@ from bidengine.diff.requirement_diff import RequirementChange, diff_requirements
 from ..analysis_models import QualificationAnalysisRun
 from ..judgment_models import CompanyQualificationProfileCompleteness, QualificationJudgmentRecord, QualificationJudgmentRun
 from ..models import NoticeDocument, PreflightCase
-from .analysis import analysis_run_response
+from .analysis import (
+    analysis_run_response,
+    is_qualification_analysis_run_stale,
+    load_latest_current_qualification_analysis_run,
+)
 from .judgment import (
     load_judgment_analysis,
     QualificationJudgmentError,
@@ -43,14 +47,20 @@ def _select_analysis_run(db: Session, *, notice_version_id: UUID, explicit_run_i
     if explicit_run_id is not None:
         run = load_judgment_analysis(db, explicit_run_id)
     else:
-        run_id = db.scalar(select(QualificationAnalysisRun.id).where(QualificationAnalysisRun.notice_version_id == notice_version_id).order_by(QualificationAnalysisRun.created_at.desc()).limit(1))
-        if run_id is None:
+        run = load_latest_current_qualification_analysis_run(
+            db, notice_version_id=notice_version_id, include_failed=True
+        )
+        if run is None:
             raise QualificationJudgmentError("QUALIFICATION_ANALYSIS_REQUIRED", f"{label} 공고 버전의 자격요건 분석 결과가 필요합니다.")
-        run = load_judgment_analysis(db, run_id)
     if run.notice_version_id != notice_version_id:
         raise QualificationJudgmentError("ANALYSIS_VERSION_MISMATCH", f"선택한 {label} 분석 결과의 공고 버전이 일치하지 않습니다.", status_code=422)
     if run.status == "FAILED":
         raise QualificationJudgmentError("QUALIFICATION_ANALYSIS_FAILED", f"실패한 {label} 자격요건 분석 결과로는 재검증할 수 없습니다.")
+    if is_qualification_analysis_run_stale(run):
+        raise QualificationJudgmentError(
+            "QUALIFICATION_ANALYSIS_STALE",
+            f"{label} 공고 문서가 재추출되어 자격요건을 다시 분석해야 합니다.",
+        )
     return run
 
 
