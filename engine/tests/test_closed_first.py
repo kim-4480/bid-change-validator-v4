@@ -92,3 +92,15 @@ def test_every_clause_has_a_visible_outcome_and_answers_are_remembered():
     assert memory  # 답을 기억했다
     again = _analyze(memory)
     assert [(r.type, r.value) for r in again.requirements] == [(r.type, r.value) for r in result.requirements]
+
+
+def test_noisy_open_names_are_dropped():
+    from bidengine.labeling.closed_first import Candidate, open_name_is_noise
+
+    product = [Candidate(id="V1", kind="PRODUCT", value="4918169801", surface="4918169801")]
+    assert open_name_is_noise("제14조에 의한 자격요건", "", []) == "STATUTE_OR_PROCEDURE"
+    assert open_name_is_noise("이용자등록", "", []) == "GENERIC_NAME"
+    assert open_name_is_noise("구매 및 제조물품", "", []) == "STATUTE_OR_PROCEDURE"
+    assert open_name_is_noise("사격총", "", product) == "PRODUCT_NAME_DUPLICATE"
+    assert open_name_is_noise("ISO 9001 인증", "", product) is None      # 번호가 있는 진짜 인증
+    assert open_name_is_noise("건설기계조종사면허", "", []) is None

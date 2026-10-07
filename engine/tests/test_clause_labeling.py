@@ -198,8 +198,9 @@ def test_failed_call_is_not_remembered():
     assert result["status"] == "failed" and memory == {}
 
 
-def test_a_label_that_fails_validation_is_not_remembered():
-    """원문에 없는 문구를 적은 답은 탈락한다. 그 답을 기억하면 이후 분석이 모두 같은 탈락을 되풀이한다."""
+def test_a_label_that_fails_validation_is_remembered_without_the_failed_slot():
+    """원문에 없는 문구를 적은 슬롯은 탈락한다. 답은 그 슬롯만 빼고 기억한다 — 기억하지 않으면 다음 분석에서 다시
+    물어 다른 답을 받게 되어 일관성이 깨진다(2026-10-07 luna 슬레이트 공고)."""
     from bidengine.labeling.clause_labeling import clause_label_key
 
     def invented(system, body, schema):
@@ -212,8 +213,14 @@ def test_a_label_that_fails_validation_is_not_remembered():
     result = extract_clause_slots([CHUNK], structured_extract=invented, labeling_memory=memory)
     clauses = {c.clause_id: c.text for c in enumerate_clauses([CHUNK])}
     assert result["dropped_requirements"]
-    assert clause_label_key(clauses["C003"]) not in memory
+    assert memory[clause_label_key(clauses["C003"])] == []          # 탈락한 슬롯은 빠지고 답은 기억된다
     assert clause_label_key(clauses["C004"]) in memory
+
+    def other(system, body, schema):  # 다시 물으면 다른 답을 내는 모델
+        return {"clauses": [{"clause_id": "C003", "requirements": [_slot("기업규모요건", 기업규모_raw="중소기업")]}]}
+
+    again = extract_clause_slots([CHUNK], structured_extract=other, labeling_memory=memory)
+    assert [s["_clause_id"] for s in again["slots"]] == [s["_clause_id"] for s in result["slots"]]
 
 
 def test_memories_are_split_by_model_and_prompt_version():

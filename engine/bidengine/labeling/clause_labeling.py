@@ -205,6 +205,7 @@ def extract_clause_slots(
         # 기억에서 읽는다 — 여러 실행이 동시에 물었어도 처음 기억된 라벨 하나를 쓴다. 없으면 이번 답.
         key = clause_label_key(clause.text)
         clause_rejected = False
+        passed: list[dict[str, Any]] = []
         for labelled in known[key] if key in known else fresh.get(key, []):
             candidates += 1
             slot = dict(labelled)
@@ -224,10 +225,12 @@ def extract_clause_slots(
             slot["_source_chunk_id"] = clause.chunk_id
             slot["_source_blocks"] = list(clause.source_blocks)
             accepted.append(slot)
-        if key in fresh and key not in known and not clause_rejected:
-            # 검증을 통과한 라벨만 기억한다. 원문에 없는 문구를 적어 탈락한 답을 기억하면, 그 조항은 이후 모든
-            # 분석에서 같은 탈락을 되풀이한다(2026-10-06 네 번째 표본의 실적 조항). 탈락한 조항은 다음에 다시 묻는다.
-            known[key] = fresh[key]
+            passed.append(labelled)
+        if key in fresh and key not in known:
+            # 검증을 통과한 라벨만 남겨 기억한다. 탈락한 답을 통째로 기억하지 않으면 그 조항은 다음 분석에서 다시
+            # 묻게 되어 다른 답을 받는다 — 일관성이 깨진다(2026-10-07 luna 슬레이트 공고). 탈락한 슬롯은 어차피
+            # 요건이 되지 않으므로, 통과한 것만 기억하면 결과가 고정된다.
+            known[key] = passed if clause_rejected else fresh[key]
 
     notes = [selection_note] if selection_note else []
     if rejected:

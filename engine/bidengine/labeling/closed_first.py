@@ -61,6 +61,27 @@ _PARTY_PROCEDURE_RE = re.compile(r"협정서|제출|승인|서식|간주")
 _INDUSTRY_NAME_SPAN_RE = re.compile(r"[가-힣][가-힣·ㆍ∙․]{1,24}업")
 _REGION_NARROWING_RE = re.compile(r"(?:동|서|남|북|중)부|영동|영서|권역|도서지역")
 _PROCEDURAL_POLARITIES = {"NOT_REQUIREMENT", "EVALUATION"}
+# 열린 조건(등록·인증·면허 이름)으로 받지 않는 이름: 법령·절차 문구와 나라장터 등록 낱말. 모델이 이런 구간을
+# 실행마다 다르게 잘라 와 결과가 흔들렸다("제14조에의한자격요건" / "제14조", "이용자등록", "구매및제조물품").
+_OPEN_NAME_NOISE_RE = re.compile(
+    r"제\s*\d+\s*조|시행\s*(?:령|규칙)|법률|규정|자격\s*요건|입찰\s*참가|이용자\s*등록|나라장터|조달청|"
+    r"국가종합전자조달|전자입찰|구매\s*및\s*제조|제조\s*(?:또는|및)\s*공급|물품으로"
+)
+
+
+def open_name_is_noise(name: str, clause: str, candidates: list["Candidate"]) -> str | None:
+    """열린 조건의 이름을 버릴 이유. 버리지 않으면 None."""
+    from bidengine.requirements.legacy_slots import is_generic_registration_name
+
+    compact = _compact(name)
+    if not compact or is_generic_registration_name(name):
+        return "GENERIC_NAME"
+    if _OPEN_NAME_NOISE_RE.search(name):
+        return "STATUTE_OR_PROCEDURE"
+    if any(c.kind == "PRODUCT" for c in candidates) and not re.search(r"\d", name) and len(compact) <= 15:
+        # 품명번호 조항의 물품 이름("사격총(세부품명번호 4918169801)") — 품명번호 요건과 같은 요건이다.
+        return "PRODUCT_NAME_DUPLICATE"
+    return None
 
 
 @dataclass(frozen=True)
@@ -352,13 +373,21 @@ def extract_closed_first(
 
         clause_rejected = False
         open_slots = []
+        kept_open: list[dict] = []
         closed_values = {c.value for c in candidates}
         for labelled in answer["open"] if polarity == "POSITIVE" else []:
             if labelled.get("유형") in {"지역요건", "업종요건", "기업규모요건"}:
                 continue
             name = str(labelled.get("등록인증_raw") or "")
             if name and any(v in _compact(name) for v in closed_values if v.isdigit()):
+                kept_open.append(labelled)
                 continue  # 후보로 이미 담은 번호
+            if labelled.get("유형") in {"등록요건", "인증요건", "면허요건"}:
+                noise = open_name_is_noise(name, clause.text, candidates)
+                if noise:
+                    kept_open.append(labelled)
+                    diags.append({"code": "CLAUSE_NOT_LABELLED", "raw": clause.text, "reason": f"OPEN_NAME_{noise}"})
+                    continue
             slot = {**dict(labelled), "raw": clause.text, **source, "_clause_polarity": "POSITIVE"}
             candidates_total += 1
             valid, reason, _chunk = validate_extracted_slot(slot, target, notice_text=notice_text)
@@ -366,6 +395,7 @@ def extract_closed_first(
                 clause_rejected = True
                 rejected.append({"raw": clause.text, "reason_code": _rejection_reason_code(reason)})
                 continue
+            kept_open.append(labelled)
             open_slots.append(slot)
 
         if not reqs and not diags and not open_slots and polarity == "POSITIVE":
@@ -380,8 +410,10 @@ def extract_closed_first(
             slots.append({"유형": "_CLOSED", "raw": clause.text, "_closed_requirements": reqs, "_closed_diagnostics": diags, **source})
         slots.extend(open_slots)
         candidates_total += len(reqs)
-        if key not in known and key in answers and not clause_rejected:
-            known[key] = answers[key]  # 검증을 통과한 답만 기억한다
+        if key not in known and key in answers:
+            # 답을 기억한다. 검증에서 탈락한 열린 조건만 빼고 — 탈락한 답을 통째로 기억하지 않으면 그 조항은 다음
+            # 분석에서 다시 묻게 되어 다른 답을 받는다(일관성이 깨진다). 탈락한 슬롯은 어차피 요건이 되지 않는다.
+            known[key] = {**answers[key], "open": kept_open} if clause_rejected else answers[key]
 
     notes = [selection_note] if selection_note else []
     if rejected:
