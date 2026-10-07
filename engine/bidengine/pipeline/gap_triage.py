@@ -135,3 +135,41 @@ def triage_gaps(gaps: list, requirements: list) -> tuple[list, list]:
             kept.append(gap)
             seen.add(_compact(gap.raw))
     return kept, moved
+
+
+def closed_values_in(text: str) -> dict[str, set[str]]:
+    """조항에 적힌 닫힌 값: 업종코드·품명번호, 지역 이름, 규모 낱말."""
+    from bidengine.judgment.clause_safety import strip_decorations
+    from bidengine.normalization.regions import find_regions
+    from bidengine.requirements.legacy_slots import (
+        _INDUSTRY_CODE_RE, _NAMED_INDUSTRY_CODE_RE, _PRODUCT_CODE_RE, _SIZE_WORD_RE, _size_text,
+    )
+
+    compact = _compact(text)
+    codes = {code for group in _INDUSTRY_CODE_RE.findall(compact) for code in re.findall(r"[0-9]{4}", group)}
+    codes |= set(_NAMED_INDUSTRY_CODE_RE.findall(compact)) | set(_PRODUCT_CODE_RE.findall(compact))
+    sidos, subs = find_regions(strip_decorations(text or ""))
+    return {"codes": codes, "regions": set(sidos) | set(subs), "sizes": set(_SIZE_WORD_RE.findall(_size_text(text or "")))}
+
+
+# (가)·(나) 가 남긴 공백 — 담긴 값과 상관없이 업종을 놓쳤거나 대안이 빠졌다는 뜻이라 항상 판정을 막는다.
+_ALWAYS_BLOCKING = ("ALTERNATIVE_UNRESOLVED", "INDUSTRY_NAME_UNRESOLVED", "CANDIDATE_UNUSED")
+
+
+def closed_values_covered(gap, requirements: list) -> bool:
+    """공백 조항의 닫힌 값이 모두 이미 요건으로 담겼는가. 그러면 그 조항의 나머지는 확인 항목이다.
+
+    "관광호텔업(업종코드1264) 분야의 등록을 필한 5성급 호텔" — 1264 는 요건으로 담겼고 남은 '5성급' 은 사용자가 확인한다.
+    """
+    if any(tag in (gap.reason or "") for tag in _ALWAYS_BLOCKING):
+        return False
+    found = closed_values_in(gap.raw)
+    if not any(found.values()):
+        return False
+    values = {str(r.value) for r in requirements}
+    regions = [str(r.value) for r in requirements if r.type == "REGION"]
+    if not found["codes"] <= values:
+        return False
+    if any(not any(region in value or value.split()[-1] in region for value in regions) for region in found["regions"]):
+        return False
+    return not (found["sizes"] and not any(r.type == "COMPANY_SIZE" for r in requirements))

@@ -79,6 +79,27 @@ class CoverageGap(BaseModel):
     kind: CoverageGapKind
     raw: str = ""
     reason: str | None = None
+    # 판정을 막는가. 커버리지를 만들 때 요건과 대조해 정한다(None 이면 gap_blocks_verdict 가 원문만 보고 정한다).
+    blocks_verdict: bool | None = None
+
+
+_VERDICT_GAP_CODES = ("UNMAPPED_INDUSTRY", "UNMAPPED_REGION", "UNMAPPED_COMPANY_SIZE", "UNMAPPED_REGISTRATION_CERTIFICATION")
+
+
+def gap_blocks_verdict(gap: CoverageGap) -> bool:
+    """이 공백이 판정 대상(업종코드·지역·규모·품명번호)을 놓쳤을 수 있는가. 그러면 '적합' 을 막는다.
+
+    닫힌 값 유형의 매핑 실패이거나, 조항 원문에 닫힌 값이 적혀 있으면 막는다. 나머지는 확인 항목이다.
+    """
+    from bidengine.requirements.legacy_slots import has_closed_value_text
+
+    if gap.kind in {"SECTION", "TRUNCATED"}:
+        return True
+    if gap.blocks_verdict is not None:
+        return gap.blocks_verdict
+    if (gap.reason or "").startswith(_VERDICT_GAP_CODES):
+        return True
+    return has_closed_value_text(gap.raw)
 
 
 class AnalysisCoverage(BaseModel):
@@ -101,6 +122,31 @@ class AnalysisCoverage(BaseModel):
     # 완료 여부에는 영향이 없다. 조항이 소리 없이 사라지지 않게 원문을 남긴다(clause_accounting).
     ignored: list[CoverageGap] = Field(default_factory=list)
     unclassified_blocks_eligibility: bool = False
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def verdict_complete(self) -> bool:
+        """판정 대상(닫힌 값) 쪽으로는 다 봤는가. 종합 판정의 '적합' 은 이것만 본다(2026-10-07).
+
+        닫힌 값과 상관없는 공백(이름만 있는 인증, 생산시설 조건 등)은 사용자가 확인할 항목이라 적합을 막지 않는다.
+        """
+        return (
+            self.section_selection == "anchored"
+            and not self.input_truncated
+            and not any(gap_blocks_verdict(gap) for gap in self.gaps)
+        )
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def checklist_gaps(self) -> list[CoverageGap]:
+        """사용자가 확인할 조항(판정을 막지 않는 공백)."""
+        return [gap for gap in self.gaps if not gap_blocks_verdict(gap)]
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def notes(self) -> list[CoverageGap]:
+        """참고 정보: 공동수급·하도급 허용 여부처럼 회사 자격이 아니라 입찰 방식인 조항."""
+        return [gap for gap in self.ignored if gap.reason == "GAP_JOINT_CONTRACT_NOTE"]
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -165,6 +211,10 @@ def build_analysis_coverage(
         elif gap.kind == "UNCLASSIFIED":
             unclassified -= 1
         ignored.append(CoverageGap(kind="IGNORED", raw=gap.raw, reason=f"GAP_{reason}"))
+    # 닫힌 값이 이미 요건으로 담긴 공백은 판정을 막지 않는다 — 나머지는 사용자가 확인한다(gap_triage.closed_values_covered).
+    from bidengine.pipeline.gap_triage import closed_values_covered
+
+    gaps = [gap.model_copy(update={"blocks_verdict": False}) if closed_values_covered(gap, requirements) else gap for gap in gaps]
     if section_selection != "anchored":
         gaps.append(CoverageGap(kind="SECTION", reason=section_selection))
     if input_truncated:

@@ -53,14 +53,16 @@ def test_changed_performance_threshold_becomes_unsatisfied_when_profile_is_compl
     requirement = _requirement("REQ-PERFORMANCE", "PERFORMANCE_AMOUNT", operator=">=", value=600_000_000, period_months=36, scope={"client_requirement": "공공기관", "aggregation": "UNSPECIFIED"})
     result = judge_requirements([requirement], _profile(completeness=ProfileCompleteness(staff_roles=True, performances=True)), preflight_case_id="case-1", reference_date=REFERENCE_DATE)
     assert result.judgments[0].status == "UNSATISFIED"
-    assert result.overall_status == "ineligible"
+    # 실적은 확인 항목이다(2026-10-07). 미달로 확정돼도 '부적합' 을 확정하지 않고 '적합' 도 주지 않는다.
+    assert result.overall_status == "insufficient_data"
 
 
 def test_changed_performance_threshold_stays_unknown_when_profile_is_incomplete():
     requirement = _requirement("REQ-PERFORMANCE", "PERFORMANCE_AMOUNT", operator=">=", value=600_000_000, period_months=36)
+    # 확인 항목만 있는 공고에서 확인 항목이 '확인 필요' 면, 닫힌 값 기준 제한은 없다 — 확인할 항목으로 보여 준다.
     result = judge_requirements([requirement], _profile(completeness=ProfileCompleteness(performances=False)), preflight_case_id="case-1", reference_date=REFERENCE_DATE)
     assert result.judgments[0].status == "UNKNOWN"
-    assert result.overall_status == "insufficient_data"
+    assert result.overall_status == "eligible"  # 화면: 핵심 자격 충족 · 확인할 항목 1건
 
 
 def test_none_company_size_means_unknown_not_large_company_mismatch():
@@ -190,10 +192,12 @@ def test_performance_amount_cannot_use_unrelated_field_or_future_work():
     # 미달로 단정하지도 않는다.
     result = judge_requirements([req], profile, preflight_case_id="c", reference_date=REFERENCE_DATE)
     assert result.judgments[0].status == "UNKNOWN"
-    assert result.overall_status == "insufficient_data"
+    assert result.overall_status == "eligible"  # 실적은 확인 항목 — 확인 필요는 종합 판정을 막지 않는다
     future = profile.performances[0].model_copy(update={"completed_at": date(2027, 1, 1), "fields": ["해외진출"]})
     profile = profile.model_copy(update={"performances": [future]})
-    assert judge_requirements([req], profile, preflight_case_id="c", reference_date=REFERENCE_DATE).overall_status == "ineligible"
+    future_result = judge_requirements([req], profile, preflight_case_id="c", reference_date=REFERENCE_DATE)
+    assert future_result.judgments[0].status == "UNSATISFIED"
+    assert future_result.overall_status == "insufficient_data"  # 확인 항목 미달은 '적합' 도 '부적합' 도 아니다
 
 
 def test_judgment_exposes_human_readable_reason() -> None:

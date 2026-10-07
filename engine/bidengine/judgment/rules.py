@@ -1018,6 +1018,33 @@ def _judge_by_type(
     return _unknown(requirement, preflight_case_id, unsupported=True)
 
 
+RequirementTier = Literal["VERDICT", "CHECKLIST"]
+
+
+def requirement_tier(requirement: QualificationRequirement) -> RequirementTier:
+    """판정 대상(VERDICT)인가, 사용자가 확인할 항목(CHECKLIST)인가(2026-10-07 사용자 결정).
+
+    닫힌 값만 엔진이 가능·불가를 정한다: 업종코드(4자리), 지역, 기업 규모(배제 포함), 품명번호(10자리) 등록.
+    이름으로만 적힌 인증·면허·허가, 실적, 인력, 경험 분야는 회사 자료와 기계적으로 맞춰 볼 수 없어
+    사용자가 확인한다. 판정은 그대로 내리지만(충족·확인 필요) 종합 판정에는 넣지 않는다.
+    """
+    value = str(requirement.value if requirement.value is not None else "")
+    if requirement.type in {"REGION", "COMPANY_SIZE"}:
+        return "VERDICT"
+    if requirement.type == "INDUSTRY" and re.fullmatch(r"[0-9]{4}", value):
+        return "VERDICT"
+    if requirement.type == "REGISTRATION_CERTIFICATION" and re.fullmatch(r"[0-9]{10}", value):
+        return "VERDICT"
+    if requirement.type in {"INDUSTRY", "REGISTRATION_CERTIFICATION"} and _INDUSTRY_LIKE_VALUE_RE.search(value):
+        # 코드 없이 업종 이름으로만 담긴 요건("건축공사업 또는 토목건축공사업 등록")도 업종 자격이다. 확인 항목으로
+        # 빼면 업종이 없는 회사에 '적합' 이 나간다. 이름이 안 맞으면 판정은 확인 필요다.
+        return "VERDICT"
+    return "CHECKLIST"
+
+
+_INDUSTRY_LIKE_VALUE_RE = re.compile(r"(?:업|사업자|법인|조합)\s*(?:\([^()]*\))?\s*(?:등록|면허)?$")
+
+
 def derive_overall_status(
     requirements: list[QualificationRequirement],
     judgments: list[Judgment],
@@ -1025,21 +1052,31 @@ def derive_overall_status(
     analysis_status: str = "SUCCEEDED",
     coverage_complete: bool | None = None,
 ) -> OverallQualificationStatus:
-    """적합은 (1) 필수 요건이 모두 충족이고 (2) 공고의 참가자격을 다 봤을 때만 준다.
+    """적합은 (1) 판정 대상 필수 요건이 모두 충족이고 (2) 판정 대상 값을 놓친 조항이 없을 때만 준다.
 
-    (2)는 커버리지가 있으면 커버리지로, 없으면(예전 분석) 분석 상태로 판단한다. 분석 상태
+    판정 대상은 닫힌 값 요건이다(requirement_tier). 확인 항목(이름만 있는 인증, 실적 등)은 종합 판정에
+    넣지 않고 사용자가 확인한다. 택일(ANY_OF) 묶음은 판정 대상이 하나라도 섞여 있으면 묶음째 판정 대상이다
+    ("1468 또는 OO 인증" 에서 1468 이 미달이면 OO 인증을 확인할 때까지 확인 필요).
+
+    (2)는 커버리지가 있으면 coverage.verdict_complete 로, 없으면(예전 분석) 분석 상태로 판단한다. 분석 상태
     PARTIAL 은 "후보 하나가 검증에서 떨어졌다" 같은 파이프라인 사정을 섞어 쓰므로, 커버리지가
     있으면 그쪽이 우선이다. 부적합은 (2)와 무관하다 — 본 요건 중 하나가 확정 미달이면 된다.
     """
     seen_everything = coverage_complete if coverage_complete is not None else analysis_status == "SUCCEEDED"
     status_by_key = {item.requirement_key: item.status for item in judgments}
     grouped: dict[str, tuple[str, list[str]]] = {}
+    mandatory = [r for r in requirements if r.requirement_role == "mandatory"]
+    verdict_any_of = {
+        r.requirement_group_key for r in mandatory
+        if r.group_operator == "ANY_OF" and r.requirement_group_key and requirement_tier(r) == "VERDICT"
+    }
 
-    for requirement in requirements:
-        if requirement.requirement_role != "mandatory":
+    for requirement in mandatory:
+        operator = requirement.group_operator or "ALL_OF"
+        in_verdict_group = operator == "ANY_OF" and requirement.requirement_group_key in verdict_any_of
+        if requirement_tier(requirement) != "VERDICT" and not in_verdict_group:
             continue
         group_key = requirement.requirement_group_key or requirement.requirement_key
-        operator = requirement.group_operator or "ALL_OF"
         current_operator, statuses = grouped.setdefault(group_key, (operator, []))
         if current_operator != operator:
             statuses.append("UNKNOWN")
@@ -1064,7 +1101,17 @@ def derive_overall_status(
 
     if "UNSATISFIED" in group_statuses:
         return "ineligible"
-    if "UNKNOWN" in group_statuses or not group_statuses or not seen_everything:
+    # 확인 항목이 미달로 확정되면(실적 금액 기준 미달 등) '적합' 이라고 하지 않는다. 그렇다고 이름 맞추기에 기댄
+    # 판정으로 '부적합' 을 확정하지도 않는다 — 확인 필요다.
+    checklist_unsatisfied = any(
+        status_by_key.get(r.requirement_key) == "UNSATISFIED"
+        for r in mandatory if requirement_tier(r) != "VERDICT"
+    )
+    if not group_statuses:
+        # 판정 대상 요건이 없다. 요건이 아예 없으면 추출 실패일 수 있어 확인 필요, 확인 항목만 있으면
+        # (그리고 놓친 닫힌 값이 없으면) 닫힌 값 기준으로는 제한이 없는 공고다.
+        return "eligible" if mandatory and seen_everything and not checklist_unsatisfied else "insufficient_data"
+    if "UNKNOWN" in group_statuses or not seen_everything or checklist_unsatisfied:
         return "insufficient_data"
     return "eligible"
 

@@ -64,7 +64,7 @@ def _run(version: SampleVersion, profile: CompanyProfileSnapshot, expects: bool,
         )
         evaluation = judge_requirements(
             result.requirements, profile, preflight_case_id=f"{version.label}-{run}", reference_date=REFERENCE_DATE,
-            analysis_status=result.status, coverage_complete=bool(result.coverage and result.coverage.complete),
+            analysis_status=result.status, coverage_complete=bool(result.coverage and result.coverage.verdict_complete),
         )
     except Exception as error:  # noqa: BLE001
         return {"version": version.label, "mode": mode, "run": run, "error": repr(error)[:300]}
