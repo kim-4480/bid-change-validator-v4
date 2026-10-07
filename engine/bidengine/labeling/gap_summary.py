@@ -150,9 +150,14 @@ def summarize_gaps(
     body = "\n\n".join(
         f"[{gid}] 앞 문맥: {gap.get('context') or '없음'}\n조항: {' '.join(gap['raw'].split())}" for gid, (_key, gap) in ids.items()
     )
-    try:
-        answer = structured_extract(SYSTEM_PROMPT, body, SCHEMA)
-    except Exception:  # noqa: BLE001 — 설명은 부가 정보다. 실패해도 분석은 그대로 낸다.
+    answer = None
+    for _attempt in range(2):  # 한 번 실패는 흔하다(표본 j 에서 설명이 통째로 빠졌다). 한 번 더 묻는다.
+        try:
+            answer = structured_extract(SYSTEM_PROMPT, body, SCHEMA)
+            break
+        except Exception:  # noqa: BLE001 — 설명은 부가 정보다. 실패해도 분석은 그대로 낸다.
+            continue
+    if answer is None:
         return out
     for item in (answer or {}).get("items") or []:
         found = ids.get(str(item.get("id")))

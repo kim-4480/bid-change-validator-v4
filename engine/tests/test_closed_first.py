@@ -256,3 +256,55 @@ def test_industry_named_as_a_standard_is_not_a_candidate():
     candidates = scan_candidates(text, Resolver6728())
     assert [(c.kind, c.value) for c in candidates] == [("INDUSTRY", "1253")]
     assert unresolved_industry_names(text, candidates, Resolver6728()) == []
+
+
+def _required_everything(system, body, schema):
+    """조항마다 '요구', 후보는 모두 필수, 열린 조건은 이름에 법령 조문이 든 등록 하나(소음으로 버려진다)."""
+    import re as _re
+
+    if schema is not SCHEMA:
+        return {"clauses": []}
+    clauses = []
+    for block in body.split("\n\n"):
+        head = block.split("\n", 1)[0]
+        cid = _re.match(r"\[(C\d+)\]", head)
+        if not cid:
+            continue
+        ids = [part.split()[0] for part in head.split("후보: ", 1)[1].split("; ")] if "후보: V" in head else []
+        open_reqs = []
+        if "관할" in block:
+            open_reqs = [{name: None for name in SCHEMA["schema"]["properties"]["clauses"]["items"]["properties"]["open_requirements"]["items"]["required"]}
+                         | {"유형": "등록요건", "등록인증_raw": "산업안전보건법 제74조에 따른 지도기관"}]
+        clauses.append({"clause_id": cid.group(1), "polarity": "POSITIVE",
+                        "candidates": [{"id": i, "role": "REQUIRED", "group": ""} for i in ids], "open_requirements": open_reqs})
+    return {"clauses": clauses}
+
+
+def _closed_first(section):
+    return analyze_qualification_documents(
+        QualificationAnalysisInput(notice_id="n", notice_version_id="v", documents=[
+            QualificationDocumentInput(document_id="d", extracted_blocks=[{"block_index": 0, "text": section}])]),
+        structured_extract=_required_everything, extraction_mode="closed_first", clause_selection="code",
+        industry_resolver=Resolver(), summarize_gaps=False,
+    )
+
+
+def test_numbered_sub_items_under_any_of_are_alternatives_but_region_stays_common():
+    """2026-10-07 표본 j: '다음 자격 중 어느 하나 … 1) … 2) …' 의 업종 둘이 모두 필수가 되어 틀린 미달이 났다."""
+    section = """3. 입찰참가자격
+가. 본점 소재지가 강릉시인 업체로서 다음 자격 중 어느 하나를 등록한 업체여야 합니다.
+1) 조경식재·시설물공사업(업종코드 4993)
+2) 조경공사업(업종코드 0005)
+4. 입찰보증금"""
+    got = {(r.type, str(r.value), r.group_operator) for r in _closed_first(section).requirements}
+    assert ("INDUSTRY", "4993", "ANY_OF") in got and ("INDUSTRY", "0005", "ANY_OF") in got
+    assert ("REGION", "강릉시", "ALL_OF") in got        # 머리 조항의 소재지는 대안이 아니라 공통 조건
+
+
+def test_clause_whose_only_open_name_was_noise_stays_for_review():
+    """이름(‘…제74조…’)만 소음으로 버렸고 다른 요건이 없으면 조항을 '요건으로 정리하지 못한 조항' 으로 남긴다."""
+    section = """3. 입찰참가자격
+④ 산업안전보건법 제74조에 따라 지정을 받은 재해예방전문기관 중 부산지방고용노동청 관할 지도기관으로 등록된 자
+4. 입찰보증금"""
+    result = _closed_first(section)
+    assert any("관할" in gap.raw for gap in result.coverage.gaps)

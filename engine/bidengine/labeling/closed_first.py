@@ -69,7 +69,11 @@ _STANDARD_AFTER_RE = re.compile(
 _QUALIFIER_SPLIT_RE = re.compile(r"\s*(?:,|，|및|또는|/)\s*")
 _BRACKET_INDUSTRY_CODE_RE = re.compile(r"업\s*(?:\([^()]{0,20}\))?\s*[\[［]\s*([0-9]{4})\s*[\]］]")
 # "다음 각 호 어느 하나에 해당하는 경우" 아래로 이어지는 하위 조항 표식(㉮ ㉯, ⓐ, (가), 가), ①).
-_SUB_ITEM_RE = re.compile(r"^\s*(?:[㉮-㉻]|[ⓐ-ⓩ]|\([가-하]\)|[가-하]\)|[①-⑳])")
+# "1) 조경식재·시설물공사업 2) 조경공사업" 처럼 숫자 괄호도 하위 항목이다(2026-10-07 표본 j 녹색이음 누리길 — 둘 다 필수가
+# 되어 틀린 미달). 머리 조항에 '중 어느 하나' 가 있을 때만 쓰므로 '모두 갖춘' 목록과 섞이지 않는다.
+_SUB_ITEM_RE = re.compile(r"^\s*(?:[㉮-㉻]|[ⓐ-ⓩ]|\([가-하]\)|[가-하]\)|[①-⑳]|\(?\d{1,2}\))")
+# 조항을 건넌 대안으로 묶는 것은 업종·품명번호뿐이다. 머리 조항의 소재지·규모 요건은 대안이 아니라 공통 조건이다.
+_ALTERNATIVE_TYPES = {"INDUSTRY", "REGISTRATION_CERTIFICATION"}
 _UMBRELLA_RE = re.compile(r"(?:중|가운데)\s*(?:하나|어느|1\s*개|택)|어느\s*하나|택\s*1|택일|각\s*호의\s*(?:1|어느)")
 _REGION_NARROWING_RE = re.compile(r"(?:동|서|남|북|중)부|영동|영서|권역|도서지역")
 _PROCEDURAL_POLARITIES = {"NOT_REQUIREMENT", "EVALUATION"}
@@ -439,7 +443,8 @@ def _merge_cross_clause_alternatives(kept: list[Clause], slots: list[dict[str, A
         branches = [closed.get(k) for k in keys]
         units = []
         for slot in branches:
-            reqs = [r for r in (slot or {}).get("_closed_requirements") or [] if not (r.get("scope") or {}).get("restriction")]
+            reqs = [r for r in (slot or {}).get("_closed_requirements") or []
+                    if not (r.get("scope") or {}).get("restriction") and r.get("type") in _ALTERNATIVE_TYPES]
             groups = {r.get("group") for r in reqs if r.get("group")}
             singles = [r for r in reqs if not r.get("group")]
             units.append(len(singles) + len(groups))
@@ -452,12 +457,13 @@ def _merge_cross_clause_alternatives(kept: list[Clause], slots: list[dict[str, A
             group = f"X{index}"
             for slot in targets:
                 slot["_closed_requirements"] = [
-                    {**r, "group": group} if not (r.get("scope") or {}).get("restriction") else r
+                    {**r, "group": group} if not (r.get("scope") or {}).get("restriction") and r.get("type") in _ALTERNATIVE_TYPES else r
                     for r in slot.get("_closed_requirements") or []
                 ]
         else:
             for slot in targets:
-                kept_reqs = [r for r in slot.get("_closed_requirements") or [] if (r.get("scope") or {}).get("restriction")]
+                kept_reqs = [r for r in slot.get("_closed_requirements") or []
+                             if (r.get("scope") or {}).get("restriction") or r.get("type") not in _ALTERNATIVE_TYPES]
                 if len(kept_reqs) != len(slot.get("_closed_requirements") or []):
                     slot["_closed_requirements"] = kept_reqs
                     slot["_closed_diagnostics"] = [*(slot.get("_closed_diagnostics") or []),
@@ -601,6 +607,13 @@ def extract_closed_first(
             kept_open.append(labelled)
             open_slots.append(slot)
 
+        if polarity == "POSITIVE" and not reqs and not open_slots and diags and all(
+            d.get("code") == "CLAUSE_NOT_LABELLED" and str(d.get("reason") or "").startswith("OPEN_NAME_") for d in diags
+        ):
+            # 열린 조건의 이름만 소음으로 버렸고 이 조항에서 나온 요건이 하나도 없다. 이름은 버려도 조항은 '요건으로 정리하지
+            # 못한 조항' 으로 남겨야 사용자가 확인한다 — '…부산지방고용노동청 관할 지도기관으로 등록된 자'(이름에 '제74조'),
+            # '…규격적합확인서를 받은 업체' 가 소리 없이 사라졌다(2026-10-07 표본 j).
+            diags = []
         if polarity == "POSITIVE":
             reqs, diags = _check_closed_values(clause.text, candidates, roles, reqs, diags, open_slots, industry_resolver)
 
