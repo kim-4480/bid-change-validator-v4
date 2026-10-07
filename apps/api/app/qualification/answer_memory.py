@@ -33,7 +33,8 @@ clause_answer_memory = Table(
     Column("created_at", DateTime(timezone=True), server_default=func.now()),
 )
 
-MEMORY_KINDS = ("label", "polarity", "selection")
+# gap_summary: 요건으로 정리하지 못한 조항의 종류·확인용 문장(2026-10-07). 같은 조항은 같은 설명이 나오게 기억한다.
+MEMORY_KINDS = ("label", "polarity", "selection", "gap_summary")
 
 
 class DbAnswerMemory(MutableMapping[str, Any]):

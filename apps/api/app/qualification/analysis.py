@@ -166,6 +166,7 @@ def run_qualification_analysis(
         labeling_memory=DbAnswerMemory(db, "label"),
         polarity_memory=DbAnswerMemory(db, "polarity"),
         selection_memory=DbAnswerMemory(db, "selection"),
+        gap_summary_memory=DbAnswerMemory(db, "gap_summary"),
         # 기억은 모델별로 갈린다 — 모델을 바꾸면 예전 모델의 답을 쓰지 않는다.
         memory_namespace=getattr(structured_extract, "model", None) or type(structured_extract).__name__,
     )
