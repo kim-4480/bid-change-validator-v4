@@ -61,6 +61,11 @@ _PARTY_PROCEDURE_RE = re.compile(r"협정서|제출|승인|서식|간주")
 _INDUSTRY_NAME_SPAN_RE = re.compile(r"[가-힣][가-힣·ㆍ∙․]{1,24}업")
 # 괄호 세부명이 붙은 업종 이름: 「산림사업법인(숲가꾸기 및 병해충방제)」, 【일반소방시설공사업(전기, 기계】(닫는 괄호 빠짐).
 _QUALIFIED_INDUSTRY_NAME_RE = re.compile(r"([가-힣][가-힣·ㆍ∙․\s]{1,30}?(?:업|법인|조합|사업자))\s*\(([^()【】「」『』\[\]]{1,40})\)?")
+# 업종 이름 뒤에 기준이 오면 자격이 아니라 기준을 가리킨다: "‘건설폐기물수집․운반업 및 중간처리업의 허가기준’의 장비기준을
+# 충족한 자"(2026-10-07 로컬 확인 — 6728 이 필수 업종이 되어 틀린 미달). "A업 및 B업의 …기준" 처럼 이어 쓴 이름도 같다.
+_STANDARD_AFTER_RE = re.compile(
+    r"^(?:\s*(?:및|와|과|,|·|ㆍ)\s*[가-힣·ㆍ∙․]{1,24}업)*\s*(?:의\s*)?(?:허가|등록|시설|장비|기술|인력)?\s*기준"
+)
 _QUALIFIER_SPLIT_RE = re.compile(r"\s*(?:,|，|및|또는|/)\s*")
 _BRACKET_INDUSTRY_CODE_RE = re.compile(r"업\s*(?:\([^()]{0,20}\))?\s*[\[［]\s*([0-9]{4})\s*[\]］]")
 # "다음 각 호 어느 하나에 해당하는 경우" 아래로 이어지는 하위 조항 표식(㉮ ㉯, ⓐ, (가), 가), ①).
@@ -133,6 +138,8 @@ def scan_candidates(text: str, resolver: IndustryNameResolver | None) -> list[Ca
         # "폐기물중간처분업(지정폐기물)[1254]" — '업종코드' 낱말 없이 이름 뒤 대괄호에 쓴 업종코드.
         codes.setdefault(code, f"[{code}]")
     for match in _INDUSTRY_NAME_SPAN_RE.finditer(plain):
+        if _STANDARD_AFTER_RE.match(plain[match.end():]):
+            continue
         code = industry_code_for_name(match.group(0), resolver)
         if code:
             codes.setdefault(code, match.group(0))
@@ -208,6 +215,8 @@ def unresolved_industry_names(text: str, candidates: list["Candidate"], resolver
         name = match.group(1)
         compact = _compact(name)
         if compact in _NOT_INDUSTRY_NAMES or compact.endswith("기업") or _SIZE_WORD_RE.fullmatch(compact):
+            continue
+        if _STANDARD_AFTER_RE.match(plain[match.end():]):
             continue
         if any(compact in surface or surface in compact for surface in surfaces if surface):
             continue
@@ -315,8 +324,12 @@ SYSTEM_PROMPT = """너는 입찰공고의 참가자격 조항을 읽는 도구�
 규칙: 원문을 쓰지 않는다. 확신이 없으면 polarity 를 UNSURE 로 둔다. 받은 clause_id 를 그대로 쓴다."""
 
 
-def _key(section: str, text: str) -> str:
-    return hashlib.sha256((CLOSED_FIRST_VERSION + "\n" + section + "\n" + "".join((text or "").split())).encode("utf-8")).hexdigest()[:24]
+def _key(section: str, text: str, candidates: list[Candidate] = ()) -> str:
+    """조항 답 기억의 키. 후보 목록(종류:값)을 넣는다 — 모델 답은 후보 번호(V1, V2…)로 역할을 매기므로, 탐색 규칙이
+    바뀌어 후보가 달라진 조항에 예전 답을 쓰면 역할이 엉뚱한 후보에 붙는다. 후보가 같은 조항은 그대로 기억을 쓴다."""
+    listed = ";".join(f"{c.id}={c.kind}:{c.value}" for c in candidates)
+    body = CLOSED_FIRST_VERSION + "\n" + section + "\n" + "".join((text or "").split()) + "\n" + listed
+    return hashlib.sha256(body.encode("utf-8")).hexdigest()[:24]
 
 
 def _entry_body(clause_id: str, section: str, clause: Clause, candidates: list[Candidate]) -> str:
@@ -474,7 +487,8 @@ def extract_closed_first(
     prepared = []
     for clause in kept:
         section = paths.get(str(clause.chunk_id), "")
-        prepared.append((clause, section, scan_candidates(clause.text, industry_resolver), _key(section, clause.text)))
+        candidates = scan_candidates(clause.text, industry_resolver)
+        prepared.append((clause, section, candidates, _key(section, clause.text, candidates)))
 
     pending = [item for item in prepared if item[3] not in known]
     answers: dict[str, dict] = {}

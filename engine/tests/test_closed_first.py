@@ -243,3 +243,16 @@ def test_unresolved_or_unused_industry_stays_for_review():
     # 이름 뒤 괄호에 코드가 있으면 이름은 푼 것이다.
     assert unresolved_industry_names(text, candidates, MasterResolver()) == []
     assert unresolved_industry_names("라. 「신규사업자(개인사업자인 경우 사업자등록일)」", [], MasterResolver()) == []
+
+
+def test_industry_named_as_a_standard_is_not_a_candidate():
+    """'…운반업 및 중간처리업의 허가기준' 은 기준을 가리킨다 — 업종 요건 후보도, 못 푼 업종 이름도 아니다."""
+    class Resolver6728:
+        def code_for(self, name):
+            return {"건설폐기물수집운반업": "6728"}.get("".join(name.replace("․", "").split()))
+
+    text = ("② 폐기물중간처리업(건설폐기물, 업종코드 1253)으로 입찰참가자격을 등록한 자로서 「건설폐기물의 재활용촉진에 관한 법률"
+            " 시행규칙」 제12조〔별표2〕 ‘건설폐기물수집․운반업 및 중간처리업의 허가기준’의 장비기준을 충족한 자")
+    candidates = scan_candidates(text, Resolver6728())
+    assert [(c.kind, c.value) for c in candidates] == [("INDUSTRY", "1253")]
+    assert unresolved_industry_names(text, candidates, Resolver6728()) == []
