@@ -59,6 +59,10 @@ ROLES = ("REQUIRED", "ALTERNATIVE", "EXCLUDED", "NOT_RELATED")
 _PARTY_CLAUSE_RE = re.compile(r"공동\s*(?:수급|계약|도급|이행)|분담\s*이행")
 _PARTY_PROCEDURE_RE = re.compile(r"협정서|제출|승인|서식|간주")
 _INDUSTRY_NAME_SPAN_RE = re.compile(r"[가-힣][가-힣·ㆍ∙․]{1,24}업")
+_BRACKET_INDUSTRY_CODE_RE = re.compile(r"업\s*(?:\([^()]{0,20}\))?\s*[\[［]\s*([0-9]{4})\s*[\]］]")
+# "다음 각 호 어느 하나에 해당하는 경우" 아래로 이어지는 하위 조항 표식(㉮ ㉯, ⓐ, (가), 가), ①).
+_SUB_ITEM_RE = re.compile(r"^\s*(?:[㉮-㉻]|[ⓐ-ⓩ]|\([가-하]\)|[가-하]\)|[①-⑳])")
+_UMBRELLA_RE = re.compile(r"(?:중|가운데)\s*(?:하나|어느|1\s*개|택)|어느\s*하나|택\s*1|택일|각\s*호의\s*(?:1|어느)")
 _REGION_NARROWING_RE = re.compile(r"(?:동|서|남|북|중)부|영동|영서|권역|도서지역")
 _PROCEDURAL_POLARITIES = {"NOT_REQUIREMENT", "EVALUATION"}
 # 열린 조건(등록·인증·면허 이름)으로 받지 않는 이름: 법령·절차 문구와 나라장터 등록 낱말. 모델이 이런 구간을
@@ -115,6 +119,9 @@ def scan_candidates(text: str, resolver: IndustryNameResolver | None) -> list[Ca
         codes.setdefault(code, f"업종코드 {code}")
     for code in _NAMED_INDUSTRY_CODE_RE.findall(compact):
         codes.setdefault(code, code)
+    for code in _BRACKET_INDUSTRY_CODE_RE.findall(plain):
+        # "폐기물중간처분업(지정폐기물)[1254]" — '업종코드' 낱말 없이 이름 뒤 대괄호에 쓴 업종코드.
+        codes.setdefault(code, f"[{code}]")
     for match in _INDUSTRY_NAME_SPAN_RE.finditer(plain):
         code = industry_code_for_name(match.group(0), resolver)
         if code:
@@ -281,6 +288,60 @@ def _closed_requirements(polarity: str, text: str, candidates: list[Candidate], 
     return reqs, diags
 
 
+def _merge_cross_clause_alternatives(kept: list[Clause], slots: list[dict[str, Any]]) -> None:
+    """'다음 각 호 어느 하나에 해당하는 경우' 아래 하위 조항(㉮ ㉯ …)이 따로 떨어진 조항이면, 그 조항들은 서로 대안이다.
+
+    조항을 하나씩 읽으면 ㉯ 의 업종들이 필수가 되어 ㉮ 를 갖춘 회사가 부적합이 된다(2026-10-06 표본 g 고양 복지회관).
+    갈래마다 요건 단위(요건 하나, 또는 대안 묶음 하나)가 하나면 모두 한 대안 묶음으로 합친다. 한 갈래에 요건이
+    여럿이면("A 와 B 와 C 를 모두") 지금 구조로 '(갈래1) 또는 (갈래2 전부)' 를 담을 수 없으므로 확인 필요로 둔다.
+    """
+    closed = {}
+    for slot in slots:
+        if slot.get("유형") == "_CLOSED":
+            closed.setdefault(_compact(slot.get("raw") or ""), slot)
+    texts = [clause.text for clause in kept]
+    handled: set[str] = set()
+    for index, text in enumerate(texts):
+        if not _UMBRELLA_RE.search(text):
+            continue
+        branch_texts = [text]
+        for follower in texts[index + 1:]:
+            if not _SUB_ITEM_RE.match(follower):
+                break
+            branch_texts.append(follower)
+        if len(branch_texts) < 2:
+            continue
+        keys = [_compact(t) for t in branch_texts]
+        if any(k in handled for k in keys):
+            continue
+        branches = [closed.get(k) for k in keys]
+        units = []
+        for slot in branches:
+            reqs = [r for r in (slot or {}).get("_closed_requirements") or [] if not (r.get("scope") or {}).get("restriction")]
+            groups = {r.get("group") for r in reqs if r.get("group")}
+            singles = [r for r in reqs if not r.get("group")]
+            units.append(len(singles) + len(groups))
+        if all(count == 0 for count in units):
+            continue
+        handled.update(keys)
+        # 같은 원문이 다른 문서(HWP·PDF)에도 있으면 함께 고친다.
+        targets = [slot for slot in slots if slot.get("유형") == "_CLOSED" and _compact(slot.get("raw") or "") in set(keys)]
+        if all(count <= 1 for count in units):
+            group = f"X{index}"
+            for slot in targets:
+                slot["_closed_requirements"] = [
+                    {**r, "group": group} if not (r.get("scope") or {}).get("restriction") else r
+                    for r in slot.get("_closed_requirements") or []
+                ]
+        else:
+            for slot in targets:
+                kept_reqs = [r for r in slot.get("_closed_requirements") or [] if (r.get("scope") or {}).get("restriction")]
+                if len(kept_reqs) != len(slot.get("_closed_requirements") or []):
+                    slot["_closed_requirements"] = kept_reqs
+                    slot["_closed_diagnostics"] = [*(slot.get("_closed_diagnostics") or []),
+                                                   {"code": "UNMAPPED_REQUIREMENT", "raw": slot["raw"], "reason": "CROSS_CLAUSE_ALTERNATIVE"}]
+
+
 def extract_closed_first(
     chunks: list[dict[str, Any]],
     *,
@@ -398,6 +459,11 @@ def extract_closed_first(
                 continue  # 후보로 이미 담은 번호
             if labelled.get("유형") in {"등록요건", "인증요건", "면허요건"}:
                 noise = open_name_is_noise(name, clause.text, candidates)
+                industry_values = {c.value for c in candidates if c.kind == "INDUSTRY"}
+                if not noise and industry_values and industry_code_for_name(name, industry_resolver) in industry_values:
+                    noise = "INDUSTRY_DUPLICATE"   # "전기공사업의 등록" — 같은 조항 업종 요건과 같은 요건
+                if not noise and "직접생산" in _compact(name) and any(c.kind == "PRODUCT" for c in candidates):
+                    noise = "PRODUCT_DUPLICATE"    # 품명번호 요건의 증명서 이름
                 if noise:
                     kept_open.append(labelled)
                     diags.append({"code": "CLAUSE_NOT_LABELLED", "raw": clause.text, "reason": f"OPEN_NAME_{noise}"})
@@ -428,6 +494,8 @@ def extract_closed_first(
             # 답을 기억한다. 검증에서 탈락한 열린 조건만 빼고 — 탈락한 답을 통째로 기억하지 않으면 그 조항은 다음
             # 분석에서 다시 묻게 되어 다른 답을 받는다(일관성이 깨진다). 탈락한 슬롯은 어차피 요건이 되지 않는다.
             known[key] = {**answers[key], "open": kept_open} if clause_rejected else answers[key]
+
+    _merge_cross_clause_alternatives(kept, slots)
 
     notes = [selection_note] if selection_note else []
     if rejected:

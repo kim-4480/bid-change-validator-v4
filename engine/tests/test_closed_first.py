@@ -127,3 +127,44 @@ def test_first_answer_is_the_majority_of_several_samples():
     assert calls["n"] == 3
     regions = [r for s in out["slots"] for r in s.get("_closed_requirements", []) if r["type"] == "REGION"]
     assert [r["value"] for r in regions] == ["전주시"]
+
+
+def _clause(cid, text):
+    from bidengine.clauses.enumerate import Clause
+    return Clause(clause_id=cid, chunk_id="K0", text=text, source_blocks=())
+
+
+def _closed_slot(text, reqs):
+    return {"유형": "_CLOSED", "raw": text, "_closed_requirements": reqs, "_closed_diagnostics": []}
+
+
+def test_cross_clause_alternative_with_a_multi_item_branch_is_left_for_review():
+    """'어느 하나' 아래 ㉯ 가 업종 셋을 모두 요구하면 '(㉮) 또는 (㉯ 전부)' 를 담을 수 없다 — 확인 필요로 둔다."""
+    from bidengine.labeling.closed_first import _merge_cross_clause_alternatives
+
+    head = "2) 업종 중 다음 각 호 어느 하나에 해당하는 경우 ㉮ 종합공사업: 건축공사업(또는 토목건축공사업)을 등록한 자"
+    sub = "㉯ 전문공사업: 지반조성·포장공사업과 금속창호·지붕건축물조립공사업과 도장·습식·방수·석공사업을 등록한 자"
+    slots = [_closed_slot(head, [{"type": "INDUSTRY", "value": "0002", "group": "G1"}, {"type": "INDUSTRY", "value": "0003", "group": "G1"}]),
+             _closed_slot(sub, [{"type": "INDUSTRY", "value": v} for v in ("4989", "4991", "4992")])]
+    _merge_cross_clause_alternatives([_clause("C001", head), _clause("C002", sub)], slots)
+    assert all(s["_closed_requirements"] == [] for s in slots)
+    assert {d["reason"] for s in slots for d in s["_closed_diagnostics"]} == {"CROSS_CLAUSE_ALTERNATIVE"}
+
+
+def test_cross_clause_alternative_with_single_item_branches_becomes_one_any_of_group():
+    from bidengine.labeling.closed_first import _merge_cross_clause_alternatives
+
+    head = "가. 다음 중 하나에 해당하는 업체 ㉮ 종합여행업(업종코드 1261)을 등록한 자"
+    sub = "㉯ 국내외여행업(업종코드 1262)을 등록한 자"
+    slots = [_closed_slot(head, [{"type": "INDUSTRY", "value": "1261"}]), _closed_slot(sub, [{"type": "INDUSTRY", "value": "1262"}])]
+    _merge_cross_clause_alternatives([_clause("C001", head), _clause("C002", sub)], slots)
+    groups = {r["group"] for s in slots for r in s["_closed_requirements"]}
+    assert len(groups) == 1 and None not in groups
+
+
+def test_bracket_industry_codes_and_duplicate_names():
+    from bidengine.labeling.closed_first import scan_candidates
+
+    text = "① 폐기물중간처분업(지정폐기물)[1254]과 폐기물수집·운반업(지정폐기물)[1229]의 허가를 득한 자"
+    found = {(c.kind, c.value) for c in scan_candidates(text, Resolver())}
+    assert {("INDUSTRY", "1254"), ("INDUSTRY", "1229")} <= found
