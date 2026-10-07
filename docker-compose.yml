@@ -42,6 +42,10 @@ services:
       BIDENGINE_EXTRACTION_MODE: ${BIDENGINE_EXTRACTION_MODE:-legacy}
       BIDENGINE_POLARITY_GUARD: ${BIDENGINE_POLARITY_GUARD:-off}
       BIDENGINE_CLAUSE_SELECTION: ${BIDENGINE_CLAUSE_SELECTION:-code}
+      # 비우면 예전 동작. none 이면 추론을 끄고 temperature 0 으로 부른다(luna·sol 은 추론을 꺼야 temperature 를 받는다).
+      OPENAI_REASONING_EFFORT: ${OPENAI_REASONING_EFFORT:-}
+      # closed_first 의 첫 분석 다수결 횟수(기본 1).
+      BIDENGINE_LABEL_VOTES: ${BIDENGINE_LABEL_VOTES:-1}
       DOCUMENT_STORAGE_BACKEND: ${DOCUMENT_STORAGE_BACKEND:-LOCAL}
       DOCUMENT_STORAGE_PATH: /data/notice-documents
       DOCUMENT_S3_BUCKET: ${DOCUMENT_S3_BUCKET:-}

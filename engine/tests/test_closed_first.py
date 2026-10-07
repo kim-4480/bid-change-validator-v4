@@ -176,3 +176,19 @@ def test_statute_names_are_not_registration_names():
     assert open_name_is_noise("건설산업기본법", "", []) == "STATUTE_OR_PROCEDURE"
     assert open_name_is_noise("「전기공사업법」", "", []) == "STATUTE_OR_PROCEDURE"
     assert open_name_is_noise("건설기계조종사면허", "", []) is None
+
+
+def test_size_written_as_competition_type_is_a_requirement():
+    """'○○간 경쟁입찰로 진행' 은 절차 안내처럼 보여도 참가 업체의 규모를 정한다 — 모델이 요건 아님으로 읽어도 담는다."""
+    from bidengine.labeling.closed_first import _closed_requirements, scan_candidates
+
+    for text, expected in [
+        ("나. 판로지원법 시행령 제2조의2 제1항 1호에 의거 소기업 또는 소상공인간 경쟁입찰로 진행합니다.", "소기업"),
+        ("다. 본 입찰은 소기업 또는 소상공인 간 제한경쟁입찰입니다.", "소기업"),
+        ("나. 중소기업자간 경쟁입찰로 진행합니다.", "중소기업"),
+    ]:
+        reqs, _ = _closed_requirements("NOT_REQUIREMENT", text, scan_candidates(text, Resolver()), {})
+        assert reqs == [{"type": "COMPANY_SIZE", "value": expected, "scope": {"source": "competition_type"}}], text
+    # 경쟁 방식 문장이 아니면 예전대로 모델의 극성을 따른다
+    reqs, diags = _closed_requirements("NOT_REQUIREMENT", "소기업 확인서는 마감일까지 제출합니다.", [], {})
+    assert reqs == [] and diags

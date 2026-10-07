@@ -65,6 +65,12 @@ _SUB_ITEM_RE = re.compile(r"^\s*(?:[㉮-㉻]|[ⓐ-ⓩ]|\([가-하]\)|[가-하]\)
 _UMBRELLA_RE = re.compile(r"(?:중|가운데)\s*(?:하나|어느|1\s*개|택)|어느\s*하나|택\s*1|택일|각\s*호의\s*(?:1|어느)")
 _REGION_NARROWING_RE = re.compile(r"(?:동|서|남|북|중)부|영동|영서|권역|도서지역")
 _PROCEDURAL_POLARITIES = {"NOT_REQUIREMENT", "EVALUATION"}
+# 입찰 방식으로 쓴 규모 요건: "소기업 또는 소상공인간 경쟁입찰로 진행합니다", "… 간 제한경쟁입찰입니다".
+# 모델은 이 문장을 절차 안내로 읽지만 참가 업체의 규모를 정한다(2026-10-07 가상 변경 시험에서 1·2차 모두 놓쳤다).
+_SIZE_COMPETITION_RE = re.compile(
+    r"((?:중소기업|중기업|소기업|소상공인)(?:자)?(?:\s*(?:또는|및|,|·|ㆍ)\s*(?:중소기업|중기업|소기업|소상공인)(?:자)?)*)"
+    r"\s*간\s*(?:제한\s*)?경쟁"
+)
 # 열린 조건(등록·인증·면허 이름)으로 받지 않는 이름: 법령·절차 문구와 나라장터 등록 낱말. 모델이 이런 구간을
 # 실행마다 다르게 잘라 와 결과가 흔들렸다("제14조에의한자격요건" / "제14조", "이용자등록", "구매및제조물품").
 _OPEN_NAME_NOISE_RE = re.compile(
@@ -226,6 +232,12 @@ def _closed_requirements(polarity: str, text: str, candidates: list[Candidate], 
     """역할을 받은 후보로 요건(정의)과 진단을 만든다."""
     reqs: list[dict] = []
     diags: list[dict] = []
+    competition = _SIZE_COMPETITION_RE.search(_size_text(text))
+    if competition and polarity in {"POSITIVE", "NOT_REQUIREMENT", "UNSURE"}:
+        alias = company_size_alias(competition.group(1))
+        if alias:
+            # 규모 낱말은 닫힌 어휘다 — '○○간 경쟁입찰' 이면 그 규모가 참가 자격이다. 모델의 역할 표시와 상관없이 코드가 정한다.
+            return [{"type": "COMPANY_SIZE", "value": alias, "scope": {"source": "competition_type"}}], diags
     by_role = {role: [c for c in candidates if roles.get(c.id, ("NOT_RELATED", ""))[0] == role] for role in ROLES}
 
     if polarity == "EXCLUSION":
