@@ -290,7 +290,9 @@ def extract_closed_first(
     clause_selection: str = "hybrid",
     selection_memory: MutableMapping[str, bool] | None = None,
     memory: MutableMapping[str, Any] | None = None,
+    votes: int = 1,
 ) -> dict[str, Any]:
+    """votes: 조항을 처음 물을 때 같은 질문을 몇 번 보내 다수결로 정할지. 기억에 있는 조항은 묻지 않는다."""
     kept, target, base, selection_note = select_clauses(
         chunks, structured_extract=structured_extract, max_retry=max_retry,
         clause_selection=clause_selection, selection_memory=selection_memory,
@@ -317,27 +319,39 @@ def extract_closed_first(
             return
         ids = {f"C{index:03d}": item for index, item in enumerate(batch, start=1)}
         body = "\n\n".join(_entry_body(cid, item[1], item[0], item[2]) for cid, item in ids.items())
-        result = None
-        for _attempt in range(max_retry + 1):
-            try:
-                result = structured_extract(SYSTEM_PROMPT, body, SCHEMA)
-                break
-            except Exception as error:  # noqa: BLE001 - 호출 실패는 결과 상태로 알린다
-                last_error = f"구조화 추출 호출 실패: {type(error).__name__}"
-        if result is None:
-            failed = True
-        else:
+        samples: list[dict[str, dict]] = []
+        for _vote in range(max(1, votes)):
+            result = None
+            for _attempt in range(max_retry + 1):
+                try:
+                    result = structured_extract(SYSTEM_PROMPT, body, SCHEMA)
+                    break
+                except Exception as error:  # noqa: BLE001 - 호출 실패는 결과 상태로 알린다
+                    last_error = f"구조화 추출 호출 실패: {type(error).__name__}"
+            if result is None:
+                continue
+            parsed: dict[str, dict] = {}
             for entry in (result.get("clauses") or []) if isinstance(result, dict) else []:
                 item = ids.get(str(entry.get("clause_id") or ""))
                 if item is not None:
-                    answers[item[3]] = {
+                    parsed[item[3]] = {
                         "polarity": entry.get("polarity") if entry.get("polarity") in POLARITIES else "UNSURE",
                         "roles": {str(c.get("id")): [c.get("role") if c.get("role") in ROLES else "NOT_RELATED", str(c.get("group") or "")]
                                   for c in entry.get("candidates") or []},
                         "open": [dict(x) for x in entry.get("open_requirements") or []],
                     }
             for cid, item in ids.items():  # 응답에 없는 조항은 '요건 아님'
-                answers.setdefault(item[3], {"polarity": "NOT_REQUIREMENT", "roles": {}, "open": []})
+                parsed.setdefault(item[3], {"polarity": "NOT_REQUIREMENT", "roles": {}, "open": []})
+            samples.append(parsed)
+        if not samples:
+            failed = True
+        else:
+            # 조항마다 다수결: 극성과 후보 역할(묶음 이름은 무시)이 같은 답끼리 세어 가장 많은 답을 쓴다. 같으면 먼저 받은 답.
+            for _cid, item in ids.items():
+                options = [sample[item[3]] for sample in samples]
+                signatures = [(o["polarity"], tuple(sorted((k, v[0]) for k, v in o["roles"].items()))) for o in options]
+                best = max(range(len(options)), key=lambda i: (signatures.count(signatures[i]), -i))
+                answers[item[3]] = options[best]
         batch, size = [], 0
 
     for item in pending:

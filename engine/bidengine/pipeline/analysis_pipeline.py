@@ -124,6 +124,7 @@ def analyze_qualification_documents(
     selection_memory: MutableMapping[str, bool] | None = None,
     labeling_memory: MutableMapping[str, list[dict[str, Any]]] | None = None,
     memory_namespace: str | None = None,
+    label_votes: int | None = None,
 ) -> RequirementAnalysisResult:
     """Run one qualification Requirement analysis without touching Backend state.
 
@@ -170,6 +171,8 @@ def analyze_qualification_documents(
             selection_memory=selection_memory,
             memory=namespaced(labeling_memory, memory_namespace or "default", CLOSED_FIRST_VERSION)
             if labeling_memory is not None else None,
+            # 첫 분석 다수결 횟수. 모델이 같은 입력에 다른 답을 내므로(luna) 처음 묻는 조항만 여러 번 물어 다수 답을 기억한다.
+            votes=label_votes if label_votes is not None else int(os.getenv("BIDENGINE_LABEL_VOTES", "1") or 1),
         )
     elif mode == "clause":
         # 조항 선택 방식: code(제목·키워드) | hybrid(코드 ∪ 모델) | model(모델만). 지정하지 않으면

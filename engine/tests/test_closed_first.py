@@ -104,3 +104,26 @@ def test_noisy_open_names_are_dropped():
     assert open_name_is_noise("사격총", "", product) == "PRODUCT_NAME_DUPLICATE"
     assert open_name_is_noise("ISO 9001 인증", "", product) is None      # 번호가 있는 진짜 인증
     assert open_name_is_noise("건설기계조종사면허", "", []) is None
+
+
+def test_first_answer_is_the_majority_of_several_samples():
+    """같은 질문을 세 번 보내 다수 답을 쓴다 — 세 번 중 한 번만 다른 답은 버려진다."""
+    from bidengine.labeling.closed_first import extract_closed_first
+    from bidengine.pipeline.analysis_pipeline import _build_global_chunks
+
+    chunks = _build_global_chunks([QualificationDocumentInput(document_id="d", extracted_blocks=[{"block_index": 0, "text": SECTION}])], max_chunk_chars=1800)
+    calls = {"n": 0}
+
+    def flaky(system, body, schema):
+        calls["n"] += 1
+        answer = fake_model(system, body, schema)
+        if calls["n"] == 2:  # 두 번째 답만 지역 조항을 '요건 아님' 으로 낸다
+            for entry in answer["clauses"]:
+                if any(c["role"] == "REQUIRED" for c in entry["candidates"]):
+                    entry["polarity"] = "NOT_REQUIREMENT"
+        return answer
+
+    out = extract_closed_first(chunks, structured_extract=flaky, industry_resolver=Resolver(), clause_selection="code", votes=3)
+    assert calls["n"] == 3
+    regions = [r for s in out["slots"] for r in s.get("_closed_requirements", []) if r["type"] == "REGION"]
+    assert [r["value"] for r in regions] == ["전주시"]
