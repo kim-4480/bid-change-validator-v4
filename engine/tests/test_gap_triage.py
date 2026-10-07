@@ -16,6 +16,8 @@ from bidengine.pipeline.gap_triage import classify_gap, triage_gaps
     ("1 . 지 방 자 치 단 체 의 장 또 는 지 방 의 회 의 원 의 배 우 자 인 사 업 자", "COMMON_DISQUALIFICATION"),
     ("1 . 경쟁입찰에 있어서 특정인의 낙찰을 위하여 담합을 주도한 자는 부산광역시에서 발주하는 입찰에 입찰 참가자격제한 처분을 받은 날부터 1 년동안 참가하지 못한다 .",
      "COMMON_DISQUALIFICATION"),
+    ("※ 지방자치단체를 당사자로 하는 계약에 관한 법률 제33조에 해당되는 자 또는 지방자치단체 수의계약운영요령(행정안전부 예규)",
+     "COMMON_DISQUALIFICATION"),
     ("가. 「국가를 당사자로 하는 계약에 관한 법률 시행령」 제12조의 규정에 의한 요건을 갖춘 자로서", "STATUTE_BASELINE"),
     ("나. 『지방자치단체를 당사자로 하는 계약에 관한 법률시행령』제13조의 자격 요건을 구비하고 조달청에 입찰 참가자격이 등록된 업체이어야 합니다.",
      "STATUTE_BASELINE"),
