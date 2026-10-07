@@ -329,7 +329,8 @@ def test_mvp_golden_path_judgment_ask_back_and_revalidation() -> None:
         assert revalidation["revalidated_keys"] == ["REQ-PERFORMANCE-AMOUNT"]
 
         result = revalidation["result"]
-        assert result["overall_status"] == "ineligible"
+        # 실적 금액은 확인 항목이다(2026-10-07). 미달로 확정돼도 '부적합' 을 확정하지 않고 '적합' 도 주지 않는다.
+        assert result["overall_status"] == "insufficient_data"
         result_by_key = {item["requirement_key"]: item for item in result["judgments"]}
         assert result_by_key["REQ-PERFORMANCE-AMOUNT"]["status"] == "UNSATISFIED"
         assert result_by_key["REQ-REGISTRATION"]["status"] == "SATISFIED"

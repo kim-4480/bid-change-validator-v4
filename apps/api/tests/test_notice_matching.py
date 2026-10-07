@@ -22,7 +22,7 @@ def test_notice_matching_loads_runs_in_batch_without_per_notice_scalar_queries()
         status="SUCCEEDED",
         created_at=datetime.now(timezone.utc),
     )
-    analysis = SimpleNamespace(requirements=[], evidence=[])
+    analysis = SimpleNamespace(requirements=[], evidence=[], verdict_complete=None)
     evaluation = SimpleNamespace(overall_status="eligible", judgments=[])
 
     db = MagicMock()

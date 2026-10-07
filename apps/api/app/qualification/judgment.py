@@ -186,7 +186,7 @@ def run_qualification_judgment(db: Session, *, case_id: UUID, analysis_run_id: U
     profile = build_company_profile_snapshot(company, completeness)
     analysis_run = _select_analysis_run(db, case, analysis_run_id)
     analysis = analysis_run_response(analysis_run)
-    evaluation = judge_requirements(analysis.requirements, profile, preflight_case_id=str(case.id), reference_date=reference_date or date.today(), analysis_status=analysis_run.status)
+    evaluation = judge_requirements(analysis.requirements, profile, preflight_case_id=str(case.id), reference_date=reference_date or date.today(), analysis_status=analysis_run.status, coverage_complete=analysis.verdict_complete)
     overall_status = evaluation.overall_status
 
     run = QualificationJudgmentRun(

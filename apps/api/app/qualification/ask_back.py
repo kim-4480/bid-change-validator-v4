@@ -185,7 +185,7 @@ def answer_and_rejudge(
                 )
             )
 
-    overall = derive_overall_status(analysis.requirements, judgments, analysis_status=analysis.status)
+    overall = derive_overall_status(analysis.requirements, judgments, analysis_status=analysis.status, coverage_complete=analysis.verdict_complete)
     result_run = QualificationJudgmentRun(
         preflight_case_id=source.preflight_case_id,
         analysis_run_id=source.analysis_run_id,

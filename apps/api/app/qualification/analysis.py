@@ -14,7 +14,8 @@ from bidengine.pipeline.analysis_pipeline import (
     StructuredExtractor,
     analyze_qualification_documents,
 )
-from bidengine.pipeline.analysis_result import RequirementAnalysisResult
+from bidengine.judgment.rules import requirement_tier
+from bidengine.pipeline.analysis_result import AnalysisCoverage, RequirementAnalysisResult
 from bidengine.contracts import Evidence, EvidenceLocation, QualificationRequirement
 from ..analysis_models import (
     QualificationAnalysisRun,
@@ -88,6 +89,7 @@ def _persist_result(
         dropped_requirements=[
             item.model_dump(mode="json") for item in result.dropped_requirements
         ],
+        coverage=result.coverage.model_dump(mode="json") if result.coverage is not None else None,
     )
     db.add(run)
     db.flush()
@@ -191,6 +193,7 @@ def load_qualification_analysis_run(
 
 def analysis_run_response(run: QualificationAnalysisRun) -> QualificationAnalysisRunRead:
     version = run.notice_version
+    coverage = AnalysisCoverage.model_validate(run.coverage) if run.coverage else None
     requirements = [
         QualificationRequirement(
             requirement_key=item.requirement_key,
@@ -238,6 +241,9 @@ def analysis_run_response(run: QualificationAnalysisRun) -> QualificationAnalysi
         target_chunk_ids=list(run.target_chunk_ids or []),
         diagnostics=list(run.diagnostics or []),
         dropped_requirements=list(run.dropped_requirements or []),
+        coverage=coverage,
+        verdict_complete=coverage.verdict_complete if coverage is not None else None,
+        requirement_tiers={item.requirement_key: requirement_tier(item) for item in requirements},
         requirements=requirements,
         evidence=evidence,
         created_at=run.created_at,

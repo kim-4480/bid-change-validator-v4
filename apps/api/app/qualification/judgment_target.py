@@ -79,6 +79,7 @@ def run_targeted_qualification_judgment(
         preflight_case_id=str(case.id),
         reference_date=actual_reference_date,
         analysis_status=analysis_run.status,
+        coverage_complete=analysis.verdict_complete,
     )
     overall_status = evaluation.overall_status
 

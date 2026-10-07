@@ -139,7 +139,7 @@ def run_qualification_revalidation(db: Session, *, case_id: UUID, payload: Quali
         judgments.append(judge_requirement(requirement, current_profile, preflight_case_id=str(case.id), reference_date=reference_date))
         revalidated_keys.append(requirement.requirement_key)
 
-    overall_status = derive_overall_status(current.requirements, judgments, analysis_status=current_analysis.status)
+    overall_status = derive_overall_status(current.requirements, judgments, analysis_status=current_analysis.status, coverage_complete=current.verdict_complete)
 
     result_run = QualificationJudgmentRun(
         preflight_case_id=case.id, analysis_run_id=current_analysis.id, company_id=case.company_id, notice_version_id=case.current_version_id,

@@ -71,6 +71,7 @@ def match_cached_notices(
             preflight_case_id=f"MATCH:{company_id}:{notice.id}",
             reference_date=ref_date,
             analysis_status=run.status,
+            coverage_complete=analysis.verdict_complete,
         )
         overall = evaluation.overall_status
 

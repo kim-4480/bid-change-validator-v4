@@ -75,3 +75,41 @@ def test_analysis_input_allows_no_extracted_documents_for_failed_run_diagnostic(
     payload = build_qualification_analysis_input(version)
 
     assert payload.documents == []
+
+
+def test_analysis_response_carries_coverage_tiers_and_verdict_completeness() -> None:
+    """2026-10-07: 종합 판정은 닫힌 값만 본다. 화면은 확인 항목(공백·이름 요건)과 참고 정보를 따로 보여 준다."""
+    from datetime import datetime, timezone
+    from types import SimpleNamespace
+
+    from bidengine.pipeline.analysis_result import AnalysisCoverage, CoverageGap
+
+    from apps.api.app.qualification.analysis import analysis_run_response
+
+    def record(key, type_, value):
+        return SimpleNamespace(
+            requirement_key=key, requirement_group_key=f"{key}-G", group_operator="ALL_OF", type=type_, operator="MATCH",
+            value_json=value, unit=None, period_months=None, scope={}, requirement_role="mandatory",
+            condition_complexity="simple", required=True, raw=str(value), confidence=None, evidence_keys=[],
+        )
+
+    coverage = AnalysisCoverage(
+        section_selection="anchored", unclassified=1,
+        gaps=[CoverageGap(kind="UNCLASSIFIED", raw="다. 생산시설을 갖춘 자")],
+        ignored=[CoverageGap(kind="IGNORED", raw="공동수급 불가", reason="GAP_JOINT_CONTRACT_NOTE")],
+    )
+    run = SimpleNamespace(
+        id=uuid4(), notice_version=SimpleNamespace(id=uuid4(), notice_id=uuid4(), version_number=1),
+        contract_version="ai-analysis-v0.2", analysis_kind="QUALIFICATION_REQUIREMENTS", status="PARTIAL",
+        target_chunk_ids=[], diagnostics=[], dropped_requirements=[], evidence=[], created_at=datetime.now(timezone.utc),
+        requirements=[record("REQ-REGION", "REGION", "강릉시"), record("REQ-CERT", "REGISTRATION_CERTIFICATION", "Solar A Mark 인증서")],
+        coverage=coverage.model_dump(mode="json"),
+    )
+    response = analysis_run_response(run)
+    assert response.verdict_complete is True
+    assert response.requirement_tiers == {"REQ-CERT": "CHECKLIST", "REQ-REGION": "VERDICT"}
+    assert [gap.raw for gap in response.coverage.checklist_gaps] == ["다. 생산시설을 갖춘 자"]
+    assert [gap.raw for gap in response.coverage.notes] == ["공동수급 불가"]
+
+    run.coverage = None  # 2026-10-07 이전 실행 — 예전처럼 분석 상태로 판단한다.
+    assert analysis_run_response(run).verdict_complete is None
