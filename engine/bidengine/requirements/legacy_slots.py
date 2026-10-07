@@ -583,6 +583,7 @@ def industry_code_for_name(name: str, resolver: IndustryNameResolver | None) -> 
         trimmed = candidate
         for _ in range(3):
             trimmed = _INDUSTRY_NAME_TAIL_RE.sub("", _INDUSTRY_NAME_DETAIL_RE.sub("", trimmed)).strip()
+            trimmed = re.sub(r"(?<=업)\s*의$", "", trimmed)  # "전기공사업의 등록" → 전기공사업
         if trimmed != candidate:
             candidates.append(trimmed)
     for candidate in candidates:
