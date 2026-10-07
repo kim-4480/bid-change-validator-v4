@@ -23,9 +23,11 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: engine/pyproject.toml
-      - name: Install engine
-        run: python -m pip install -e engine pytest
+          cache-dependency-path: |
+            engine/pyproject.toml
+            eval/pyproject.toml
+      - name: Install engine and eval test dependency
+        run: python -m pip install -e engine -e eval pytest
       - name: Engine tests (경계 검사 포함)
         working-directory: engine
         run: python -m pytest -q tests
