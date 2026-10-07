@@ -81,6 +81,9 @@ class CoverageGap(BaseModel):
     reason: str | None = None
     # 판정을 막는가. 커버리지를 만들 때 요건과 대조해 정한다(None 이면 gap_blocks_verdict 가 원문만 보고 정한다).
     blocks_verdict: bool | None = None
+    # 사용자가 확인할 때 보는 설명(gap_summary): 조항 종류와 확인할 내용 한 문장. 원문 검사를 통과한 것만 담긴다.
+    category: str | None = None
+    summary: str | None = None
 
 
 _VERDICT_GAP_CODES = ("UNMAPPED_INDUSTRY", "UNMAPPED_REGION", "UNMAPPED_COMPANY_SIZE", "UNMAPPED_REGISTRATION_CERTIFICATION")

@@ -149,7 +149,8 @@ def test_mode_is_taken_from_environment_when_not_given(monkeypatch):
     analyze_qualification_documents(doc, structured_extract=recorder)
     monkeypatch.setenv("BIDENGINE_EXTRACTION_MODE", "legacy")
     analyze_qualification_documents(doc, structured_extract=recorder)
-    assert calls == ["clause_labels", "eligibility_slots"]
+    # 공백 설명(gap_summary) 호출은 추출 방식과 무관하다 — 추출 호출만 본다.
+    assert [name for name in calls if name != "gap_summary"] == ["clause_labels", "eligibility_slots"]
 
 
 def test_labels_are_remembered_per_clause_and_reused():

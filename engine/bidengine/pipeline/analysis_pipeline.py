@@ -24,7 +24,10 @@ from typing import Any
 
 from pydantic import BaseModel, Field, model_validator
 
+from bidengine.labeling.gap_summary import GAP_SUMMARY_VERSION, context_before, summary_key
+from bidengine.labeling.gap_summary import summarize_gaps as summarize_gaps_with_model
 from bidengine.pipeline.analysis_result import RequirementAnalysisResult, build_requirement_analysis_result
+from bidengine.pipeline.memory import namespaced
 from bidengine.document.backend_blocks import canonical_source_blocks
 from bidengine.requirements.canonicalize import canonicalize_validated_slots
 from bidengine.document.chunking import chunk_source_blocks
@@ -125,6 +128,8 @@ def analyze_qualification_documents(
     labeling_memory: MutableMapping[str, list[dict[str, Any]]] | None = None,
     memory_namespace: str | None = None,
     label_votes: int | None = None,
+    gap_summary_memory: MutableMapping[str, Any] | None = None,
+    summarize_gaps: bool = True,
 ) -> RequirementAnalysisResult:
     """Run one qualification Requirement analysis without touching Backend state.
 
@@ -312,7 +317,7 @@ def analyze_qualification_documents(
                     {"code": "CLAUSE_NOT_LABELLED", "raw": text, "reason": "MODEL_NO_REQUIREMENT"}
                 )
 
-    return build_requirement_analysis_result(
+    result = build_requirement_analysis_result(
         notice_id=analysis_input.notice_id,
         notice_version_id=analysis_input.notice_version_id,
         document_ids=document_ids,
@@ -327,3 +332,24 @@ def analyze_qualification_documents(
         input_truncated=bool(extraction.get("input_truncated")),
         candidate_count=int(extraction.get("candidate_count") or 0),
     )
+    if summarize_gaps:
+        result = _with_gap_summaries(
+            result, chunks, structured_extract=structured_extract,
+            memory=namespaced(gap_summary_memory, memory_namespace or "default", GAP_SUMMARY_VERSION),
+        )
+    return result
+
+
+def _with_gap_summaries(result: RequirementAnalysisResult, chunks: list[dict[str, Any]], *, structured_extract: StructuredExtractor,
+                        memory: MutableMapping[str, Any] | None) -> RequirementAnalysisResult:
+    """요건으로 정리하지 못한 조항에 종류와 확인할 내용 한 문장을 붙인다(gap_summary). 판정은 바꾸지 않는다."""
+    coverage = result.coverage
+    if coverage is None or not any(gap.raw for gap in coverage.gaps):
+        return result
+    items = [{"raw": gap.raw, "context": context_before(gap.raw, chunks)} for gap in coverage.gaps if gap.raw]
+    found = summarize_gaps_with_model(items, structured_extract=structured_extract, memory=memory)
+    gaps = []
+    for gap in coverage.gaps:
+        hit = found.get(summary_key(gap.raw, context_before(gap.raw, chunks))) if gap.raw else None
+        gaps.append(gap.model_copy(update=hit) if hit else gap)
+    return result.model_copy(update={"coverage": coverage.model_copy(update={"gaps": gaps})})
