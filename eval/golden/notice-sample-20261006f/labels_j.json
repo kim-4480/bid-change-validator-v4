@@ -507,6 +507,17 @@
       "5131030101"
      ],
      "source": "② 백신(5131030101) 제조 또는 공급 물품 등록"
+    },
+    {
+     "id": "J6c",
+     "type": "INDUSTRY",
+     "values": [
+      "5307"
+     ],
+     "source": "③ 의약품판매업(의약품도매상)[5307] 업종 등록",
+     "names": [
+      "의약품판매업"
+     ]
     }
    ],
    "confirm": [],
@@ -552,7 +563,13 @@
     "company_id": "ideal-748099",
     "region_name": "울산광역시 남구",
     "company_size": "SMALL",
-    "industries": [],
+    "industries": [
+     {
+      "code": "5307",
+      "name": "의약품판매업(의약품도매상)",
+      "verified": true
+     }
+    ],
     "staff": {
      "total_count": 30,
      "roles": []
@@ -756,7 +773,22 @@
      "total_count": 30,
      "roles": []
     },
-    "performances": [],
+    "performances": [
+     {
+      "ref": "p1",
+      "name": "OO시 공간정보(GIS)시스템 구축 용역",
+      "client_name": "OO시",
+      "amount": 150000000,
+      "started_at": "2024-03-01",
+      "completed_at": "2024-12-31",
+      "completed_year": 2024,
+      "fields": [
+       "공간정보(GIS)시스템 개발",
+       "공간정보",
+       "GIS"
+      ]
+     }
+    ],
     "certifications": [],
     "extensions": {},
     "completeness": {
