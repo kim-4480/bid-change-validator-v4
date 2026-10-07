@@ -8,7 +8,7 @@ olefile>=0.47,<1
 openai==3.8.0
 pydantic-settings==2.15.0
 psycopg[binary]==3.3.5
-pypdf>=5,<7
+pypdf @ https://github.com/dfs32dfs/pypdf/archive/4bc178cd390b0d3094d4c46a8977fa326c76d299.zip
 python-multipart>=0.0.20,<1
 requests==2.32.5
 SQLAlchemy==2.0.52
