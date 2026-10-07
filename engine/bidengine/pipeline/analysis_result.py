@@ -154,6 +154,16 @@ def build_analysis_coverage(
     for record in dropped:
         data = record.model_dump() if isinstance(record, BaseModel) else dict(record)
         gaps.append(CoverageGap(kind="DROPPED", raw=str(data.get("raw") or ""), reason=data.get("reason_code")))
+    # 제목·머리말·중복·조각·공통 결격·공동수급 안내는 확인할 자격이 아니다 — 이유와 함께 제외로 옮긴다(gap_triage).
+    from bidengine.pipeline.gap_triage import triage_gaps
+
+    gaps, moved = triage_gaps(gaps, requirements)
+    for gap, reason in moved:
+        if gap.kind == "UNREPRESENTABLE":
+            unrepresentable -= 1
+        elif gap.kind == "UNCLASSIFIED":
+            unclassified -= 1
+        ignored.append(CoverageGap(kind="IGNORED", raw=gap.raw, reason=f"GAP_{reason}"))
     if section_selection != "anchored":
         gaps.append(CoverageGap(kind="SECTION", reason=section_selection))
     if input_truncated:
@@ -166,7 +176,7 @@ def build_analysis_coverage(
         procedural=procedural,
         unrepresentable=unrepresentable,
         unclassified=unclassified,
-        dropped=len(dropped),
+        dropped=sum(gap.kind == "DROPPED" for gap in gaps),
         gaps=gaps,
         ignored=ignored,
         unclassified_blocks_eligibility=unclassified_blocks_eligibility,

@@ -166,7 +166,8 @@ def test_joint_venture_clause_stays_for_review_whatever_the_model_says():
     _requirements, diagnostics = _adapt({"유형": "기타요건", "raw": raw}, "NOT_REQUIREMENT")
     assert diagnostics[0]["reason"] == "COMPOSITE_PARTY_RULE"
 
-    # 모델이 그 조항에서 요건을 하나도 올리지 않아도 확인 필요(공백)로 남는다.
+    # 모델이 그 조항에서 요건을 하나도 올리지 않아도 조항은 사라지지 않는다. 공동수급·하도급 허용 여부는 회사 자격이
+    # 아니라 입찰 방식이라 확인 목록(공백)이 아니라 참고 정보(제외 목록, 이유 GAP_JOINT_CONTRACT_NOTE)로 간다(2026-10-07).
     section = "2. 입찰참가자격\n가. 실내건축공사업(4990)을 등록한 업체\n차. 본 입찰은 공동수급 및 하도급을 불허\n3. 입찰보증금"
     analysis = analyze_qualification_documents(
         QualificationAnalysisInput(
@@ -176,8 +177,9 @@ def test_joint_venture_clause_stays_for_review_whatever_the_model_says():
         structured_extract=lambda _s, _b, schema: {"clauses": []},
         extraction_mode="clause", polarity_guard=True,
     )
-    assert [(gap.kind, gap.reason) for gap in analysis.coverage.gaps if "공동수급" in gap.raw] == [
-        ("UNREPRESENTABLE", "COMPOSITE_PARTY_RULE")
+    assert [gap for gap in analysis.coverage.gaps if "공동수급" in gap.raw] == []
+    assert [(gap.kind, gap.reason) for gap in analysis.coverage.ignored if "공동수급" in gap.raw] == [
+        ("IGNORED", "GAP_JOINT_CONTRACT_NOTE")
     ]
 
 

@@ -397,14 +397,19 @@ def is_common_disqualification(raw: str) -> bool:
 
     닫힌 값이 있는 배제 조항("대기업은 참여할 수 없음")은 실제 자격 조건이라 확인 필요로 남아야 한다.
     """
-    compact = _compact(raw)
     if not _COMMON_DISQUALIFICATION_RE.search(" ".join((raw or "").split())):
         return False
     # 지역은 시·도뿐 아니라 시·군·구 이름도 본다. "제92조에 해당되지 않으며, … 소재지가 전주시인 업체" 를
     # 시·도 이름만 보고 공통 결격으로 버려, 전주시 요건이 공백 기록도 없이 사라졌다(2026-10-06 세 번째 표본).
+    return not has_closed_value_text(raw)
+
+
+def has_closed_value_text(raw: str) -> bool:
+    """문장에 닫힌 값(지역 이름·기업 규모 낱말·업종코드·품명번호)이 있는가."""
+    compact = _compact(raw)
     if any(find_regions(strip_decorations(raw))) or _SIZE_WORD_RE.search(_size_text(raw)):
-        return False
-    return not (_INDUSTRY_CODE_RE.search(compact) or _NAMED_INDUSTRY_CODE_RE.search(compact) or _PRODUCT_CODE_RE.search(compact))
+        return True
+    return bool(_INDUSTRY_CODE_RE.search(compact) or _NAMED_INDUSTRY_CODE_RE.search(compact) or _PRODUCT_CODE_RE.search(compact))
 
 
 def excluded_company_sizes(raw: str) -> list[str]:
