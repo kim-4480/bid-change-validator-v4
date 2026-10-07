@@ -16,6 +16,8 @@ callers may still override the normalizer in tests or experiments.
 
 from __future__ import annotations
 
+import re
+
 import os
 from collections.abc import MutableMapping
 
@@ -317,6 +319,21 @@ def analyze_qualification_documents(
                     {"code": "CLAUSE_NOT_LABELLED", "raw": text, "reason": "MODEL_NO_REQUIREMENT"}
                 )
 
+    kept, dropped = drop_checklist_duplicates(list(canonicalized["requirements"]))
+    kept, fragments = drop_checklist_fragments(kept)
+    if dropped or fragments:
+        canonicalized["requirements"] = kept
+        canonicalized["diagnostics"].extend(
+            {"code": "CLAUSE_NOT_LABELLED", "raw": item.raw, "reason": "CHECKLIST_DUPLICATE"} for item in dropped
+        )
+        # 조각 이름만 남은 조항은 '요건으로 정리하지 못한 조항' 으로 — 사용자가 확인 문장과 원문으로 본다.
+        kept_raws = {"".join((item.raw or "").split()) for item in kept}
+        for item in fragments:
+            orphan = "".join((item.raw or "").split()) not in kept_raws
+            canonicalized["diagnostics"].append(
+                {"code": "UNMAPPED_REQUIREMENT", "raw": item.raw} if orphan
+                else {"code": "CLAUSE_NOT_LABELLED", "raw": item.raw, "reason": "CHECKLIST_FRAGMENT"}
+            )
     result = build_requirement_analysis_result(
         notice_id=analysis_input.notice_id,
         notice_version_id=analysis_input.notice_version_id,
@@ -338,6 +355,59 @@ def analyze_qualification_documents(
             memory=namespaced(gap_summary_memory, memory_namespace or "default", GAP_SUMMARY_VERSION),
         )
     return result
+
+
+_LEADING_MARKER_RE = re.compile(r"^[○●◦·\-*※\s]+|[^0-9A-Za-z가-힣]")
+_PRODUCT_CERTIFICATE_NAMES = {"직접생산확인증명서", "직접생산확인서", "직접생산확인"}
+
+
+def drop_checklist_duplicates(requirements: list) -> tuple[list, list]:
+    """확인할 항목(이름·실적 요건) 중 같은 것을 하나만 남긴다. (남길 것, 뺄 것).
+
+    - HWP·PDF 에 같은 조항이 있어 OCR 차이만 나는 값("단일 급식장 기준…" / "단일 급식당 기준…")은 하나만.
+    - 품명번호(10자리) 요건이 있는 공고에서 이름만 '직접생산확인증명서' 인 등록 요건은 그 요건과 같은 것이다.
+    판정 대상(닫힌 값) 요건은 건드리지 않는다.
+    """
+    from difflib import SequenceMatcher
+
+    from bidengine.judgment.rules import requirement_tier
+
+    has_product = any(r.type == "REGISTRATION_CERTIFICATION" and re.fullmatch(r"[0-9]{10}", str(r.value)) for r in requirements)
+    kept, dropped, seen = [], [], []
+    for requirement in requirements:
+        if requirement_tier(requirement) == "VERDICT" or not isinstance(requirement.value, str):
+            kept.append(requirement)
+            continue
+        norm = _LEADING_MARKER_RE.sub("", requirement.value)
+        if has_product and requirement.type == "REGISTRATION_CERTIFICATION" and norm in _PRODUCT_CERTIFICATE_NAMES:
+            dropped.append(requirement)
+            continue
+        if any(kind == requirement.type and (norm == other or (min(len(norm), len(other)) >= 8
+               and SequenceMatcher(None, norm, other).ratio() >= 0.9)) for kind, other in seen):
+            dropped.append(requirement)
+            continue
+        seen.append((requirement.type, norm))
+        kept.append(requirement)
+    return kept, dropped
+
+
+def drop_checklist_fragments(requirements: list) -> tuple[list, list]:
+    """확인할 항목 중 이름이 조각인 것("업종", "고용노동부장관의지정")을 뺀다. (남길 것, 뺄 것).
+
+    모델이 올린 이름은 온전해도 등록 요건으로 바꾸는 단계에서 조각이 남을 수 있어(2026-10-08 표본 j) 마지막 결과에
+    이름 규칙(closed_first.open_name_is_noise)을 한 번 더 댄다. 판정 대상 요건은 건드리지 않는다.
+    """
+    from bidengine.judgment.rules import requirement_tier
+    from bidengine.labeling.closed_first import open_name_is_noise
+
+    kept, dropped = [], []
+    for requirement in requirements:
+        if (requirement_tier(requirement) != "VERDICT" and requirement.type == "REGISTRATION_CERTIFICATION"
+                and isinstance(requirement.value, str) and open_name_is_noise(requirement.value, requirement.raw or "", [])):
+            dropped.append(requirement)
+        else:
+            kept.append(requirement)
+    return kept, dropped
 
 
 def _with_gap_summaries(result: RequirementAnalysisResult, chunks: list[dict[str, Any]], *, structured_extract: StructuredExtractor,

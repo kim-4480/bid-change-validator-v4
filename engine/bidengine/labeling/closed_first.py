@@ -91,6 +91,28 @@ _OPEN_NAME_NOISE_RE = re.compile(
 )
 
 
+# 확인할 항목으로 보여 주기에 뜻이 없는 조각 이름(2026-10-08 g·h·i·j 측정 전체에서 모음). 이런 이름만 나온 조항은
+# '요건으로 정리하지 못한 조항' 으로 남아 모델이 쓴 확인 문장과 함께 보인다.
+_FRAGMENT_NAMES = {"업종", "지도기관", "등록기준", "기술능력", "자격", "요건", "지정", "인가", "기관", "업체"}
+_STATUTE_PREFIX_RE = re.compile(r"^[「『][^」』]+[」』](?:에서|에)?(?:따른|의한|의|따라)?(.*)$")
+_AUTHORITY_RE = re.compile(r"[가-힣]{1,24}?(?:장관|청장|처장|기관장|시장|군수|구청장|도지사|위원장)의?")
+# 인력 조건 중 회사 자격이 아닌 것: 입찰 대리인 재직 요건(절차), 등록기준의 '기술능력'(업종 등록에 딸린 말).
+_STAFF_NOISE_RE = re.compile(r"입찰\s*대리인|^기술\s*능력$")
+# 인력 조건이면 사람·자격을 가리켜야 한다. "생산시설(친어지, 부화지…)", "관리 상태가 양호하고" 는 인력이 아니다.
+_STAFF_PERSON_RE = re.compile(r"기술자|기술인|기사|기능사|사$|원$|인력|전문가|책임자|관리자|감독|명|자격|면허|교수|박사|직원")
+
+
+def open_condition_is_noise(labelled: dict[str, Any]) -> str | None:
+    """등록·인증·면허 밖의 열린 조건을 버릴 이유. 버리지 않으면 None."""
+    if labelled.get("유형") == "인력요건":
+        role = " ".join(str(labelled.get("인력역할_raw") or "").split())
+        if not role or _STAFF_NOISE_RE.search(role):
+            return "STAFF_PROCEDURE"
+        if not _STAFF_PERSON_RE.search(_compact(role)):
+            return "STAFF_NOT_PERSON"
+    return None
+
+
 def open_name_is_noise(name: str, clause: str, candidates: list["Candidate"]) -> str | None:
     """열린 조건의 이름을 버릴 이유. 버리지 않으면 None."""
     from bidengine.requirements.legacy_slots import is_generic_registration_name
@@ -101,6 +123,16 @@ def open_name_is_noise(name: str, clause: str, candidates: list["Candidate"]) ->
     if _OPEN_NAME_NOISE_RE.search(name) or re.search(r"법(?:\s*시행령|\s*시행규칙)?$", compact) or re.fullmatch(r"[「『].*[」』]", name.strip()):
         # 법령 이름("건설산업기본법", "「전기공사업법」")은 자격 이름이 아니다.
         return "STATUTE_OR_PROCEDURE"
+    statute = _STATUTE_PREFIX_RE.match(compact)
+    if statute and (len(statute.group(1)) <= 4 or is_generic_registration_name(statute.group(1))):
+        # "「건설산업기본법」에의한", "「건설산업기본법」에따른종합건설" — 법령 이름 뒤에 남는 것이 없거나 업역 이름뿐이다.
+        return "STATUTE_OR_PROCEDURE"
+    if compact in _FRAGMENT_NAMES or compact.startswith("등록기준"):
+        # "업종", "지도기관", "등록기준(기술능력, 자본금…)" — 무엇을 갖추라는지 이름만으로는 알 수 없는 조각이다.
+        return "FRAGMENT"
+    if _AUTHORITY_RE.search(compact) and not _AUTHORITY_RE.sub("", compact).strip("허가인증신고지정승인인가등록,·및또는"):
+        # "고용노동부장관의지정", "식품의약품안전처장의허가, 인증, 신고" — 누가 내주는지만 있고 무엇인지가 없다.
+        return "AUTHORITY_ONLY"
     if any(c.kind == "PRODUCT" for c in candidates) and not re.search(r"\d", name) and len(compact) <= 15:
         # 품명번호 조항의 물품 이름("사격총(세부품명번호 4918169801)") — 품명번호 요건과 같은 요건이다.
         return "PRODUCT_NAME_DUPLICATE"
@@ -600,6 +632,13 @@ def extract_closed_first(
                     noise = "INDUSTRY_DUPLICATE"   # "전기공사업의 등록" — 같은 조항 업종 요건과 같은 요건
                 if not noise and "직접생산" in _compact(name) and any(c.kind == "PRODUCT" for c in candidates):
                     noise = "PRODUCT_DUPLICATE"    # 품명번호 요건의 증명서 이름
+                if noise:
+                    kept_open.append(labelled)
+                    diags.append({"code": "CLAUSE_NOT_LABELLED", "raw": clause.text, "reason": f"OPEN_NAME_{noise}"})
+                    continue
+            else:
+                # 등록 이름이 있으면 유형이 '기타요건' 이어도 이름 규칙을 거친다("고용노동부장관의 지정").
+                noise = (open_name_is_noise(name, clause.text, candidates) if name else None) or open_condition_is_noise(labelled)
                 if noise:
                     kept_open.append(labelled)
                     diags.append({"code": "CLAUSE_NOT_LABELLED", "raw": clause.text, "reason": f"OPEN_NAME_{noise}"})
