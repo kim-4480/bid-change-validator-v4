@@ -47,6 +47,25 @@ SCENARIOS = [
 ]
 
 
+# 두 번째 묶음: 첫 묶음과 다른 공고(2026-10-07). 첫 묶음으로 차수 비교를 고쳤으므로 일반화 확인용이다.
+SCENARIOS_B = [
+    ("연락처만 변경", "R26BK01747549-000", [("02-590-8690", "02-590-8691")], []),
+    ("업종 1468→1470", "R26BK01747549-000", [("업종코드: 1468", "업종코드: 1470")],
+     [("REMOVED", "INDUSTRY", "1468"), ("ADDED", "INDUSTRY", "1470")]),
+    ("품명번호 변경", "R26BK01747549-000", [("8111189901", "8111159901")],
+     [("REMOVED", "REGISTRATION_CERTIFICATION", "8111189901"), ("ADDED", "REGISTRATION_CERTIFICATION", "8111159901")]),
+    ("소재지 인천→경기", "R26BK01746653-000", [("인천광역시에 소재", "경기도에 소재"), ("지역제한(인천광역시)", "지역제한(경기도)")],
+     [("REMOVED", "REGION", "인천"), ("ADDED", "REGION", "경기")]),
+    ("대안 업종 1263 삭제", "R26BK01749004-000", [("또는 국내여행업[업종코드 1263]", "")],
+     [("REMOVED", "INDUSTRY", "1263")]),
+    ("소재지 경남→부산", "R26BK01749004-000", [("경상남도에 둔", "부산광역시에 둔"), ("지역제한(경상남도)", "지역제한(부산광역시)")],
+     [("REMOVED", "REGION", "경상남도"), ("ADDED", "REGION", "부산")]),
+    ("규모 소기업→중소기업", "R26BK01748255-000", [("소기업 또는 소상공인간 경쟁입찰", "중소기업자간 경쟁입찰")],
+     [("ADDED", "COMPANY_SIZE", "중소기업")]),
+]
+SETS = {"a": SCENARIOS, "b": SCENARIOS_B}
+
+
 def _pattern(text: str) -> re.Pattern[str]:
     return re.compile(r"\s*".join(map(re.escape, text.replace(" ", ""))))
 
@@ -90,12 +109,13 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="gpt-6-luna")
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--set", default="a", choices=list(SETS))
     args = parser.parse_args()
     extractor = OpenAIStructuredExtractor(model=args.model)
     memories = {"label": {}, "selection": {}}  # 서비스의 DB 기억처럼 시험 전체에서 공유한다
     baseline_cache: dict[str, list[QualificationRequirement]] = {}
     rows = []
-    for name, label, edits, expected in SCENARIOS:
+    for name, label, edits, expected in SETS[args.set]:
         started = time.monotonic()
         if label not in baseline_cache:
             baseline_cache[label] = _analyze(label, f"{label}-v1", _documents(label), extractor, memories)
