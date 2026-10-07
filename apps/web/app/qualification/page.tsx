@@ -12,7 +12,7 @@ import { currentRevalidation, isLocked } from '@/lib/copilot-actions';
 import { CaseTabs } from '@/components/product/case-header';
 import { ConclusionBox } from '@/components/product/conclusion-box';
 import { EvidenceQuote } from '@/components/product/evidence-quote';
-import { ANALYSIS_STATUS_COPY, COMPANY_SIZE_LABEL, DROPPED_REASON_LABEL, OVERALL_STATUS_COPY, REQUIREMENT_TYPE_LABEL, analysisBadgeLabel, analysisStatusLabel, diagnosticText, evidenceLocationText, labelOf } from '@/lib/status-copy';
+import { ANALYSIS_STATUS_COPY, COMPANY_SIZE_LABEL, DROPPED_REASON_LABEL, GAP_CATEGORY_LABEL, OVERALL_STATUS_COPY, REQUIREMENT_TYPE_LABEL, analysisBadgeLabel, analysisStatusLabel, diagnosticText, evidenceLocationText, labelOf } from '@/lib/status-copy';
 import { QualificationRow, type QualificationRowStatus } from '@/components/product/qualification-row';
 import { QualificationSourceOverview } from '@/components/product/qualification-source-overview';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +39,7 @@ import {
   type CanonicalRequirement,
   type CompanyProfile,
   type QualificationAnalysisRun,
+  type CoverageGap,
   type QualificationAnalysisSummary,
   type QualificationJudgment,
   type QualificationJudgmentRun,
@@ -577,6 +578,10 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
   const verdictViews = views.filter((view) => view.tier === 'VERDICT');
   const checklistViews = views.filter((view) => view.tier === 'CHECKLIST');
   const checklistGaps = shownAnalysis?.coverage?.checklist_gaps ?? [];
+  // 판정을 막는 공백 — 핵심 자격(업종·소재지·규모·품명번호)을 놓쳤을 수 있는 조항. 결론이 '확인 필요'인 이유라 핵심 자격 표 아래에 둔다.
+  const blockingGaps = (shownAnalysis?.coverage?.gaps ?? []).filter(
+    (gap) => gap.raw && !checklistGaps.some((item) => item.raw === gap.raw && item.reason === gap.reason),
+  );
   const referenceNotes = shownAnalysis?.coverage?.notes ?? [];
   const satisfied = verdictViews.filter((view) => view.status === 'SATISFIED').length;
   const unknown = verdictViews.filter((view) => view.status === 'UNKNOWN').length;
@@ -677,6 +682,23 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
         : '이번 분석에서 안전하게 구조화된 자격요건이 없습니다.';
 
   const activeCaseId = activeCase?.id ?? '';
+  /* 요건으로 정리하지 못한 조항 한 줄. 모델이 쓴 확인용 문장과 종류를 앞에, 원문은 펼쳐 보게 둔다(설명이 없으면 원문만). */
+  const renderGap = (gap: CoverageGap, index: number) => (
+    <li key={`${index}-${gap.raw.slice(0, 24)}`} className="rounded-[12px] bg-white px-4 py-3 text-[14px] leading-6 text-[var(--product-body)]">
+      {gap.summary ? (
+        <>
+          <div className="flex flex-wrap items-start gap-2">
+            {gap.category && <span className="shrink-0 rounded-full border border-[var(--product-line)] bg-[var(--product-tint)] px-2 py-0.5 text-[12px] font-semibold text-[var(--product-muted)]">{labelOf(GAP_CATEGORY_LABEL, gap.category)}</span>}
+            <p className="min-w-0 flex-1 font-medium">{gap.summary}</p>
+          </div>
+          <details className="mt-1.5">
+            <summary className="cursor-pointer text-[12.5px] text-[var(--product-muted)]">원문 보기</summary>
+            <p className="mt-1 text-[13px] leading-6 text-[var(--product-muted)]">{gap.raw}</p>
+          </details>
+        </>
+      ) : gap.raw}
+    </li>
+  );
   const renderRequirementRow = ({ requirement, judgment, status, groupPeerNote, memberKeys, evidenceLabel }: RequirementView) => {
       // 묶음을 접었으므로 조치도 묶음 전체로 본다. 대표 줄만 보면 다른 구성원에 걸린 질문을 놓친다.
       const askable = memberKeys.some((key) => askableQuestionKeys.has(key));
@@ -815,6 +837,14 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
                 {verdictViews.length ? verdictViews.map(renderRequirementRow) : views.length ? <div className="px-6 py-8 text-center text-[15px] text-[var(--product-muted)]">이 공고에는 업종코드·소재지·기업 규모·품명번호로 정한 핵심 자격이 없습니다. 아래 확인할 항목을 봐 주세요.</div> : <div className="px-6 py-14 text-center">{busy === 'review' ? <LoaderCircle className="mx-auto size-8 animate-spin text-[var(--product-accent)]" /> : <FileSearch className="mx-auto size-8 text-[var(--product-faint)]" />}<p className="mt-3 text-[15px] font-semibold">{emptyRequirementCopy}</p><Button className="mt-4" onClick={() => void runFullReview(Boolean(analysisDetail))} disabled={busy !== null || actionLocked}>{busy === 'review' ? <LoaderCircle className="animate-spin" /> : <Play />}{analysisDetail ? '새로 분석하고 판정' : '참가자격 검토 시작'}</Button></div>}              </div>
             </section>
 
+            {blockingGaps.length > 0 && (
+              <section className="mt-4 rounded-[18px] border border-[var(--product-warn-line)] bg-[var(--product-warn-soft)] px-5 py-4">
+                <strong className="text-[15px] text-[var(--product-warn)]">핵심 자격 중 확인이 필요한 조항 {blockingGaps.length}건</strong>
+                <p className="mt-1 text-[13px] leading-5 text-[var(--product-muted)]">업종·소재지·기업 규모·품명번호가 적혀 있는데 요건으로 정리하지 못한 조항입니다. 이 조항 때문에 결론이 「확인 필요」일 수 있으니 원문을 확인해 주세요.</p>
+                <ul className="mt-3 grid gap-2">{blockingGaps.map(renderGap)}</ul>
+              </section>
+            )}
+
             {/*
               ── 5-1 확인할 항목 ──
               이름으로만 적힌 인증·면허, 실적, 인력처럼 회사 정보와 기계적으로 맞춰 볼 수 없는 요건과,
@@ -834,11 +864,7 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
                 {checklistGaps.length > 0 && (
                   <div className="mt-4 rounded-[18px] border border-[var(--product-warn-line)] bg-[var(--product-warn-soft)] px-5 py-4">
                     <strong className="text-[15px] text-[var(--product-warn)]">요건으로 정리하지 못한 조항 {checklistGaps.length}건</strong>
-                    <ul className="mt-3 grid gap-2">
-                      {checklistGaps.map((gap, index) => (
-                        <li key={`${index}-${gap.raw.slice(0, 24)}`} className="rounded-[12px] bg-white px-4 py-3 text-[14px] leading-6 text-[var(--product-body)]">{gap.raw}</li>
-                      ))}
-                    </ul>
+                    <ul className="mt-3 grid gap-2">{checklistGaps.map(renderGap)}</ul>
                   </div>
                 )}
               </section>

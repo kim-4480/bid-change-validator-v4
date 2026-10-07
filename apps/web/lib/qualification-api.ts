@@ -141,6 +141,10 @@ export type CoverageGap = {
   raw: string;
   reason: string | null;
   blocks_verdict?: boolean | null;
+  /** 조항 종류(LICENSE_PERMIT 등). 모델 설명이 원문 검사를 통과했을 때만 있다. */
+  category?: string | null;
+  /** 사용자가 확인할 내용 한 문장. 없으면 원문만 보여 준다. */
+  summary?: string | null;
 };
 
 /** 분석이 공고를 얼마나 덮었는지. 2026-10-07 이전 분석에는 없다(null). */

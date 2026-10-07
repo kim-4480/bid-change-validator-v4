@@ -75,6 +75,21 @@ export const ANALYSIS_STATUS_COPY: Record<
   },
 };
 
+/** 요건으로 정리하지 못한 조항의 종류 (엔진 gap_summary.CATEGORIES 와 같은 값). */
+export const GAP_CATEGORY_LABEL: Record<string, string> = {
+  LICENSE_PERMIT: '면허·허가·등록',
+  CERTIFICATION: '인증·확인서',
+  PERFORMANCE: '실적',
+  STAFF: '인력',
+  FACILITY_EQUIPMENT: '시설·장비',
+  PRODUCT_CONDITION: '납품 물품 조건',
+  INDUSTRY_ALTERNATIVE: '업종 대안·예외',
+  REGION_SIZE: '소재지·기업 규모',
+  CONDITIONAL: '조건부 자격',
+  DOCUMENT: '제출 서류',
+  OTHER: '기타',
+};
+
 /** 공고 전체 결론 */
 export const OVERALL_STATUS_COPY: Record<OverallStatus, { label: string; description: string }> = {
   /*
