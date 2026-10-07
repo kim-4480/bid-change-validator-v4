@@ -364,16 +364,44 @@ def _resequence_notice_versions(db: Session, *, notice_id) -> None:
         return
 
     ordered = sorted(versions, key=_notice_order_sort_key)
+
+    # Do not let the ORM combine current demotion/promotion and number swaps in
+    # one executemany flush. PostgreSQL checks both unique constraints while
+    # each row is updated, so a valid final state can still fail transiently.
+    # First empty the partial-current index, then move every number outside the
+    # final 1..N range before assigning the final sequence.
+    db.execute(
+        update(BidNoticeVersion)
+        .where(BidNoticeVersion.notice_id == notice_id)
+        .values(is_current=False)
+        .execution_options(synchronize_session=False)
+    )
+
     offset = max(version.version_number for version in ordered) + len(ordered) + 1
     db.execute(
         update(BidNoticeVersion)
         .where(BidNoticeVersion.notice_id == notice_id)
         .values(version_number=BidNoticeVersion.version_number + offset)
+        .execution_options(synchronize_session=False)
     )
+
     for number, version in enumerate(ordered, start=1):
-        version.version_number = number
-        version.is_current = number == len(ordered)
+        db.execute(
+            update(BidNoticeVersion)
+            .where(BidNoticeVersion.id == version.id)
+            .values(version_number=number)
+            .execution_options(synchronize_session=False)
+        )
+
+    db.execute(
+        update(BidNoticeVersion)
+        .where(BidNoticeVersion.id == ordered[-1].id)
+        .values(is_current=True)
+        .execution_options(synchronize_session=False)
+    )
     db.flush()
+    for version in versions:
+        db.expire(version, ["version_number", "is_current"])
 
 
 def run_notice_sync(
