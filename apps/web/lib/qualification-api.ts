@@ -135,12 +135,37 @@ export type AnalysisDiagnostic = {
   evidence_keys: string[];
 };
 
+/** 엔진이 요건으로 담지 못한 조항(확인할 항목) 또는 참고 정보. */
+export type CoverageGap = {
+  kind: string;
+  raw: string;
+  reason: string | null;
+  blocks_verdict?: boolean | null;
+};
+
+/** 분석이 공고를 얼마나 덮었는지. 2026-10-07 이전 분석에는 없다(null). */
+export type AnalysisCoverage = {
+  verdict_complete: boolean;
+  complete: boolean;
+  /** 사용자가 원문을 보고 확인할 조항 — 핵심 자격 판정을 막지 않는다. */
+  checklist_gaps: CoverageGap[];
+  /** 공동수급·하도급 허용 여부처럼 회사 자격이 아닌 입찰 방식 안내. */
+  notes: CoverageGap[];
+  gaps: CoverageGap[];
+};
+
+/** VERDICT: 종합 판정에 쓰는 핵심 자격(업종코드·소재지·규모·품명번호). CHECKLIST: 사용자가 확인할 항목. */
+export type RequirementTier = 'VERDICT' | 'CHECKLIST';
+
 export type QualificationAnalysisRun = QualificationAnalysisSummary & {
   notice_id: string;
   analysis_kind: string;
   target_chunk_ids: string[];
   diagnostics: AnalysisDiagnostic[];
   dropped_requirements: DroppedRequirement[];
+  coverage?: AnalysisCoverage | null;
+  verdict_complete?: boolean | null;
+  requirement_tiers?: Record<string, RequirementTier>;
   requirements: CanonicalRequirement[];
   evidence: Array<{
     evidence_key: string;

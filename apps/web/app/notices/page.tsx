@@ -247,7 +247,7 @@ export default function NoticesPage() {
   */
   const quickTiles: QuickTile[] = [
     { label: '전체', value: notices.length, icon: LayoutGrid, filter: 'all' },
-    { label: '참가 가능', value: metaLoading ? '—' : counts.eligible, icon: CheckCircle2, filter: 'eligible' },
+    { label: '핵심 자격 충족', value: metaLoading ? '—' : counts.eligible, icon: CheckCircle2, filter: 'eligible' },
     { label: '확인 필요', value: metaLoading ? '—' : counts.insufficient_data, icon: CircleHelp, filter: 'insufficient_data' },
     { label: '참가 불가', value: metaLoading ? '—' : counts.ineligible, icon: XCircle, filter: 'ineligible' },
     { label: '미검토', value: metaLoading ? '—' : counts.unreviewed, icon: FileCheck2, filter: 'unreviewed' },
