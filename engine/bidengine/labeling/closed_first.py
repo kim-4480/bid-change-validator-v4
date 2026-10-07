@@ -59,6 +59,9 @@ ROLES = ("REQUIRED", "ALTERNATIVE", "EXCLUDED", "NOT_RELATED")
 _PARTY_CLAUSE_RE = re.compile(r"공동\s*(?:수급|계약|도급|이행)|분담\s*이행")
 _PARTY_PROCEDURE_RE = re.compile(r"협정서|제출|승인|서식|간주")
 _INDUSTRY_NAME_SPAN_RE = re.compile(r"[가-힣][가-힣·ㆍ∙․]{1,24}업")
+# 괄호 세부명이 붙은 업종 이름: 「산림사업법인(숲가꾸기 및 병해충방제)」, 【일반소방시설공사업(전기, 기계】(닫는 괄호 빠짐).
+_QUALIFIED_INDUSTRY_NAME_RE = re.compile(r"([가-힣][가-힣·ㆍ∙․\s]{1,30}?(?:업|법인|조합|사업자))\s*\(([^()【】「」『』\[\]]{1,40})\)?")
+_QUALIFIER_SPLIT_RE = re.compile(r"\s*(?:,|，|및|또는|/)\s*")
 _BRACKET_INDUSTRY_CODE_RE = re.compile(r"업\s*(?:\([^()]{0,20}\))?\s*[\[［]\s*([0-9]{4})\s*[\]］]")
 # "다음 각 호 어느 하나에 해당하는 경우" 아래로 이어지는 하위 조항 표식(㉮ ㉯, ⓐ, (가), 가), ①).
 _SUB_ITEM_RE = re.compile(r"^\s*(?:[㉮-㉻]|[ⓐ-ⓩ]|\([가-하]\)|[가-하]\)|[①-⑳])")
@@ -133,6 +136,8 @@ def scan_candidates(text: str, resolver: IndustryNameResolver | None) -> list[Ca
         code = industry_code_for_name(match.group(0), resolver)
         if code:
             codes.setdefault(code, match.group(0))
+    for name, code in qualified_industry_names(plain, resolver):
+        codes.setdefault(code, name)
     for code, surface in codes.items():
         found.append(("INDUSTRY", code, surface))
 
@@ -151,6 +156,97 @@ def scan_candidates(text: str, resolver: IndustryNameResolver | None) -> list[Ca
         seen.add((kind, value))
         out.append(Candidate(id=f"V{len(out) + 1}", kind=kind, value=value, surface=surface))
     return out
+
+
+def qualified_industry_names(text: str, resolver: IndustryNameResolver | None) -> list[tuple[str, str]]:
+    """괄호 세부명이 붙은 업종 이름을 코드로. 세부명이 나열돼 있으면("(전기, 기계") 하나씩 붙여 찾는다.
+
+    이름 앞에 다른 낱말이 붙어 잡히면("법률에 의한 산림사업법인") 앞 낱말을 하나씩 떼며 찾는다.
+    마스터 이름과 정확히 같을 때만 코드를 준다(IndustryNameResolver 의 약속).
+    """
+    if resolver is None:
+        return []
+    out: list[tuple[str, str]] = []
+    for match in _QUALIFIED_INDUSTRY_NAME_RE.finditer(text or ""):
+        words = match.group(1).split()
+        # "(컴퓨터관련서비스사업, 업종코드: 1468)" 의 코드 부분은 세부명이 아니다.
+        inner = ", ".join(part.strip() for part in re.split(r"[,，]", match.group(2)) if part.strip() and not re.search(r"\d", part))
+        qualifiers = [q for q in _QUALIFIER_SPLIT_RE.split(inner) if q]
+        if not qualifiers:
+            continue
+        for start in range(len(words)):
+            base = " ".join(words[start:])
+            whole = industry_code_for_name(f"{base}({inner})", resolver)
+            parts = [(f"{base}({q})", industry_code_for_name(f"{base}({q})", resolver)) for q in qualifiers] if len(qualifiers) > 1 else []
+            if whole:
+                out.append((f"{base}({inner})", whole))
+                break
+            if parts and all(code for _name, code in parts):
+                out.extend((name, code) for name, code in parts)
+                break
+    return out
+
+
+# 업종처럼 보이는 이름(…업, …법인, …조합, …사업자). 법령 이름("산림조합법", "소방시설공사업법령")과 규모 낱말은 뺀다.
+_INDUSTRY_LIKE_RE = re.compile(
+    r"([가-힣][가-힣·ㆍ∙․]{1,24}(?:업|법인|조합|사업자))(?!\s*법)"
+    r"(?=$|[^가-힣]|(?:을|를|으로|로|과|와|에|의|이|가|은|는|등록|면허|허가)(?![가-힣]*법))"
+)
+_NOT_INDUSTRY_NAMES = {"사업", "기업", "산업", "영업", "작업", "사업자", "용역사업", "본사업", "해당사업", "협동조합", "건설사업자",
+                       "신규사업자", "개인사업자", "법인사업자", "면세사업자", "과세사업자", "간이사업자", "건설업자",
+                       "전문건설업자", "종합건설업자", "공사업", "건설업", "전문공사업", "종합공사업"}
+_ALTERNATIVE_MARKER_RE = re.compile(r"또는|중\s*(?:하나|어느|1)|이나\s|혹은")
+
+
+def unresolved_industry_names(text: str, candidates: list["Candidate"], resolver: IndustryNameResolver | None) -> list[str]:
+    """조항에 있는 업종 같은 이름 중 코드로 바꾸지 못한 것. 코드 후보의 표기에 들어 있는 이름은 푼 것으로 본다."""
+    plain = strip_decorations(text or "")
+    surfaces = [_compact(c.surface) for c in candidates if c.kind == "INDUSTRY"]
+    surfaces += [_compact(name) for name, _code in qualified_industry_names(plain, resolver)]
+    out: list[str] = []
+    for match in _INDUSTRY_LIKE_RE.finditer(plain):
+        name = match.group(1)
+        compact = _compact(name)
+        if compact in _NOT_INDUSTRY_NAMES or compact.endswith("기업") or _SIZE_WORD_RE.fullmatch(compact):
+            continue
+        if any(compact in surface or surface in compact for surface in surfaces if surface):
+            continue
+        # 이름 바로 뒤 괄호에 찾은 코드가 있다: "종합여행업(업종코드 1 2 6 1)", "폐기물중간처분업[1254]".
+        tail = _compact(plain[match.end():match.end() + 40])
+        if re.match(r"[)\]］]?\s*[(\[［]", tail) and any(c.value in tail[:32] for c in candidates if c.kind == "INDUSTRY"):
+            continue
+        if industry_code_for_name(name, resolver):
+            continue
+        out.append(name)
+    return list(dict.fromkeys(out))
+
+
+def _check_closed_values(text: str, candidates: list["Candidate"], roles: dict[str, tuple[str, str]], reqs: list[dict],
+                         diags: list[dict], open_slots: list[dict], resolver: IndustryNameResolver | None) -> tuple[list[dict], list[dict]]:
+    """요구 조항의 닫힌 값이 결과에 다 담겼는지 코드로 대조한다(2026-10-07 구조 보완).
+
+    (가) 코드로 찾은 업종코드·품명번호를 모델이 '관련 없음' 으로 둔 것, 업종처럼 보이는데 코드로 못 바꾼 이름이
+        남아 있으면 확인 필요(공백)로 둔다. 놓친 업종 때문에 '참가 가능' 이 잘못 나가는 것을 막는다.
+    (나) 그 조항에 대안 표지("또는", "중 하나")가 있으면 찾은 업종만으로 필수 요건을 만들지 않는다. 못 찾은 대안만
+        가진 회사가 '불가' 로 나오기 때문이다(틀린 미달이 가장 나쁜 오류).
+    이름으로 담은 열린 조건(등록·면허 이름)이 그 이름을 덮으면 담긴 것으로 본다 — 사용자가 확인할 항목이 된다.
+    """
+    open_names = [_compact(str(slot.get("등록인증_raw") or "")) for slot in open_slots]
+    unresolved = [name for name in unresolved_industry_names(text, candidates, resolver)
+                  if not any(_compact(name) in open_name for open_name in open_names if open_name)]
+    unused = [c for c in candidates if c.kind in {"INDUSTRY", "PRODUCT"}
+              and roles.get(c.id, ("NOT_RELATED", ""))[0] == "NOT_RELATED"
+              and not any(str(r.get("value")) == c.value for r in reqs)]
+    if unresolved and _ALTERNATIVE_MARKER_RE.search(text) and any(r["type"] == "INDUSTRY" for r in reqs):
+        reqs = [r for r in reqs if r["type"] != "INDUSTRY"]
+        diags = [*diags, {"code": "UNMAPPED_INDUSTRY", "raw": text, "reason": "ALTERNATIVE_UNRESOLVED",
+                          "names": unresolved}]
+    elif unresolved:
+        diags = [*diags, {"code": "UNMAPPED_INDUSTRY", "raw": text, "reason": "INDUSTRY_NAME_UNRESOLVED", "names": unresolved}]
+    if unused:
+        diags = [*diags, {"code": "UNMAPPED_INDUSTRY" if unused[0].kind == "INDUSTRY" else "UNMAPPED_REGISTRATION_CERTIFICATION",
+                          "raw": text, "reason": "CANDIDATE_UNUSED", "values": [c.value for c in unused]}]
+    return reqs, diags
 
 
 _KIND_LABEL = {"REGION": "지역", "INDUSTRY": "업종코드", "PRODUCT": "품명번호", "SIZE": "기업규모"}
@@ -490,6 +586,9 @@ def extract_closed_first(
                 continue
             kept_open.append(labelled)
             open_slots.append(slot)
+
+        if polarity == "POSITIVE":
+            reqs, diags = _check_closed_values(clause.text, candidates, roles, reqs, diags, open_slots, industry_resolver)
 
         if not reqs and not diags and not open_slots and polarity == "POSITIVE":
             # 요구라는데 담을 값이 없다 — 공통 결격·법령 절차면 제외로, 아니면 표현 못 한 요건(공백)으로 남긴다.

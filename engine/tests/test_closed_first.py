@@ -1,7 +1,7 @@
 """닫힌 값 먼저(closed_first): 코드가 후보를 찾고, 모델은 역할만 정하고, 코드가 요건을 만든다."""
 from __future__ import annotations
 
-from bidengine.labeling.closed_first import SCHEMA, scan_candidates
+from bidengine.labeling.closed_first import SCHEMA, scan_candidates, unresolved_industry_names
 from bidengine.pipeline.analysis_pipeline import (
     QualificationAnalysisInput,
     QualificationDocumentInput,
@@ -192,3 +192,54 @@ def test_size_written_as_competition_type_is_a_requirement():
     # 경쟁 방식 문장이 아니면 예전대로 모델의 극성을 따른다
     reqs, diags = _closed_requirements("NOT_REQUIREMENT", "소기업 확인서는 마감일까지 제출합니다.", [], {})
     assert reqs == [] and diags
+
+
+class MasterResolver:
+    NAMES = {"산림사업법인(숲가꾸기및병해충방제)": "1475", "전문소방시설공사업": "0040",
+             "일반소방시설공사업(전기)": "0039", "일반소방시설공사업(기계)": "0038"}
+
+    def code_for(self, name):
+        return self.NAMES.get("".join(name.split()))
+
+
+def test_scanner_reads_codes_after_saeopja_and_qualified_names():
+    """2026-10-07 표본 h: '…사업자(1468)', 괄호 세부명이 붙은 이름, 닫는 괄호가 빠진 세부명 나열."""
+    scan = lambda text: {(c.kind, c.value) for c in scan_candidates(text, MasterResolver())}
+    assert ("INDUSTRY", "1468") in scan("- 소프트웨어사업자(1468) 업종을 등록한 업체")
+    assert ("INDUSTRY", "1475") in scan("법률에 의한「산림사업법인(숲가꾸기 및 병해충방제)」또는 「산림조합」")
+    assert {("INDUSTRY", "0040"), ("INDUSTRY", "0039"), ("INDUSTRY", "0038")} <= scan(
+        "소방시설공사업법령에 의한【전문소방시설공사업】또는【일반소방시설공사업(전기, 기계】면허를 보유한 업체")
+    assert not any(kind == "INDUSTRY" for kind, _v in scan("체육관 증축공사(2026) 설계 실적이 있는 업체"))
+
+
+def test_alternative_with_an_unresolved_name_does_not_become_a_required_industry():
+    """(나) '1475 또는 산림조합' 에서 1475 만 필수로 만들면 산림조합은 '불가' 가 된다 — 확인 필요로 둔다."""
+    from bidengine.labeling.closed_first import _check_closed_values
+
+    text = "가. 「산림사업법인(숲가꾸기 및 병해충방제)」또는 산림조합법에 의하여 설립된「산림조합」으로 본점소재지가 곡성군"
+    candidates = scan_candidates(text, MasterResolver())
+    reqs = [{"type": "REGION", "value": "곡성군", "scope": {}}, {"type": "INDUSTRY", "value": "1475", "scope": {}}]
+    reqs, diags = _check_closed_values(text, candidates, {}, reqs, [], [], MasterResolver())
+    assert [r["type"] for r in reqs] == ["REGION"]
+    assert [(d["code"], d["reason"], d["names"]) for d in diags] == [("UNMAPPED_INDUSTRY", "ALTERNATIVE_UNRESOLVED", ["산림조합"])]
+
+
+def test_unresolved_or_unused_industry_stays_for_review():
+    """(가) 업종 같은 이름을 코드로 못 바꿨거나, 찾은 코드를 모델이 '관련 없음' 으로 두면 확인 필요로 남긴다."""
+    from bidengine.labeling.closed_first import _check_closed_values
+
+    text = "나. 수중공사업을 등록한 업체"
+    reqs, diags = _check_closed_values(text, scan_candidates(text, MasterResolver()), {}, [], [], [], MasterResolver())
+    assert reqs == [] and [d["reason"] for d in diags] == ["INDUSTRY_NAME_UNRESOLVED"]
+    # 열린 조건(등록 이름)으로 담았으면 사용자가 확인할 항목이 됐으니 공백을 더하지 않는다.
+    _reqs, diags = _check_closed_values(text, [], {}, [], [], [{"등록인증_raw": "수중공사업 등록"}], MasterResolver())
+    assert diags == []
+
+    text = "나. 상·하수도설비공사업(업종코드 4996)을 등록한 업체"
+    candidates = scan_candidates(text, MasterResolver())
+    roles = {c.id: ("NOT_RELATED", "") for c in candidates}
+    _reqs, diags = _check_closed_values(text, candidates, roles, [], [], [], MasterResolver())
+    assert [(d["reason"], d["values"]) for d in diags] == [("CANDIDATE_UNUSED", ["4996"])]
+    # 이름 뒤 괄호에 코드가 있으면 이름은 푼 것이다.
+    assert unresolved_industry_names(text, candidates, MasterResolver()) == []
+    assert unresolved_industry_names("라. 「신규사업자(개인사업자인 경우 사업자등록일)」", [], MasterResolver()) == []

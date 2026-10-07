@@ -150,7 +150,8 @@ def build_analysis_coverage(
             ignored.append(CoverageGap(kind="IGNORED", raw=raw, reason=str(reason or "MODEL_NO_REQUIREMENT")))
         elif item.code in _UNREPRESENTABLE_CODES:
             unrepresentable += 1
-            gaps.append(CoverageGap(kind="UNREPRESENTABLE", raw=raw, reason=item.code))
+            # 세부 이유가 있으면 붙인다: "UNMAPPED_INDUSTRY/ALTERNATIVE_UNRESOLVED"(대안 중 못 푼 업종이 있다).
+            gaps.append(CoverageGap(kind="UNREPRESENTABLE", raw=raw, reason=f"{item.code}/{reason}" if reason else item.code))
     for record in dropped:
         data = record.model_dump() if isinstance(record, BaseModel) else dict(record)
         gaps.append(CoverageGap(kind="DROPPED", raw=str(data.get("raw") or ""), reason=data.get("reason_code")))
