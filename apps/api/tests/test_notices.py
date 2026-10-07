@@ -30,7 +30,7 @@ from apps.api.app.services.document_storage import (
     LocalDocumentStorage,
     NoticeDocumentDownloader,
 )
-from apps.api.app.services.notices import run_notice_sync, save_notice_snapshot
+from apps.api.app.services.notices import _documents, run_notice_sync, save_notice_snapshot
 
 
 pytestmark = pytest.mark.usefixtures("seed_required_master_codes")
@@ -130,6 +130,28 @@ def _item(notice_no: str, estimated_price: str = "123000000") -> dict:
     }
 
 
+def test_document_candidates_deduplicate_same_payload_url() -> None:
+    item = _item("TEST-DOCUMENT-DEDUPE")
+
+    documents = _documents(item)
+
+    assert len(documents) == 1
+    assert documents[0]["url"] == "https://example.test/files/request.hwpx"
+    assert documents[0]["source_field"] == "stdNtceDocUrl"
+
+
+def test_document_candidates_keep_distinct_urls() -> None:
+    item = _item("TEST-DOCUMENT-DISTINCT")
+    item["ntceSpecDocUrl1"] = "https://example.test/files/proposal.hwpx"
+
+    documents = _documents(item)
+
+    assert [document["url"] for document in documents] == [
+        "https://example.test/files/request.hwpx",
+        "https://example.test/files/proposal.hwpx",
+    ]
+
+
 def test_notice_version_deduplication_file_download_and_api(
     tmp_path: Path,
     monkeypatch,
@@ -171,14 +193,12 @@ def test_notice_version_deduplication_file_download_and_api(
                 NoticeDocument.notice_version_id == first_version.id
             )
         ).all()
-        assert len(documents) == 2
+        assert len(documents) == 1
         document = documents[0]
         assert document.download_status == "DOWNLOADED"
         assert document.file_size_bytes == len(file_content)
         assert document.file_sha256 is not None
         assert (tmp_path / document.storage_key).read_bytes() == file_content
-        assert documents[0].storage_key == documents[1].storage_key
-        assert documents[0].file_sha256 == documents[1].file_sha256
         assert all(document.extraction_status == "EXTRACTED" for document in documents)
         assert all(document.text_extractor == "HWPX_XML" for document in documents)
         assert "6억원 이상" in documents[0].extracted_text

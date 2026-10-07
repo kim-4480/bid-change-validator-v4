@@ -84,8 +84,10 @@ def _payload_hash(item: dict[str, Any]) -> str:
 
 def _documents(item: dict[str, Any]) -> list[dict[str, Any]]:
     documents: list[dict[str, Any]] = []
+    seen_urls: set[str] = set()
     standard_url = _text(item.get("stdNtceDocUrl"))
     if standard_url:
+        seen_urls.add(standard_url)
         documents.append(
             {
                 "document_order": 0,
@@ -97,8 +99,9 @@ def _documents(item: dict[str, Any]) -> list[dict[str, Any]]:
     for order in range(1, 11):
         url_field = f"ntceSpecDocUrl{order}"
         url = _text(item.get(url_field))
-        if not url:
+        if not url or url in seen_urls:
             continue
+        seen_urls.add(url)
         documents.append(
             {
                 "document_order": order,
