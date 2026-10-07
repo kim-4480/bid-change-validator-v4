@@ -48,6 +48,29 @@ def _escape_like(value: str) -> str:
     return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
+_SEARCH_FIELDS = (
+    BidNotice.bid_notice_no,
+    BidNotice.title,
+    BidNotice.announcing_institution_name,
+    BidNotice.demanding_institution_name,
+)
+
+
+def _keyword_filters(query: str) -> list:
+    """검색어를 낱말로 나눠 낱말마다 공고번호·공고명·공고기관·수요기관 중 하나에 들어 있어야 한다(낱말끼리 AND).
+
+    예전에는 검색어 전체를 한 덩어리로 부분 일치시켜 '구미 교복', '공주 해체' 처럼 낱말을 둘 넣거나 '건축물해체'
+    처럼 띄어쓰기가 제목과 다르면 하나도 잡히지 않았다(2026-10-07). 비교는 양쪽 띄어쓰기를 지우고 한다.
+    """
+    filters = []
+    for token in dict.fromkeys(query.split()):
+        pattern = f"%{_escape_like(token)}%"
+        filters.append(or_(*(
+            func.replace(func.coalesce(field, ""), " ", "").ilike(pattern, escape="\\") for field in _SEARCH_FIELDS
+        )))
+    return filters
+
+
 def _summary(notice: BidNotice, version: BidNoticeVersion) -> BidNoticeSummary:
     return BidNoticeSummary(
         id=notice.id,
@@ -148,15 +171,7 @@ def search_notices(
     if business_type is not None:
         filters.append(BidNotice.business_type == business_type.value)
     if normalized_query is not None:
-        pattern = f"%{_escape_like(normalized_query)}%"
-        filters.append(
-            or_(
-                BidNotice.bid_notice_no.ilike(pattern, escape="\\"),
-                BidNotice.title.ilike(pattern, escape="\\"),
-                BidNotice.announcing_institution_name.ilike(pattern, escape="\\"),
-                BidNotice.demanding_institution_name.ilike(pattern, escape="\\"),
-            )
-        )
+        filters.extend(_keyword_filters(normalized_query))
 
     total = db.scalar(select(func.count()).select_from(BidNotice).where(*filters)) or 0
     rows = db.execute(

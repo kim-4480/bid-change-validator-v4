@@ -167,13 +167,16 @@ export default function NoticesPage() {
   }
 
   const filteredNotices = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
+    /*
+      서버 검색(/api/v1/notices?q=)과 같은 규칙이어야 한다 — 낱말로 나눠 낱말마다 공고번호·공고명·공고기관·수요기관 중
+      하나에 들어 있으면 된다(띄어쓰기 무시). 예전에는 검색어 전체를 한 덩어리로 다시 걸러, 서버가 '구미 교복'으로 찾은
+      공고나 수요기관으로 찾은 공고가 화면에서 사라졌다.
+    */
+    const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
     return notices.filter((notice) => {
-      const matchesText =
-        !normalized ||
-        notice.title.toLowerCase().includes(normalized) ||
-        notice.bid_notice_no.toLowerCase().includes(normalized) ||
-        (notice.announcing_institution_name ?? '').toLowerCase().includes(normalized);
+      const haystack = [notice.bid_notice_no, notice.title, notice.announcing_institution_name, notice.demanding_institution_name]
+        .map((field) => (field ?? '').toLowerCase().replace(/\s+/g, ''));
+      const matchesText = tokens.every((token) => haystack.some((field) => field.includes(token)));
       const status = caseMeta[notice.id]?.judgment?.overall_status ?? 'unreviewed';
       const matchesType = businessTypeFilter === 'all' || notice.business_type === businessTypeFilter;
       return matchesText && matchesType && (statusFilter === 'all' || status === statusFilter);

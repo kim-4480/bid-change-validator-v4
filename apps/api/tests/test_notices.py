@@ -871,3 +871,37 @@ def test_changed_sync_persists_authoritative_change_history() -> None:
                 db.delete(run)
         db.commit()
         db.close()
+
+
+def test_notice_search_matches_every_keyword_ignoring_spaces() -> None:
+    """2026-10-07: '구미 교복', '건축물해체' 처럼 낱말을 여럿 넣거나 띄어쓰기가 달라도 찾는다."""
+    db = SessionLocal()
+    notice_no = f"R26KW{uuid4().hex[:8].upper()}"
+    notice_id = None
+    try:
+        item = _item(notice_no)
+        item["bidNtceNm"] = f"{notice_no} 동현지구 조성사업 건축물 해체(철거) 공사"
+        item["dminsttNm"] = "충청남도 공주시"
+        _, notice, _ = save_notice_snapshot(
+            db, item=item, business_type=BusinessType.SERVICE, source_endpoint="getBidPblancListInfoServc",
+        )
+        db.commit()
+        notice_id = notice.id
+
+        def found(query: str) -> bool:
+            response = client.get("/api/v1/notices", params={"q": f"{notice_no} {query}", "limit": 100})
+            assert response.status_code == 200, response.text
+            return any(row["id"] == str(notice_id) for row in response.json()["items"])
+
+        assert found("건축물 해체")
+        assert found("건축물해체")          # 띄어쓰기가 제목과 달라도
+        assert found("공주 해체")           # 수요기관 + 공고명 낱말
+        assert found("철거   공사")         # 낱말 사이 공백 여러 개
+        assert not found("공주 교복")       # 낱말은 모두 들어 있어야 한다
+    finally:
+        if notice_id is not None:
+            notice = db.get(BidNotice, notice_id)
+            if notice is not None:
+                db.delete(notice)
+                db.commit()
+        db.close()
