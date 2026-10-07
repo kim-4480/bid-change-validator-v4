@@ -80,7 +80,8 @@ def open_name_is_noise(name: str, clause: str, candidates: list["Candidate"]) ->
     compact = _compact(name)
     if not compact or is_generic_registration_name(name):
         return "GENERIC_NAME"
-    if _OPEN_NAME_NOISE_RE.search(name):
+    if _OPEN_NAME_NOISE_RE.search(name) or re.search(r"법(?:\s*시행령|\s*시행규칙)?$", compact) or re.fullmatch(r"[「『].*[」』]", name.strip()):
+        # 법령 이름("건설산업기본법", "「전기공사업법」")은 자격 이름이 아니다.
         return "STATUTE_OR_PROCEDURE"
     if any(c.kind == "PRODUCT" for c in candidates) and not re.search(r"\d", name) and len(compact) <= 15:
         # 품명번호 조항의 물품 이름("사격총(세부품명번호 4918169801)") — 품명번호 요건과 같은 요건이다.

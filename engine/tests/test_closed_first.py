@@ -168,3 +168,11 @@ def test_bracket_industry_codes_and_duplicate_names():
     text = "① 폐기물중간처분업(지정폐기물)[1254]과 폐기물수집·운반업(지정폐기물)[1229]의 허가를 득한 자"
     found = {(c.kind, c.value) for c in scan_candidates(text, Resolver())}
     assert {("INDUSTRY", "1254"), ("INDUSTRY", "1229")} <= found
+
+
+def test_statute_names_are_not_registration_names():
+    from bidengine.labeling.closed_first import open_name_is_noise
+
+    assert open_name_is_noise("건설산업기본법", "", []) == "STATUTE_OR_PROCEDURE"
+    assert open_name_is_noise("「전기공사업법」", "", []) == "STATUTE_OR_PROCEDURE"
+    assert open_name_is_noise("건설기계조종사면허", "", []) is None
