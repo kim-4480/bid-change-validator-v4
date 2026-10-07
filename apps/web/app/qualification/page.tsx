@@ -11,6 +11,7 @@ import { NavigationLink } from '@/components/navigation-link';
 import { currentRevalidation, isLocked } from '@/lib/copilot-actions';
 import { CaseTabs } from '@/components/product/case-header';
 import { ConclusionBox } from '@/components/product/conclusion-box';
+import { DocumentSourceViewer } from '@/components/product/document-source-viewer';
 import { EvidenceQuote } from '@/components/product/evidence-quote';
 import { ANALYSIS_STATUS_COPY, COMPANY_SIZE_LABEL, DROPPED_REASON_LABEL, GAP_CATEGORY_LABEL, OVERALL_STATUS_COPY, REQUIREMENT_TYPE_LABEL, analysisBadgeLabel, analysisStatusLabel, diagnosticText, evidenceLocationText, labelOf } from '@/lib/status-copy';
 import { QualificationRow, type QualificationRowStatus } from '@/components/product/qualification-row';
@@ -19,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { navigateTo, replaceWith } from '@/lib/navigation';
+import type { HighlightSource } from '@/lib/source-highlight';
 import {
   getNotice,
   getNoticeVersions,
@@ -577,16 +579,38 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
   */
   const verdictViews = views.filter((view) => view.tier === 'VERDICT');
   const checklistViews = views.filter((view) => view.tier === 'CHECKLIST');
-  const checklistGaps = shownAnalysis?.coverage?.checklist_gaps ?? [];
+  const coverage = shownAnalysis?.coverage ?? null;
+  const checklistGaps = useMemo(() => coverage?.checklist_gaps ?? [], [coverage]);
   // 판정을 막는 공백 — 핵심 자격(업종·소재지·규모·품명번호)을 놓쳤을 수 있는 조항. 결론이 '확인 필요'인 이유라 핵심 자격 표 아래에 둔다.
-  const blockingGaps = (shownAnalysis?.coverage?.gaps ?? []).filter(
-    (gap) => gap.raw && !checklistGaps.some((item) => item.raw === gap.raw && item.reason === gap.reason),
-  );
-  const referenceNotes = shownAnalysis?.coverage?.notes ?? [];
+  const blockingGaps = useMemo(() => (coverage?.gaps ?? []).filter(
+    (gap) => gap.raw && !(coverage?.checklist_gaps ?? []).some((item) => item.raw === gap.raw && item.reason === gap.reason),
+  ), [coverage]);
+  const referenceNotes = useMemo(() => coverage?.notes ?? [], [coverage]);
   const satisfied = verdictViews.filter((view) => view.status === 'SATISFIED').length;
   const unknown = verdictViews.filter((view) => view.status === 'UNKNOWN').length;
   const unsatisfied = verdictViews.filter((view) => view.status === 'UNSATISFIED').length;
   const checklistCount = checklistViews.length + checklistGaps.length;
+
+  /* 원문 하이라이트: 화면의 표·목록과 같은 분류로 칠한다. 택일 묶음은 구성원 조항을 모두 칠한다. */
+  const sourceHighlights: HighlightSource[] = useMemo(() => {
+    if (!shownAnalysis) return [];
+    const tierOf = (key: string) => shownAnalysis.requirement_tiers?.[key] ?? 'VERDICT';
+    const fromRequirements = shownAnalysis.requirements.map((requirement) => ({
+      text: requirement.raw,
+      kind: tierOf(requirement.requirement_key) === 'VERDICT' ? 'VERDICT' as const : 'CHECKLIST' as const,
+      label: `${labelOf(REQUIREMENT_TYPE_LABEL, requirement.type)} · ${String(requirement.value ?? '')}`,
+    }));
+    const fromGaps = (gaps: CoverageGap[], kind: 'GAP_BLOCKING' | 'GAP_CHECKLIST') => gaps.map((gap) => ({
+      text: gap.raw, kind, label: gap.summary ?? '요건으로 정리하지 못한 조항',
+    }));
+    return [
+      ...fromRequirements,
+      ...fromGaps(blockingGaps, 'GAP_BLOCKING'),
+      ...fromGaps(checklistGaps, 'GAP_CHECKLIST'),
+      ...referenceNotes.map((note) => ({ text: note.raw, kind: 'NOTE' as const, label: '공동수급·하도급 안내' })),
+    ].filter((item) => item.text);
+  }, [shownAnalysis, blockingGaps, checklistGaps, referenceNotes]);
+  const sourceVersion = viewingBaseline ? baselineVersion : currentVersion;
   const [conclusionTitle, conclusionDescription] = overallCopy(shownJudgment?.overall_status);
   const canRevalidate = Boolean(
     activeCase?.baseline_version_number
@@ -992,6 +1016,15 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
               전에는 「분석 완전성」 한 칸과 3칸 카드가 따로 있었는데, 둘 다 「무엇을 근거로 이 판정이 나왔나」를
               말하는 값이라 한 덩어리로 합친다. 카드 여섯 칸이 세로로 쌓이던 것이 한 줄이 된다.
             */}
+            {/* ── 공고 문서 원문 ── 판정에 쓴 조항이 원문 어디에 있는지 한눈에 보도록 하단에 접어 둔다. */}
+            {sourceVersion && (
+              <DocumentSourceViewer
+                key={`${sourceVersion.id}-${shownAnalysis?.id ?? ''}`}
+                documents={sourceVersion.documents}
+                highlights={sourceHighlights}
+              />
+            )}
+
             <section className="mt-10 rounded-[20px] border border-[var(--product-line)] p-6">
               <h2 className="text-[18px] font-extrabold">이 판정에 쓴 것</h2>
               <p className="mt-1 text-[15px] leading-6 text-[var(--product-muted)]">분석이 어디까지 돌았는지와 대조에 쓴 회사 정보입니다. 판정 결과와는 분리해서 봅니다.</p>
