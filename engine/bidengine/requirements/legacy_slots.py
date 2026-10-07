@@ -700,7 +700,10 @@ def adapt_legacy_slot(
             group = item.get("group")
             built.append(QualificationRequirement(
                 requirement_key=f"{key_prefix}-C{index:02d}",
-                requirement_group_key=f"{key_prefix}-G-{group}" if group else f"{key_prefix}-C{index:02d}-GROUP",
+                # 'X-…' 은 조항을 건넌 대안(closed_first._merge_cross_clause_alternatives) — 여러 조항의 요건이 한 묶음이라
+                # 조항 번호를 붙이면 안 된다(붙이면 판정에서 서로 다른 묶음이 되어 대안 하나 미달이 '불가' 가 된다).
+                requirement_group_key=(f"CROSS-{group}" if str(group).startswith("X-") else f"{key_prefix}-G-{group}") if group
+                else f"{key_prefix}-C{index:02d}-GROUP",
                 group_operator="ANY_OF" if group else "ALL_OF",
                 notice_version_id=notice_version_id,
                 type=item["type"],

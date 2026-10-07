@@ -296,9 +296,19 @@ def test_numbered_sub_items_under_any_of_are_alternatives_but_region_stays_commo
 1) 조경식재·시설물공사업(업종코드 4993)
 2) 조경공사업(업종코드 0005)
 4. 입찰보증금"""
-    got = {(r.type, str(r.value), r.group_operator) for r in _closed_first(section).requirements}
+    requirements = _closed_first(section).requirements
+    got = {(r.type, str(r.value), r.group_operator) for r in requirements}
     assert ("INDUSTRY", "4993", "ANY_OF") in got and ("INDUSTRY", "0005", "ANY_OF") in got
     assert ("REGION", "강릉시", "ALL_OF") in got        # 머리 조항의 소재지는 대안이 아니라 공통 조건
+    # 판정에서 한 묶음이어야 한다 — 조항이 달라도 묶음 키가 같아야 4993 만 가진 회사가 충족이다.
+    assert len({r.requirement_group_key for r in requirements if r.type == "INDUSTRY"}) == 1
+    from datetime import date
+
+    from bidengine.judgment.rules import CompanyProfileSnapshot, ProfileIndustryFact, judge_requirements
+    company = CompanyProfileSnapshot(company_id="c", region_name="강원특별자치도 강릉시",
+                                     industries=[ProfileIndustryFact(code="4993", name="조경식재ㆍ시설물공사업", verified=True)])
+    assert judge_requirements(requirements, company, preflight_case_id="c", reference_date=date(2026, 10, 7),
+                              coverage_complete=True).overall_status == "eligible"
 
 
 def test_clause_whose_only_open_name_was_noise_stays_for_review():

@@ -206,6 +206,7 @@ _INDUSTRY_LIKE_RE = re.compile(
 _NOT_INDUSTRY_NAMES = {"사업", "기업", "산업", "영업", "작업", "사업자", "용역사업", "본사업", "해당사업", "협동조합", "건설사업자",
                        "신규사업자", "개인사업자", "법인사업자", "면세사업자", "과세사업자", "간이사업자", "건설업자",
                        "전문건설업자", "종합건설업자", "공사업", "건설업", "전문공사업", "종합공사업"}
+_BUSINESS_KIND_RE = re.compile(r"서비스|개발|공급|판매|제조|임대|대여|운송|중개|도매|소매|설계|감리|공사")
 _ALTERNATIVE_MARKER_RE = re.compile(r"또는|중\s*(?:하나|어느|1)|이나\s|혹은")
 
 
@@ -219,6 +220,9 @@ def unresolved_industry_names(text: str, candidates: list["Candidate"], resolver
         name = match.group(1)
         compact = _compact(name)
         if compact in _NOT_INDUSTRY_NAMES or compact.endswith("기업") or _SIZE_WORD_RE.fullmatch(compact):
+            continue
+        if compact.endswith("사업") and not _BUSINESS_KIND_RE.search(compact):
+            # '…조성사업', '…구축사업', '유사사업' 은 사업(과업) 이름이지 업종이 아니다(2026-10-07 표본 j).
             continue
         if _STANDARD_AFTER_RE.match(plain[match.end():]):
             continue
@@ -454,7 +458,10 @@ def _merge_cross_clause_alternatives(kept: list[Clause], slots: list[dict[str, A
         # 같은 원문이 다른 문서(HWP·PDF)에도 있으면 함께 고친다.
         targets = [slot for slot in slots if slot.get("유형") == "_CLOSED" and _compact(slot.get("raw") or "") in set(keys)]
         if all(count <= 1 for count in units):
-            group = f"X{index}"
+            # 묶음 이름은 대안 값으로 정한다 — 조항 순번으로 정하면 HWP·PDF 에 같은 조항이 두 번 있을 때 묶음이 갈린다.
+            values = sorted({str(r.get("value")) for slot in branches for r in (slot or {}).get("_closed_requirements") or []
+                             if r.get("type") in _ALTERNATIVE_TYPES and not (r.get("scope") or {}).get("restriction")})
+            group = "X-" + "+".join(values)
             for slot in targets:
                 slot["_closed_requirements"] = [
                     {**r, "group": group} if not (r.get("scope") or {}).get("restriction") and r.get("type") in _ALTERNATIVE_TYPES else r
