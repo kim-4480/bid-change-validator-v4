@@ -54,8 +54,13 @@ def semantic_identity(req: QualificationRequirement)->str:
 _DESCRIPTIVE_SCOPE_KEYS = {"industry_name", "source_name", "guard"}
 
 def decision_payload(req: QualificationRequirement)->dict:
-    scope={k:v for k,v in (req.scope or {}).items() if k not in _DESCRIPTIVE_SCOPE_KEYS}
-    return {"type":req.type,"operator":req.operator,"value":req.value,"unit":req.unit,"period_months":req.period_months,"scope":scope,"required":req.required,"requirement_role":req.requirement_role,"condition_complexity":req.condition_complexity,"group_operator":req.group_operator,"raw":_norm_text(req.raw)}
+    scope={k:v for k,v in (req.scope or {}).items() if k not in _DESCRIPTIVE_SCOPE_KEYS and k!="guard_basis"}
+    payload={"type":req.type,"operator":req.operator,"value":req.value,"unit":req.unit,"period_months":req.period_months,"scope":scope,"required":req.required,"requirement_role":req.requirement_role,"condition_complexity":req.condition_complexity,"group_operator":req.group_operator}
+    # 가드 평가를 거친 요건(scope.guard=assessed)은 판정이 원문을 다시 읽지 않는다. 그런 요건은 원문이 달라도 판정이
+    # 같으므로 원문을 비교하지 않는다 — 한 조항의 지역만 바꿨는데 같은 조항의 업종이 '수정' 으로 잡혔다(가상 변경 시험).
+    if (req.scope or {}).get("guard")!="assessed":
+        payload["raw"]=_norm_text(req.raw)
+    return payload
 
 def _pair_same_anchor(
     baseline: list[QualificationRequirement], current: list[QualificationRequirement]
@@ -93,6 +98,14 @@ def diff_requirements(baseline:list[QualificationRequirement], current:list[Qual
         b,c=baseline_by_key[key],current_by_key[key]
         if b.type==c.type:
             pairs.append((b,c,f"key:{key}")); matched_base.add(key); matched_current.add(key)
+    # 원문이 바뀌어 자리(원문 뼈대)로 짝을 못 찾은 요건끼리, 판정 내용이 같으면 같은 요건이다 — 앞에 조항이 끼어
+    # 조항 원문이 바뀌자 같은 품명번호 요건이 '삭제 + 추가' 로 잡혔다(가상 변경 시험).
+    rest_c=[c for c in current if c.requirement_key not in matched_current]
+    for b in baseline:
+        if b.requirement_key in matched_base: continue
+        same=next((c for c in rest_c if decision_payload(c)==decision_payload(b)),None)
+        if same is not None:
+            pairs.append((b,same,f"value:{b.type}:{b.value}")); matched_base.add(b.requirement_key); matched_current.add(same.requirement_key); rest_c.remove(same)
     changes=[]
     for b,c,identity in pairs:
         changes.append(RequirementChange(change_type="UNCHANGED" if decision_payload(b)==decision_payload(c) else "MODIFIED",identity=identity,baseline_key=b.requirement_key,current_key=c.requirement_key,baseline=b,current=c))
