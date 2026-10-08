@@ -3,6 +3,17 @@ name: AWS dev build and deploy
 # Intentional manual gate: avoid continuous EC2/ECR/S3 traffic and prevent an
 # unreviewed develop push from replacing the shared development service.
 on:
+  push:
+    branches: [develop]
+    paths:
+      - ".github/workflows/aws-deploy.yml"
+      - "apps/api/**"
+      - "apps/web/**"
+      - "engine/**"
+      - "eval/**"
+      - "contracts/**"
+      - "db/**"
+      - "deploy/aws/**"
   workflow_dispatch:
     inputs:
       deploy:
@@ -17,8 +28,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: aws-dev-deploy
-  cancel-in-progress: false
+  group: aws-dev-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 
 env:
   AWS_REGION: ap-northeast-2
@@ -40,12 +51,23 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::226234259348:role/bidcheck-dev-github-deploy-role
           aws-region: ap-northeast-2
-      - name: Ensure develop CI is green
+      - name: Wait for successful develop CI
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
-          gh run list --workflow ci.yml --branch develop --commit "$GITHUB_SHA" --limit 1 \
-            --json conclusion --jq '.[0].conclusion' | grep -Fx success
+          for attempt in $(seq 1 60); do
+            state=$(gh run list --workflow ci.yml --branch develop --commit "$GITHUB_SHA" --event push --limit 5 \
+              --json status,conclusion \
+              --jq 'if length == 0 then "not_found" else .[0].status + ":" + (.[0].conclusion // "") end')
+            case "$state" in
+              completed:success) echo "CI passed for $GITHUB_SHA"; exit 0 ;;
+              completed:*) echo "CI not successful: $state"; exit 1 ;;
+              *) echo "Waiting for CI: $state"; sleep 15 ;;
+            esac
+          done
+          echo "CI timeout after 15 minutes" >&2
+          exit 1
       - name: Login to ECR
         run: aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$REGISTRY"
       - name: Build and publish immutable API image
@@ -68,7 +90,7 @@ jobs:
           aws s3 cp runtime.tar.gz "s3://$BUCKET/deploy/runtime-$GITHUB_SHA.tar.gz" --only-show-errors
 
   deploy:
-    if: inputs.deploy
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy == true
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -96,3 +118,4 @@ jobs:
           fi
           aws ssm get-command-invocation --command-id "$ID" --instance-id "$INSTANCE_ID" \
             --query '[Status,ResponseCode,StandardOutputContent,StandardErrorContent]' --output json
+
