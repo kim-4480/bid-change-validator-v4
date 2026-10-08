@@ -41,7 +41,7 @@ from ..schemas import (
 )
 from ..services.g2b import G2BApiError, G2BClient
 from ..services.document_storage import build_document_downloader, build_s3_client
-from ..services.document_extraction import extract_pending_documents
+from ..services.document_reprocessing import extract_pending_documents
 from ..services.notices import run_notice_sync
 from ..services.notice_facts import diff_notice_facts
 from bidengine.judgment.rules import RULE_VERSION
