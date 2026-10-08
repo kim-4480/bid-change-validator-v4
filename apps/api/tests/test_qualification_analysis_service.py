@@ -1,4 +1,7 @@
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
+
+import pytest
 
 from apps.api.app.models import BidNoticeVersion, NoticeDocument
 from apps.api.app.qualification.analysis import (
@@ -7,6 +10,10 @@ from apps.api.app.qualification.analysis import (
     is_qualification_analysis_run_stale,
     load_latest_current_qualification_analysis_run,
     qualification_analysis_input_fingerprint,
+)
+from apps.api.app.qualification.judgment import (
+    QualificationJudgmentError,
+    _select_analysis_run,
 )
 
 
@@ -162,6 +169,38 @@ def test_new_analysis_after_reextraction_is_valid_again() -> None:
     assert is_qualification_analysis_run_stale(new_run) is False
 
 
+def test_document_addition_and_removal_make_existing_analysis_stale() -> None:
+    from types import SimpleNamespace
+
+    version = _version_with_extracted_document("a" * 64)
+    original_document = version.documents[0]
+    run = SimpleNamespace(
+        input_fingerprint=qualification_analysis_input_fingerprint(
+            build_qualification_analysis_input(version)
+        ),
+        notice_version=version,
+    )
+    added_document = NoticeDocument(
+        id=uuid4(),
+        notice_version_id=version.id,
+        document_order=1,
+        name="추가문서.pdf",
+        url="https://example.invalid/added.pdf",
+        source_field="ntceSpecDocUrl1",
+        download_status="DOWNLOADED",
+        extraction_status="EXTRACTED",
+        file_sha256="d" * 64,
+        extracted_text_sha256="e" * 64,
+        extracted_blocks=[{"block_index": 0, "text": "추가 자격"}],
+    )
+
+    version.documents = [original_document, added_document]
+    assert is_qualification_analysis_run_stale(run) is True
+
+    version.documents = []
+    assert is_qualification_analysis_run_stale(run) is True
+
+
 def test_latest_current_analysis_skips_newer_stale_history() -> None:
     from types import SimpleNamespace
     from unittest.mock import MagicMock
@@ -190,6 +229,29 @@ def test_latest_current_analysis_skips_newer_stale_history() -> None:
     )
 
     assert selected is current
+
+
+def test_explicit_stale_analysis_cannot_be_used_for_judgment() -> None:
+    from types import SimpleNamespace
+
+    version = _version_with_extracted_document("a" * 64)
+    stale_run = SimpleNamespace(
+        id=uuid4(),
+        notice_version_id=version.id,
+        status="SUCCEEDED",
+        input_fingerprint="0" * 64,
+        notice_version=version,
+    )
+    case = SimpleNamespace(current_version_id=version.id)
+
+    with patch(
+        "apps.api.app.qualification.judgment.load_judgment_analysis",
+        return_value=stale_run,
+    ):
+        with pytest.raises(QualificationJudgmentError) as error:
+            _select_analysis_run(MagicMock(), case, stale_run.id)
+
+    assert error.value.code == "QUALIFICATION_ANALYSIS_STALE"
 
 
 def _version_with_extracted_document(text_hash: str) -> BidNoticeVersion:
