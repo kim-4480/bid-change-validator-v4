@@ -80,7 +80,8 @@ def test_joint_contract_sentences_anywhere_in_the_documents_become_notes():
 
     result = RequirementAnalysisResult(status="SUCCEEDED", notice_id="n", notice_version_id="v",
                                        coverage=AnalysisCoverage(section_selection="anchored"))
-    chunks = [{"text": "2. 견적서 제출 및 계약방식\n라. 공동도급은 허용하지 않습니다.\n마. 노무비 구분관리 대상 공사입니다."},
+    chunks = [{"text": "2. 견적서 제출 및 계약방식\n라. 공동도급은 허용하지 않습니다.\n마. 노무비 구분관리 대상 공사입니다.\n"
+                       "② 법령에 위반되는 하도급(일괄 하도급, 무면허 하도급, 재하도급)을 하지 않겠으며"},   # 청렴 서약 — 참고 정보 아님
               {"text": "라 . 공동도급은 허용하지 않습니다 ."}]          # PDF 사본 — 한 번만
     notes = with_document_notes(result, chunks).coverage.notes
     assert [gap.raw for gap in notes] == ["라. 공동도급은 허용하지 않습니다."]
