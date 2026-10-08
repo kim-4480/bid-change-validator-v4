@@ -138,7 +138,8 @@ def test_combined_size_and_affiliation_restriction_uses_the_extension_answer() -
             reference_date=date(2026, 9, 9),
         )
 
-    assert judged(None).status == "UNKNOWN"
+    # 소기업으로 확인된 회사는 법상 상호출자제한기업집단 계열회사일 수 없다 — 묻지 않고 충족(2026-10-08).
+    assert judged(None).status == "SATISFIED"
     assert judged({"is_affiliate": True}).status == "UNSATISFIED"
     assert judged({"is_affiliate": False}).status == "SATISFIED"
 

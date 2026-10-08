@@ -146,10 +146,9 @@ def _affiliate_detect(requirement: QualificationRequirement) -> bool:
 
 
 def _affiliate_owns_judgment(requirement: QualificationRequirement) -> bool:
-    # 규모 요건은 규모 규칙이 계열회사 답과 함께 판정한다. 확장이 맡으면 '대기업 및 중견기업 … 참여할 수 없으며' 의
-    # 규모 배제가 사라진다(2026-10-08: 정규식이 '참여할 수 없' 을 몰라 대기업도 '아니오' 한 마디로 충족이 될 수 있었다).
-    if requirement.type == "COMPANY_SIZE":
-        return False
+    # 같은 문장에 규모 배제가 있으면 규모 규칙이 계열회사 답과 함께 판정한다. 확장이 맡으면 '대기업 및 중견기업 … 참여할
+    # 수 없으며' 의 규모 배제가 사라진다(2026-10-08: 정규식이 '참여할 수 없' 을 몰라 대기업도 '아니오' 한 마디로 충족이 될
+    # 수 있었다). 계열회사 조항만 있으면 유형이 규모로 붙어 있어도 확장이 판정한다.
     return not _SIZE_IN_SAME_REQUIREMENT_RE.search(requirement.raw or "")
 
 
