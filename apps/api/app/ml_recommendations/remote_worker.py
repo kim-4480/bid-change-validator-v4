@@ -26,7 +26,7 @@ def model():
     if name not in {"bi_encoder", "cross_encoder"}:
         raise ValueError("Invalid model kind")
     path = folder / (name + ".pt")
-    return deep_scorer(load_deep(folder, name)), name + "-" + hashlib.sha256(path.read_bytes()).hexdigest()[:16]
+    return deep_scorer(load_deep(folder, name), os.getenv("BIDCHECK_DL_DEVICE","cpu")), name + "-" + hashlib.sha256(path.read_bytes()).hexdigest()[:16]
 
 @app.post("/v1/score")
 def predict(request: ScoreRequest, authorization: str | None = Header(default=None)):

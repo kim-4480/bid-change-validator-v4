@@ -191,14 +191,17 @@ def load_deep(output,name):
     model.eval()
     return model
 
-def deep_scorer(model):
+def deep_scorer(model,device="cpu"):
     import torch
     torch.set_num_threads(min(4,torch.get_num_threads()))
+    if device=="cuda" and not torch.cuda.is_available():
+        raise ValueError("CUDA is not available")
+    model=model.to(device).eval()
     @torch.inference_mode()
     def score(row):
-        q=torch.tensor([encode(row["query_text"])],dtype=torch.long)
-        d=torch.tensor([encode(row["notice_text"])],dtype=torch.long)
-        return float(model(q,d)[0])
+        q=torch.tensor([encode(row["query_text"])],dtype=torch.long,device=device)
+        d=torch.tensor([encode(row["notice_text"])],dtype=torch.long,device=device)
+        return float(model(q,d)[0].cpu())
     return score
 
 def main():

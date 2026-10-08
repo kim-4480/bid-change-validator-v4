@@ -29,6 +29,11 @@ def main():
     p.add_argument("--out",required=True)
     args=p.parse_args()
     notices=notices_from_manifest(args.manifest)
-    print(json.dumps(export(notices,[],args.out),ensure_ascii=False,indent=2))
+    manifest=export(notices,[],args.out)
+    from .dataset import digest
+    manifest["source"]={"type":"local_repo_cached_notice_manifest",
+                        "manifest_sha256":digest(Path(args.manifest))}
+    (Path(args.out)/"manifest.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8")
+    print(json.dumps(manifest,ensure_ascii=False,indent=2))
 if __name__=="__main__":
     main()

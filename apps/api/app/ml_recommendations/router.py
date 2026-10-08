@@ -22,7 +22,7 @@ from .runtime import score_notices
 router=APIRouter(prefix="/api/v1/recommendations",tags=["ml recommendations"])
 
 class MLRecommendationRequest(BaseModel):
-    query: str=Field(min_length=2,max_length=500)
+    query: str | None=Field(default=None,min_length=2,max_length=500)
     company_id: UUID | None=None
     limit: int=Field(default=20,ge=1,le=50)
 
@@ -84,13 +84,22 @@ def recommend_ml(
     db:Session=Depends(get_db),
     user:AppUser | None=Depends(get_optional_current_user),
 ):
+    query=request.query
     if request.company_id is not None:
         authorize_company_access(user,request.company_id)
-        if db.get(Company,request.company_id) is None:
+        company=db.get(Company,request.company_id)
+        if company is None:
             from fastapi import HTTPException
             raise HTTPException(status_code=404,detail="Company not found")
+        if query is None:
+            # Unlabeled profile text for relevance, never proof of legal eligibility.
+            query=" ".join(str(x) for x in (company.name,company.region_name,company.company_size)
+                           if x).strip()
+    if not query:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=422,detail="Either query or company_id must be supplied")
     rows=candidates(db)
-    ranked,model,dataset,source,reason=score_notices(request.query,rows)
+    ranked,model,dataset,source,reason=score_notices(query,rows)
     items=[]
     for idx,row in enumerate(ranked[:request.limit],1):
         items.append(MLNoticeRecommendation(
