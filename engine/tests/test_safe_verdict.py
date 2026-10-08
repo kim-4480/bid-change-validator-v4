@@ -68,3 +68,15 @@ def test_a_code_in_brackets_after_any_name_blocks_the_verdict():
     assert has_closed_value_text("- [출판사신고(1517)] 업종 또는 [인쇄사신고(1518)] 업종을 등록한 업체")
     assert not has_closed_value_text("과학기술정보통신부 공고(2026) 를 준수")
     assert not has_closed_value_text("제12조(경쟁입찰의 참가자격)")
+
+
+def test_a_narrower_certificate_in_the_same_clause_keeps_a_medium_company_from_passing():
+    from bidengine.labeling.closed_first import certificate_size
+
+    assert certificate_size("중소기업자로서 “중·소기업, 소상공인 및 장애인기업 확인요령”에 따라 발급된 소기업 또는 소상공인 확인서를 소지한 업체") == "소기업"
+    assert certificate_size("중소기업 또는 소상공인으로서 발급된 ‘중소기업․소상공인 확인서’를 소지한 자") == "중소기업"
+    assert certificate_size("중소기업자 직접생산확인서") is None
+    reqs = [_req("a", "COMPANY_SIZE", "중소기업", scope={"certificate_size": "소기업"})]
+    assert _judge(reqs, _profile(size="MEDIUM")).overall_status == "insufficient_data"   # 748933, 748942
+    assert _judge(reqs, _profile(size="SMALL")).overall_status == "eligible"
+    assert _judge(reqs, _profile(size="LARGE")).overall_status == "ineligible"

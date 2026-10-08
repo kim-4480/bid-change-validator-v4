@@ -542,6 +542,11 @@ def _judge_company_size(
             return _unknown(requirement, preflight_case_id)
         satisfied = not is_affiliate
 
+    narrower = _COMPANY_SIZE_ALIASES.get(str(requirement.scope.get("certificate_size") or ""))
+    if satisfied and narrower is not None and observed not in narrower:
+        # 조항의 규모 낱말로는 맞지만, 같은 조항이 요구하는 확인서는 더 좁은 규모의 것이다("중소기업자로서 …
+        # 소기업·소상공인 확인서"). 충족도 분명한 값으로만 확정한다 — 확인 필요(2026-10-08 회귀 측정의 틀린 충족).
+        return _vocabulary_unknown(requirement, preflight_case_id, [("company", "company_size", observed)])
     if not satisfied and not profile.completeness.company_size:
         return _unknown(requirement, preflight_case_id)
     if not satisfied and allowed is None:

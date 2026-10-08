@@ -213,6 +213,22 @@ def scan_candidates(text: str, resolver: IndustryNameResolver | None) -> list[Ca
     return out
 
 
+# 낱말 사이 기호는 공고마다 다르다(· ㆍ ․ , /) — 한글·영숫자·마침표가 아닌 글자는 모두 이음 기호로 본다.
+_SIZE_CERTIFICATE_RE = re.compile(r"((?:중[^가-힣]?소기업|중기업|소기업|소상공인|자|및|또는|[^가-힣A-Za-z0-9.。])+)확인서")
+
+
+def certificate_size(text: str) -> str | None:
+    """조항이 요구하는 규모 확인서의 종류: '소기업'(소기업·소상공인 확인서) | '중소기업' | None.
+
+    한 조항에 확인서가 여럿이면 넓은 쪽이 하나라도 있을 때 '중소기업' 이다 — 좁은 쪽으로 단정하지 않는다.
+    """
+    found = [m.group(1) for m in _SIZE_CERTIFICATE_RE.finditer(_compact(text or ""))]
+    kinds = {"중소기업" if re.search(r"중[^가-힣]?소기업|중기업", run) else "소기업" for run in found if re.search(r"소기업|소상공인|중기업", run)}
+    if not kinds:
+        return None
+    return "중소기업" if "중소기업" in kinds else "소기업"
+
+
 def qualified_industry_names(text: str, resolver: IndustryNameResolver | None) -> list[tuple[str, str]]:
     """괄호 세부명이 붙은 업종 이름을 코드로. 세부명이 나열돼 있으면("(전기, 기계") 하나씩 붙여 찾는다.
 
@@ -452,7 +468,12 @@ def _closed_requirements(polarity: str, text: str, candidates: list[Candidate], 
     if sizes:
         alias = company_size_alias(" ".join(c.value for c in sizes))
         if alias:
-            reqs.append({"type": "COMPANY_SIZE", "value": alias, "scope": {}})
+            scope = {}
+            if alias == "중소기업" and certificate_size(text) == "소기업":
+                # "중소기업자로서 … 소기업·소상공인 확인서를 소지" — 낱말은 중소기업인데 요구하는 확인서는 소기업 것이다.
+                # 어느 쪽이 자격인지 엔진이 정하지 않는다. 판정기가 중기업 회사를 충족으로 확정하지 않게 표시만 남긴다.
+                scope["certificate_size"] = "소기업"
+            reqs.append({"type": "COMPANY_SIZE", "value": alias, "scope": scope})
         else:
             diags.append({"code": "UNMAPPED_COMPANY_SIZE", "raw": text, "reason": "SIZE_UNION_UNKNOWN"})
 
