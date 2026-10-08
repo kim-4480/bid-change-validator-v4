@@ -356,3 +356,4 @@ def test_sentence_pieces_from_spaceless_pdf_lines_are_not_industry_names():
     text = "다.입찰공고일전일부터계약체결일까지주된영업소의소재지를계속경상남도또는울산광역시에둔사업자이어야합니다."
     assert unresolved_industry_names(text, [], MasterResolver()) == []
     assert unresolved_industry_names("나. 수중공사업을 등록한 업체", [], MasterResolver()) == ["수중공사업"]
+    assert unresolved_industry_names("2) 조경공사업 ※ 건설업역 간 상호시장 진출 허용에 따른 종합건설업", [], MasterResolver()) == ["조경공사업"]
