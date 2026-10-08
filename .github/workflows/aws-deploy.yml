@@ -1,19 +1,7 @@
 name: AWS dev build and deploy
 
-# Intentional manual gate: avoid continuous EC2/ECR/S3 traffic and prevent an
-# unreviewed develop push from replacing the shared development service.
+# Manual-only AWS build/deploy gate. Automatic ECR/S3 writes on develop push are forbidden.
 on:
-  push:
-    branches: [develop]
-    paths:
-      - ".github/workflows/aws-deploy.yml"
-      - "apps/api/**"
-      - "apps/web/**"
-      - "engine/**"
-      - "eval/**"
-      - "contracts/**"
-      - "db/**"
-      - "deploy/aws/**"
   workflow_dispatch:
     inputs:
       deploy:
@@ -29,7 +17,7 @@ permissions:
 
 concurrency:
   group: aws-dev-${{ github.event_name }}
-  cancel-in-progress: ${{ github.event_name == 'push' }}
+  cancel-in-progress: false
 
 env:
   AWS_REGION: ap-northeast-2
