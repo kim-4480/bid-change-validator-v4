@@ -1,3 +1,5 @@
+import { noticeListParams, type NoticeListOptions } from './notice-pagination';
+
 const configuredApiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000';
 export const API_BASE_URL = configuredApiBase.replace(/\/$/, '');
 
@@ -121,6 +123,8 @@ export type BidNoticeSummary = {
   first_seen_at: string;
   last_seen_at: string;
   current_version: number;
+  qualification_status?: 'eligible' | 'insufficient_data' | 'ineligible' | 'unreviewed' | 'needs_review' | null;
+  current_case_id?: string | null;
 };
 
 export type BidNoticeDetail = BidNoticeSummary & {
@@ -158,12 +162,13 @@ type ListResponse<T> = {
   limit: number;
   offset: number;
   items: T[];
+  status_counts?: Record<string, number> | null;
 };
 
-export function listNotices(query = '') {
-  const search = new URLSearchParams({ limit: '100' });
-  if (query.trim()) search.set('q', query.trim());
-  return apiRequest<ListResponse<BidNoticeSummary>>(`/api/v1/notices?${search}`);
+export function listNotices(query = '', options: NoticeListOptions = {}) {
+  return apiRequest<ListResponse<BidNoticeSummary>>(
+    `/api/v1/notices?${noticeListParams(query, options)}`,
+  );
 }
 
 export function getNotice(noticeId: string) {
