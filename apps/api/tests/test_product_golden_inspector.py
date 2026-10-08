@@ -6,6 +6,7 @@ from apps.api.app.scripts.product_golden_inspector import find_snippets
 def test_find_snippets_groups_product_categories() -> None:
     document = SimpleNamespace(
         id="doc-1",
+        extraction_status="EXTRACTED",
         name="제안요청서.pdf",
         extracted_text=(
             "입찰참가자격은 서울 소재 업체이며 최근 3년 실적을 보유해야 한다. "
@@ -25,3 +26,10 @@ def test_find_snippets_groups_product_categories() -> None:
     assert "change" in categories
     assert all(snippet.version_number == 2 for snippet in snippets)
     assert all(snippet.document_name == "제안요청서.pdf" for snippet in snippets)
+
+
+def test_find_snippets_skips_retained_text_of_failed_document() -> None:
+    document = SimpleNamespace(
+        extraction_status="FAILED", extracted_text="stale previous result",
+    )
+    assert find_snippets(version_number=1, document=document) == []
