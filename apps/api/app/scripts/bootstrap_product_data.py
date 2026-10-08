@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 from ..config import get_settings
 from ..database import SessionLocal
 from ..schemas import BusinessType, NoticeInquiryType, NoticeSyncRequest
-from ..services.document_extraction import extract_pending_documents
+from ..services.document_reprocessing import extract_pending_documents
 from ..services.document_storage import build_document_downloader
 from ..services.g2b import G2BClient
 from ..services.notices import run_notice_sync
