@@ -318,3 +318,34 @@ def test_clause_whose_only_open_name_was_noise_stays_for_review():
 4. 입찰보증금"""
     result = _closed_first(section)
     assert any("관할" in gap.raw for gap in result.coverage.gaps)
+
+
+class FamilyResolver(MasterResolver):
+    FAMILIES = {"산림조합": ["4119", "4120"]}
+
+    def family_codes(self, name):
+        return self.FAMILIES.get("".join(name.split()), [])
+
+
+def test_family_name_becomes_alternatives_with_the_other_industry():
+    """'산림사업법인(숲가꾸기 및 병해충방제) 또는 산림조합' → 1475·4119·4120 중 하나(2026-10-08)."""
+    from bidengine.labeling.closed_first import _closed_requirements
+
+    text = "가. 「산림사업법인(숲가꾸기 및 병해충방제)」또는 산림조합법에 의하여 설립된「산림조합」으로 본점소재지가 곡성군"
+    candidates = scan_candidates(text, FamilyResolver())
+    assert {(c.value, c.family) for c in candidates if c.kind == "INDUSTRY"} == {("1475", ""), ("4119", "산림조합"), ("4120", "산림조합")}
+    assert unresolved_industry_names(text, candidates, FamilyResolver()) == []
+    # 모델이 1475 만 '필수' 로, 묶음 후보 하나만 '필수' 로 표시해도 셋이 한 대안 묶음이 된다.
+    ids = {c.value: c.id for c in candidates}
+    roles = {ids["1475"]: ("REQUIRED", ""), ids["4119"]: ("REQUIRED", ""), ids["4120"]: ("NOT_RELATED", ""),
+             ids["곡성군"]: ("REQUIRED", "")}
+    reqs, _diags = _closed_requirements("POSITIVE", text, candidates, roles)
+    industries = {(r["value"], r.get("group")) for r in reqs if r["type"] == "INDUSTRY"}
+    assert {value for value, _g in industries} == {"1475", "4119", "4120"}
+    assert len({group for _v, group in industries}) == 1 and None not in {group for _v, group in industries}
+    assert [r["value"] for r in reqs if r["type"] == "REGION"] == ["곡성군"]
+
+
+def test_qualified_name_is_not_read_as_a_family():
+    text = "가. 산림사업법인(숲가꾸기 및 병해충방제) 등록 업체"
+    assert [c.family for c in scan_candidates(text, FamilyResolver()) if c.kind == "INDUSTRY"] == [""]
