@@ -477,6 +477,9 @@ def run_notice_sync(
                 )
 
         page_number = 1
+        listed_page_count = 0
+        listed_item_count = 0
+        expected_list_total = 0
         notice_number_items: list[tuple[dict[str, Any], str]] = []
         while page_number <= request.max_pages:
             page = client.fetch_page(
@@ -489,6 +492,9 @@ def run_notice_sync(
                 bid_notice_no=request.bid_notice_no,
             )
             run.api_calls += 1
+            listed_page_count += 1
+            listed_item_count += len(page.items)
+            expected_list_total = max(expected_list_total, page.total_count)
             for item in page.items:
                 if request.inquiry_type == NoticeInquiryType.NOTICE_NUMBER:
                     notice_number_items.append((item, page.endpoint))
@@ -498,6 +504,25 @@ def run_notice_sync(
             if not page.items or page_number * request.page_size >= page.total_count:
                 break
             page_number += 1
+
+        # Only FOREIGN REGISTERED uses completed windows as a persistent
+        # discovery checkpoint. A truncated listing must never advance it.
+        foreign_registration_error = None
+        if (
+            request.business_type == BusinessType.FOREIGN
+            and request.inquiry_type == NoticeInquiryType.REGISTERED
+            and listed_item_count < expected_list_total
+        ):
+            error_code = (
+                "FOREIGN_REGISTERED_PAGE_LIMIT"
+                if listed_page_count >= request.max_pages
+                and listed_page_count * request.page_size < expected_list_total
+                else "FOREIGN_REGISTERED_INCOMPLETE"
+            )
+            foreign_registration_error = (
+                f"{error_code}: received {listed_item_count} of "
+                f"{expected_list_total} listed items"
+            )
 
         if notice_number_items:
             def notice_order(values: tuple[dict[str, Any], str]) -> tuple[int, str]:
@@ -618,10 +643,17 @@ def run_notice_sync(
         # Partial polling runs keep successfully isolated items, but must not
         # advance the next polling checkpoint.  Only COMPLETED runs are used by
         # the worker when calculating its next window.
-        run.status = "FAILED" if item_errors else "COMPLETED"
+        run.status = (
+            "FAILED" if item_errors or foreign_registration_error else "COMPLETED"
+        )
         if item_errors:
             run.error_message = (
                 f"{len(item_errors)}개 항목 저장 실패: " + " | ".join(item_errors[:10])
+            )[:2000]
+        if foreign_registration_error:
+            run.error_message = (
+                foreign_registration_error
+                + (f" | {run.error_message}" if run.error_message else "")
             )[:2000]
         run.completed_at = datetime.now(KST)
         db.commit()
