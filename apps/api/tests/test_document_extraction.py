@@ -86,3 +86,26 @@ def test_non_hwpml_xml_with_hwp_extension_is_rejected() -> None:
             filename="fake.hwp",
             content_type="application/x-hwp",
         )
+
+
+def test_hwp_extension_with_hwpx_zip_is_extracted() -> None:
+    # G2B can provide an HWPX (ZIP) payload with a legacy .hwp filename.
+    from zipfile import ZipFile
+
+    source = BytesIO()
+    with ZipFile(source, "w") as archive:
+        archive.writestr("mimetype", "application/hwp+zip")
+        archive.writestr(
+            "Contents/section0.xml",
+            "<section><p><t>HWPX content from .hwp</t></p></section>",
+        )
+
+    result = extract_document(
+        source,
+        filename="misnamed.hwp",
+        content_type="application/octet-stream",
+    )
+
+    assert result.extractor == "HWPX_XML"
+    assert result.text == "HWPX content from .hwp"
+    assert len(result.blocks) == 1

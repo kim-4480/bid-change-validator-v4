@@ -333,12 +333,6 @@ def extract_document(
         return _extract_pdf(source)
     if signature.startswith(b"\xd0\xcf\x11\xe0"):
         return _extract_hwp(source)
-    if suffix in {".hwp", ".hml"}:
-        try:
-            return _extract_hwpml(source)
-        except ElementTree.ParseError:
-            source.seek(0)
-            return _extract_hwp(source)
     if signature.startswith(b"PK") or suffix in {".hwpx", ".docx"}:
         try:
             with ZipFile(source) as archive:
@@ -350,6 +344,12 @@ def extract_document(
                 return _extract_docx(source)
         except BadZipFile as error:
             raise ValueError("invalid ZIP-based document") from error
+    if suffix in {".hwp", ".hml"}:
+        try:
+            return _extract_hwpml(source)
+        except ElementTree.ParseError:
+            source.seek(0)
+            return _extract_hwp(source)
     if suffix in {".txt", ".csv", ".md"} or (content_type or "").startswith("text/"):
         return _extract_plain_text(source)
     raise UnsupportedDocumentError("document format is not supported")
