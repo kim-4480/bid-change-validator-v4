@@ -349,3 +349,10 @@ def test_family_name_becomes_alternatives_with_the_other_industry():
 def test_qualified_name_is_not_read_as_a_family():
     text = "가. 산림사업법인(숲가꾸기 및 병해충방제) 등록 업체"
     assert [c.family for c in scan_candidates(text, FamilyResolver()) if c.kind == "INDUSTRY"] == [""]
+
+
+def test_sentence_pieces_from_spaceless_pdf_lines_are_not_industry_names():
+    """'…울산광역시에둔사업자이어야' 같은 PDF 줄 덩어리는 업종 이름이 아니다(2026-10-08 표본 k). 진짜 이름은 그대로 잡는다."""
+    text = "다.입찰공고일전일부터계약체결일까지주된영업소의소재지를계속경상남도또는울산광역시에둔사업자이어야합니다."
+    assert unresolved_industry_names(text, [], MasterResolver()) == []
+    assert unresolved_industry_names("나. 수중공사업을 등록한 업체", [], MasterResolver()) == ["수중공사업"]

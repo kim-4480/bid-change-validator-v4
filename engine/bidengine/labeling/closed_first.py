@@ -250,7 +250,8 @@ _INDUSTRY_LIKE_RE = re.compile(
 _NOT_INDUSTRY_NAMES = {"사업", "기업", "산업", "영업", "작업", "사업자", "용역사업", "본사업", "해당사업", "협동조합", "건설사업자",
                        "신규사업자", "개인사업자", "법인사업자", "면세사업자", "과세사업자", "간이사업자", "건설업자",
                        "전문건설업자", "종합건설업자", "공사업", "건설업", "전문공사업", "종합공사업"}
-_BUSINESS_KIND_RE = re.compile(r"서비스|개발|공급|판매|제조|임대|대여|운송|중개|도매|소매|설계|감리|공사")
+_BUSINESS_KIND_RE = re.compile(r"서비스|개발|공급|판매|제조|임대|대여|운송|중개|도매|소매|설계|감리|공사|소프트웨어|정보통신")
+_SENTENCE_PIECE_RE = re.compile(r"까지|부터|에둔|에서|하여|으로서|이어야|에의한|에따른")
 _ALTERNATIVE_MARKER_RE = re.compile(r"또는|중\s*(?:하나|어느|1)|이나\s|혹은")
 
 
@@ -265,8 +266,11 @@ def unresolved_industry_names(text: str, candidates: list["Candidate"], resolver
         compact = _compact(name)
         if compact in _NOT_INDUSTRY_NAMES or compact.endswith("기업") or _SIZE_WORD_RE.fullmatch(compact):
             continue
-        if compact.endswith("사업") and not _BUSINESS_KIND_RE.search(compact):
+        if compact.endswith(("사업", "사업자")) and not _BUSINESS_KIND_RE.search(compact):
             # '…조성사업', '…구축사업', '유사사업' 은 사업(과업) 이름이지 업종이 아니다(2026-10-07 표본 j).
+            continue
+        if _SENTENCE_PIECE_RE.search(compact):
+            # 띄어쓰기가 사라진 PDF 줄에서 문장 덩어리가 이름처럼 잡힌다('…울산광역시에둔사업자', 2026-10-08 표본 k).
             continue
         if _STANDARD_AFTER_RE.match(plain[match.end():]):
             continue
