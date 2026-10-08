@@ -57,7 +57,9 @@ from bidengine.requirements.legacy_slots import (
 CLOSED_FIRST_VERSION = "closed-first-v1"
 MAX_BODY_CHARS = 24_000
 ROLES = ("REQUIRED", "ALTERNATIVE", "EXCLUDED", "NOT_RELATED")
-_PARTY_CLAUSE_RE = re.compile(r"공동\s*(?:수급|계약|도급|이행)|분담\s*이행")
+# 공동도급 역할별 자격('주계약자(대표사) : 건축공사업과 토목공사업…', '부계약자 : 기계설비·가스공사업…')도 공동수급 조항이다.
+# 역할마다 다른 업종을 모두 필수로 만들면 한 회사에 틀린 미달이 난다(2026-10-08 표본 k LH 아파트).
+_PARTY_CLAUSE_RE = re.compile(r"공동\s*(?:수급|계약|도급|이행)|분담\s*이행|(?:주|부)\s*계약자\s*(?:\([^()]{0,10}\))?\s*[:：]|구성사\s*\)?\s*[:：]")
 _PARTY_PROCEDURE_RE = re.compile(r"협정서|제출|승인|서식|간주")
 _INDUSTRY_NAME_SPAN_RE = re.compile(r"[가-힣][가-힣·ㆍ∙․]{1,24}업")
 # 괄호 세부명이 붙은 업종 이름: 「산림사업법인(숲가꾸기 및 병해충방제)」, 【일반소방시설공사업(전기, 기계】(닫는 괄호 빠짐).
@@ -72,6 +74,8 @@ _BRACKET_INDUSTRY_CODE_RE = re.compile(r"업\s*(?:\([^()]{0,20}\))?\s*[\[［]\s*
 # "다음 각 호 어느 하나에 해당하는 경우" 아래로 이어지는 하위 조항 표식(㉮ ㉯, ⓐ, (가), 가), ①).
 # "1) 조경식재·시설물공사업 2) 조경공사업" 처럼 숫자 괄호도 하위 항목이다(2026-10-07 표본 j 녹색이음 누리길 — 둘 다 필수가
 # 되어 틀린 미달). 머리 조항에 '중 어느 하나' 가 있을 때만 쓰므로 '모두 갖춘' 목록과 섞이지 않는다.
+# "(지점 투찰 불허)", "(지사 투찰 불가)" — 본점 소재지 요건에 붙는 덧말이다. 요건을 부정하는 말이 아니다(표본 k).
+_BRANCH_REMARK_RE = re.compile(r"\(\s*(?:※\s*)?(?:지점|지사)[^()]{0,20}\)")
 _SUB_ITEM_RE = re.compile(r"^\s*(?:[㉮-㉻]|[ⓐ-ⓩ]|\([가-하]\)|[가-하]\)|[①-⑳]|\(?\d{1,2}\))")
 # 조항을 건넌 대안으로 묶는 것은 업종·품명번호뿐이다. 머리 조항의 소재지·규모 요건은 대안이 아니라 공통 조건이다.
 _ALTERNATIVE_TYPES = {"INDUSTRY", "REGISTRATION_CERTIFICATION"}
@@ -434,7 +438,7 @@ def _closed_requirements(polarity: str, text: str, candidates: list[Candidate], 
         return reqs, diags
 
     wanted = by_role["REQUIRED"] + by_role["ALTERNATIVE"]
-    if wanted and _NEGATION_VETO_RE.search(strip_decorations(text)):
+    if wanted and _NEGATION_VETO_RE.search(_BRANCH_REMARK_RE.sub(" ", strip_decorations(text))):
         # 모델은 요구라는데 문장에 부정 낱말이 있다 — 이견이라 확정하지 않는다.
         diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": "POLARITY_DISAGREEMENT"})
         return reqs, diags

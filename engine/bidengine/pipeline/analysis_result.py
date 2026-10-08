@@ -8,6 +8,7 @@ Backend-owned notice/document identifiers remain the source of truth.
 
 from __future__ import annotations
 
+import re
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, computed_field, model_validator
@@ -86,6 +87,7 @@ class CoverageGap(BaseModel):
     summary: str | None = None
 
 
+_INDUSTRY_WORD_RE = re.compile(r"공사업|[가-힣]업\s*(?:을|으로|를)?\s*(?:등록|면허)|업종")
 _VERDICT_GAP_CODES = ("UNMAPPED_INDUSTRY", "UNMAPPED_REGION", "UNMAPPED_COMPANY_SIZE", "UNMAPPED_REGISTRATION_CERTIFICATION")
 
 
@@ -101,6 +103,9 @@ def gap_blocks_verdict(gap: CoverageGap) -> bool:
     if gap.blocks_verdict is not None:
         return gap.blocks_verdict
     if (gap.reason or "").startswith(_VERDICT_GAP_CODES):
+        return True
+    if gap.reason == "COMPOSITE_PARTY_RULE" and _INDUSTRY_WORD_RE.search(gap.raw or ""):
+        # 공동도급 역할별 업종 자격 — 한 회사로 판정할 수 없지만 업종 자격이라 '적합' 을 막는다.
         return True
     return has_closed_value_text(gap.raw)
 

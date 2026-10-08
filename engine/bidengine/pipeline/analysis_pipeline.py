@@ -325,6 +325,10 @@ def analyze_qualification_documents(
         + [str(item.get("raw") or "") for item in canonicalized["diagnostics"] if isinstance(item, dict)]
         + list(extraction.get("clause_texts") or []),
     )
+    canonicalized["requirements"], narrower = drop_narrower_copy_sizes(list(canonicalized["requirements"]))
+    canonicalized["diagnostics"].extend(
+        {"code": "CLAUSE_NOT_LABELLED", "raw": item.raw, "reason": "SIZE_COPY_NARROWER"} for item in narrower
+    )
     kept, dropped = drop_checklist_duplicates(list(canonicalized["requirements"]))
     kept, fragments = drop_checklist_fragments(kept)
     if dropped or fragments:
@@ -416,6 +420,30 @@ def mark_general_contractor_allowed(requirements: list, texts: list[str]) -> lis
         if r.type == "INDUSTRY" and re.fullmatch(r"49[0-9]{2}", str(r.value)) else r
         for r in requirements
     ]
+
+
+def drop_narrower_copy_sizes(requirements: list) -> tuple[list, list]:
+    """같은 조항의 사본(HWP·PDF)에서 규모가 다르게 나오면 넓은 쪽만 남긴다. (남길 것, 뺄 것).
+
+    '중기업, 소기업 또는 소상공인으로서 … 소기업 또는 소상공인 확인서' 가 한 사본에서는 중소기업, 다른 사본에서는 소기업으로
+    나와 둘 다 남으면 중기업 회사가 미달이 된다(2026-10-08 표본 k). 다른 조항의 규모 요건은 건드리지 않는다(둘 다 지켜야 한다).
+    배제(EXCLUDE) 요건은 건드리지 않는다.
+    """
+    from bidengine.judgment.rules import _COMPANY_SIZE_ALIASES, _company_size_set
+
+    def allowed(value: str) -> set[str]:
+        return _COMPANY_SIZE_ALIASES.get(value) or _company_size_set(value) or set()
+
+    def head(raw: str) -> str:
+        return re.sub(r"[^0-9A-Za-z가-힣]", "", raw or "")[:40]
+
+    sizes = [r for r in requirements if r.type == "COMPANY_SIZE" and (r.scope or {}).get("restriction") != "EXCLUDE"]
+    dropped = []
+    for r in sizes:
+        wider = [o for o in sizes if o is not r and head(o.raw) == head(r.raw) and allowed(str(r.value)) < allowed(str(o.value))]
+        if wider:
+            dropped.append(r)
+    return [r for r in requirements if all(r is not d for d in dropped)], dropped
 
 
 def drop_checklist_fragments(requirements: list) -> tuple[list, list]:
