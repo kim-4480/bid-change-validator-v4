@@ -607,7 +607,7 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
       ...fromRequirements,
       ...fromGaps(blockingGaps, 'GAP_BLOCKING'),
       ...fromGaps(checklistGaps, 'GAP_CHECKLIST'),
-      ...referenceNotes.map((note) => ({ text: note.raw, kind: 'NOTE' as const, label: '공동수급·하도급 안내' })),
+      ...referenceNotes.map((note) => ({ text: note.raw, kind: 'NOTE' as const, label: '참고 정보' })),
     ].filter((item) => item.text);
   }, [shownAnalysis, blockingGaps, checklistGaps, referenceNotes]);
   const sourceVersion = viewingBaseline ? baselineVersion : currentVersion;
@@ -898,7 +898,7 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
             {referenceNotes.length > 0 && (
               <section className="mt-6 rounded-[18px] border border-[var(--product-line)] bg-white px-5 py-4">
                 <h2 className="text-[17px] font-extrabold">참고 정보</h2>
-                <p className="mt-1 text-[13px] text-[var(--product-muted)]">공동수급·하도급 허용 여부처럼 회사 자격이 아니라 입찰 방식에 관한 안내입니다.</p>
+                <p className="mt-1 text-[13px] text-[var(--product-muted)]">공동수급·하도급 허용 여부, 건설업역 상호시장 진출 허용처럼 회사 자격이 아니라 입찰 방식에 관한 안내입니다.</p>
                 <ul className="mt-3 grid gap-1.5">
                   {Array.from(new Map(referenceNotes.map((note) => [note.raw.replace(/\s+/g, ''), note.raw])).values()).map((raw) => (
                     <li key={raw} className="text-[14px] leading-6 text-[var(--product-body)]">{raw}</li>

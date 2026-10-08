@@ -40,6 +40,7 @@ from bidengine.labeling.requirement_extraction import (
 from bidengine.normalization.region_vocab import SIGUNGU_PARENTS
 from bidengine.normalization.regions import SIDO_CANONICAL, find_regions
 from bidengine.ports import IndustryNameResolver
+from bidengine.normalization.industry_family import family_codes
 from bidengine.requirements.legacy_slots import (
     _NAMED_INDUSTRY_CODE_RE,
     _PRODUCT_CODE_RE,
@@ -56,7 +57,9 @@ from bidengine.requirements.legacy_slots import (
 CLOSED_FIRST_VERSION = "closed-first-v1"
 MAX_BODY_CHARS = 24_000
 ROLES = ("REQUIRED", "ALTERNATIVE", "EXCLUDED", "NOT_RELATED")
-_PARTY_CLAUSE_RE = re.compile(r"공동\s*(?:수급|계약|도급|이행)|분담\s*이행")
+# 공동도급 역할별 자격('주계약자(대표사) : 건축공사업과 토목공사업…', '부계약자 : 기계설비·가스공사업…')도 공동수급 조항이다.
+# 역할마다 다른 업종을 모두 필수로 만들면 한 회사에 틀린 미달이 난다(2026-10-08 표본 k LH 아파트).
+_PARTY_CLAUSE_RE = re.compile(r"공동\s*(?:수급|계약|도급|이행)|분담\s*이행|(?:주|부)\s*계약자\s*(?:\([^()]{0,10}\))?\s*[:：]|구성사\s*\)?\s*[:：]")
 _PARTY_PROCEDURE_RE = re.compile(r"협정서|제출|승인|서식|간주")
 _INDUSTRY_NAME_SPAN_RE = re.compile(r"[가-힣][가-힣·ㆍ∙․]{1,24}업")
 # 괄호 세부명이 붙은 업종 이름: 「산림사업법인(숲가꾸기 및 병해충방제)」, 【일반소방시설공사업(전기, 기계】(닫는 괄호 빠짐).
@@ -71,6 +74,8 @@ _BRACKET_INDUSTRY_CODE_RE = re.compile(r"업\s*(?:\([^()]{0,20}\))?\s*[\[［]\s*
 # "다음 각 호 어느 하나에 해당하는 경우" 아래로 이어지는 하위 조항 표식(㉮ ㉯, ⓐ, (가), 가), ①).
 # "1) 조경식재·시설물공사업 2) 조경공사업" 처럼 숫자 괄호도 하위 항목이다(2026-10-07 표본 j 녹색이음 누리길 — 둘 다 필수가
 # 되어 틀린 미달). 머리 조항에 '중 어느 하나' 가 있을 때만 쓰므로 '모두 갖춘' 목록과 섞이지 않는다.
+# "(지점 투찰 불허)", "(지사 투찰 불가)" — 본점 소재지 요건에 붙는 덧말이다. 요건을 부정하는 말이 아니다(표본 k).
+_BRANCH_REMARK_RE = re.compile(r"\(\s*(?:※\s*)?(?:지점|지사)[^()]{0,20}\)")
 _SUB_ITEM_RE = re.compile(r"^\s*(?:[㉮-㉻]|[ⓐ-ⓩ]|\([가-하]\)|[가-하]\)|[①-⑳]|\(?\d{1,2}\))")
 # 조항을 건넌 대안으로 묶는 것은 업종·품명번호뿐이다. 머리 조항의 소재지·규모 요건은 대안이 아니라 공통 조건이다.
 _ALTERNATIVE_TYPES = {"INDUSTRY", "REGISTRATION_CERTIFICATION"}
@@ -145,6 +150,7 @@ class Candidate:
     kind: str      # REGION | INDUSTRY | PRODUCT | SIZE
     value: str     # 정규 값: "전북특별자치도 전주시", "1468", "4320140101", "소기업"
     surface: str   # 원문에서 찾은 표기
+    family: str = ""  # 묶음 업종 이름("산림조합")에서 나온 후보면 그 이름 — 같은 이름의 후보들은 서로 대안이다
 
 
 def scan_candidates(text: str, resolver: IndustryNameResolver | None) -> list[Candidate]:
@@ -198,6 +204,12 @@ def scan_candidates(text: str, resolver: IndustryNameResolver | None) -> list[Ca
             continue
         seen.add((kind, value))
         out.append(Candidate(id=f"V{len(out) + 1}", kind=kind, value=value, surface=surface))
+    # 세부명 없이 쓴 묶음 업종 이름("산림조합" → 4119·4120)은 그 세부명 업종들의 대안 후보로 더한다.
+    for name in unresolved_industry_names(text, out, resolver):
+        for code in family_codes(name, resolver):
+            if ("INDUSTRY", code) not in seen:
+                seen.add(("INDUSTRY", code))
+                out.append(Candidate(id=f"V{len(out) + 1}", kind="INDUSTRY", value=code, surface=name, family=name))
     return out
 
 
@@ -237,8 +249,10 @@ _INDUSTRY_LIKE_RE = re.compile(
 )
 _NOT_INDUSTRY_NAMES = {"사업", "기업", "산업", "영업", "작업", "사업자", "용역사업", "본사업", "해당사업", "협동조합", "건설사업자",
                        "신규사업자", "개인사업자", "법인사업자", "면세사업자", "과세사업자", "간이사업자", "건설업자",
-                       "전문건설업자", "종합건설업자", "공사업", "건설업", "전문공사업", "종합공사업"}
-_BUSINESS_KIND_RE = re.compile(r"서비스|개발|공급|판매|제조|임대|대여|운송|중개|도매|소매|설계|감리|공사")
+                       "전문건설업자", "종합건설업자", "공사업", "건설업", "전문공사업", "종합공사업",
+                       "종합건설업", "전문건설업"}
+_BUSINESS_KIND_RE = re.compile(r"서비스|개발|공급|판매|제조|임대|대여|운송|중개|도매|소매|설계|감리|공사|소프트웨어|정보통신")
+_SENTENCE_PIECE_RE = re.compile(r"까지|부터|에둔|에서|하여|으로서|이어야|에의한|에따른")
 _ALTERNATIVE_MARKER_RE = re.compile(r"또는|중\s*(?:하나|어느|1)|이나\s|혹은")
 
 
@@ -253,8 +267,11 @@ def unresolved_industry_names(text: str, candidates: list["Candidate"], resolver
         compact = _compact(name)
         if compact in _NOT_INDUSTRY_NAMES or compact.endswith("기업") or _SIZE_WORD_RE.fullmatch(compact):
             continue
-        if compact.endswith("사업") and not _BUSINESS_KIND_RE.search(compact):
+        if compact.endswith(("사업", "사업자")) and not _BUSINESS_KIND_RE.search(compact):
             # '…조성사업', '…구축사업', '유사사업' 은 사업(과업) 이름이지 업종이 아니다(2026-10-07 표본 j).
+            continue
+        if _SENTENCE_PIECE_RE.search(compact):
+            # 띄어쓰기가 사라진 PDF 줄에서 문장 덩어리가 이름처럼 잡힌다('…울산광역시에둔사업자', 2026-10-08 표본 k).
             continue
         if _STANDARD_AFTER_RE.match(plain[match.end():]):
             continue
@@ -377,6 +394,23 @@ def _entry_body(clause_id: str, section: str, clause: Clause, candidates: list[C
     return f"[{clause_id}] 위치: {section or '알 수 없음'} | 후보: {listed or '없음'}\n{clause.text}"
 
 
+def _family_roles(text: str, candidates: list[Candidate], roles: dict[str, tuple[str, str]]) -> dict[str, tuple[str, str]]:
+    """묶음 업종 후보는 서로 대안이다. 조항에 대안 표지('또는')가 있으면 그 조항의 다른 업종 후보도 같은 묶음에 넣는다.
+
+    "산림사업법인(숲가꾸기 및 병해충방제) 또는 산림조합" → 1475 · 4119 · 4120 중 하나. 모델이 묶음 후보 하나만 '필수' 로
+    표시해도 코드가 나머지를 함께 대안으로 만든다 — 하나만 필수가 되면 다른 조합 회사가 '불가' 가 된다.
+    """
+    wanted = {c.id for c in candidates if roles.get(c.id, ("NOT_RELATED", ""))[0] in {"REQUIRED", "ALTERNATIVE"}}
+    families = [c for c in candidates if c.family and c.id in wanted]
+    if not families:
+        return roles
+    group = "F-" + "+".join(sorted({c.family for c in families}))
+    members = {c.id for c in candidates if c.family in {f.family for f in families}}
+    if _ALTERNATIVE_MARKER_RE.search(text):
+        members |= {c.id for c in candidates if c.kind == "INDUSTRY" and c.id in wanted}
+    return {**roles, **{cid: ("ALTERNATIVE", group) for cid in members}}
+
+
 def _closed_requirements(polarity: str, text: str, candidates: list[Candidate], roles: dict[str, tuple[str, str]]) -> tuple[list[dict], list[dict]]:
     """역할을 받은 후보로 요건(정의)과 진단을 만든다."""
     reqs: list[dict] = []
@@ -387,6 +421,7 @@ def _closed_requirements(polarity: str, text: str, candidates: list[Candidate], 
         if alias:
             # 규모 낱말은 닫힌 어휘다 — '○○간 경쟁입찰' 이면 그 규모가 참가 자격이다. 모델의 역할 표시와 상관없이 코드가 정한다.
             return [{"type": "COMPANY_SIZE", "value": alias, "scope": {"source": "competition_type"}}], diags
+    roles = _family_roles(text, candidates, roles)
     by_role = {role: [c for c in candidates if roles.get(c.id, ("NOT_RELATED", ""))[0] == role] for role in ROLES}
 
     if polarity == "EXCLUSION":
@@ -408,7 +443,7 @@ def _closed_requirements(polarity: str, text: str, candidates: list[Candidate], 
         return reqs, diags
 
     wanted = by_role["REQUIRED"] + by_role["ALTERNATIVE"]
-    if wanted and _NEGATION_VETO_RE.search(strip_decorations(text)):
+    if wanted and _NEGATION_VETO_RE.search(_BRANCH_REMARK_RE.sub(" ", strip_decorations(text))):
         # 모델은 요구라는데 문장에 부정 낱말이 있다 — 이견이라 확정하지 않는다.
         diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": "POLARITY_DISAGREEMENT"})
         return reqs, diags

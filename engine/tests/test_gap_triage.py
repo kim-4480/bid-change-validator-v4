@@ -61,3 +61,27 @@ def test_duplicates_and_pdf_fragments_are_merged():
     kept, moved = triage_gaps(gaps, [NS(raw=full, type="REGION")])
     assert [g.raw for g in kept] == ["다. 생산시설을 갖춘 자", "가. 【전문소방시설공사업】또는【일반소방시설공사업】 면허"]
     assert sorted(reason for _gap, reason in moved) == ["DUPLICATE", "DUPLICATE", "FRAGMENT_OF_CLAUSE"]
+
+
+@pytest.mark.parametrize("raw, reason", [
+    ("다. 「지방자치단체를 당사자로 하는 계약에 관한 법률」 제31조의5 및 같은 법 시행령", "STATUTE_FRAGMENT"),
+    ("① 우리 의학원 계약업무요령 제16조(참가자격), 제26조(입찰참가제한)의 규정에 의한 입찰참가자격요건을 갖춘 업체.", "STATUTE_BASELINE"),
+    ("7. 입찰참가 신청자로서 정당한 사유 없이 입찰에 불참한 자", "COMMON_DISQUALIFICATION"),
+    ("○ 입찰참가자격등록증상의 상호 및 대표자가 법인등기부등본상의 상호, 대표자와 다른 경우 변경등록하고 입찰에 참여하여야 합니다.", "PROCEDURE"),
+])
+def test_more_noise_found_on_unused_notices(raw, reason):
+    """2026-10-08 표본 j 에서 쓸모없는 확인 문장이 붙었던 공백."""
+    assert classify_gap(raw) == reason
+
+
+def test_joint_contract_sentences_anywhere_in_the_documents_become_notes():
+    from bidengine.pipeline.analysis_pipeline import with_document_notes
+    from bidengine.pipeline.analysis_result import AnalysisCoverage, CoverageGap, RequirementAnalysisResult
+
+    result = RequirementAnalysisResult(status="SUCCEEDED", notice_id="n", notice_version_id="v",
+                                       coverage=AnalysisCoverage(section_selection="anchored"))
+    chunks = [{"text": "2. 견적서 제출 및 계약방식\n라. 공동도급은 허용하지 않습니다.\n마. 노무비 구분관리 대상 공사입니다.\n"
+                       "② 법령에 위반되는 하도급(일괄 하도급, 무면허 하도급, 재하도급)을 하지 않겠으며"},   # 청렴 서약 — 참고 정보 아님
+              {"text": "라 . 공동도급은 허용하지 않습니다 ."}]          # PDF 사본 — 한 번만
+    notes = with_document_notes(result, chunks).coverage.notes
+    assert [gap.raw for gap in notes] == ["라. 공동도급은 허용하지 않습니다."]

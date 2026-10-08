@@ -71,3 +71,56 @@ def test_gap_repeating_extracted_closed_values_is_a_checklist_item():
     forest = CoverageGap(kind="UNREPRESENTABLE", raw="산림사업법인 또는 산림조합으로 본점이 곡성군",
                          reason="UNMAPPED_INDUSTRY/ALTERNATIVE_UNRESOLVED")
     assert not closed_values_covered(forest, [NS(type="REGION", value="곡성군")])
+
+
+def test_sme_company_is_not_a_conglomerate_affiliate():
+    """'대기업 및 중견기업 … 상호출자제한기업집단에 속하는 기업도 참여 불가' — 중소기업 이하로 확인된 회사는 소속일 수 없다."""
+    from bidengine.judgment.rules import ProfileCompleteness, judge_requirement
+
+    req = _req("S", "COMPANY_SIZE", "대기업 및 중견기업").model_copy(update={
+        "scope": {"restriction": "EXCLUDE"},
+        "raw": "대기업 및 중견기업인 소프트웨어 사업자는 참여할 수 없으며, 상호출자제한기업집단에 속하는 기업도 입찰에 참여할 수 없습니다.",
+    })
+    small = CompanyProfileSnapshot(company_id="c", company_size="SMALL", completeness=ProfileCompleteness(company_size=True))
+    assert judge_requirement(req, small, preflight_case_id="c", reference_date=date(2026, 10, 8)).status == "SATISFIED"
+    unconfirmed = small.model_copy(update={"completeness": ProfileCompleteness(company_size=False)})
+    assert judge_requirement(req, unconfirmed, preflight_case_id="c", reference_date=date(2026, 10, 8)).status == "UNKNOWN"
+    mid = CompanyProfileSnapshot(company_id="c", company_size="MID_SIZED", completeness=ProfileCompleteness(company_size=True))
+    assert judge_requirement(req, mid, preflight_case_id="c", reference_date=date(2026, 10, 8)).status == "UNSATISFIED"
+
+
+def test_large_company_is_excluded_even_if_it_says_it_is_not_an_affiliate():
+    """'대기업 및 중견기업인 … 참여할 수 없으며, 상호출자제한기업집단 … 도' — 규모 배제가 계열회사 답에 묻히면 안 된다."""
+    from bidengine.judgment.rules import ProfileCompleteness, judge_requirement
+
+    req = _req("S", "COMPANY_SIZE", "대기업 및 중견기업").model_copy(update={
+        "scope": {"restriction": "EXCLUDE"},
+        "raw": "대기업 및 중견기업인 소프트웨어 사업자는 본 입찰에 참여할 수 없으며, 상호출자제한기업집단에 속하는 기업도 입찰에 참여할 수 없습니다.",
+    })
+    large = CompanyProfileSnapshot(company_id="c", company_size="LARGE", completeness=ProfileCompleteness(company_size=True),
+                                   extensions={"conglomerate_affiliate": {"is_affiliate": False}})
+    assert judge_requirement(req, large, preflight_case_id="c", reference_date=date(2026, 10, 8)).status == "UNSATISFIED"
+
+
+def test_three_fixes_from_sample_k():
+    """2026-10-08 표본 k: 공동도급 역할 조항, '(지점 투찰 불허)' 덧말, HWP·PDF 사본의 규모 차이."""
+    from bidengine.labeling.closed_first import _BRANCH_REMARK_RE, _PARTY_CLAUSE_RE
+    from bidengine.pipeline.analysis_pipeline import drop_narrower_copy_sizes
+
+    assert _PARTY_CLAUSE_RE.search("3.2.1. 주계약자(대표사) : 「건설산업기본법령」에 의한 건축공사업과 토목공사업을 동시에 등록업체")
+    assert _PARTY_CLAUSE_RE.search("3.2.3. 부계약자 : 「건설산업기본법령」에 의한 전문건설업 중 기계설비·가스공사업")
+    assert not _PARTY_CLAUSE_RE.search("가. 건축공사업을 등록한 업체")
+    blocked = CoverageGap(kind="UNREPRESENTABLE", reason="COMPOSITE_PARTY_RULE",
+                          raw="3.2.3. 부계약자 : 전문건설업 중 기계설비·가스공사업으로 주력분야를 기계설비공사로 등록한 업체")
+    assert gap_blocks_verdict(blocked)
+
+    text = "다. 주된 영업소의 소재지를 계속 경상남도 또는 울산광역시에 둔 사업자이어야 합니다. (지점 투찰 불허)"
+    assert "불허" not in _BRANCH_REMARK_RE.sub(" ", text)
+
+    raw = "마. 「중소기업기본법」 제2조 제2항에 따른 중기업, 소기업 또는 소상공인으로서 … 발급된 소기업 또는 소상공인 확인서"
+    pdf = "마 . 「 중소기업기본법 」 제 2 조 제 2 항에 따른 중기업 , 소기업 또는 소상공인으로서 … 발급된 소기업 또는 소상공인 확인서"
+    wide = _req("A", "COMPANY_SIZE", "중소기업").model_copy(update={"raw": raw})
+    narrow = _req("B", "COMPANY_SIZE", "소기업").model_copy(update={"raw": pdf})
+    other_clause = _req("C", "COMPANY_SIZE", "소기업").model_copy(update={"raw": "라. 소기업 또는 소상공인 간 제한경쟁입찰"})
+    kept, dropped = drop_narrower_copy_sizes([wide, narrow, other_clause])
+    assert [r.requirement_key for r in kept] == ["A", "C"] and [r.requirement_key for r in dropped] == ["B"]

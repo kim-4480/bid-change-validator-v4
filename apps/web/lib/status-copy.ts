@@ -86,6 +86,8 @@ export const GAP_CATEGORY_LABEL: Record<string, string> = {
   INDUSTRY_ALTERNATIVE: '업종 대안·예외',
   REGION_SIZE: '소재지·기업 규모',
   CONDITIONAL: '조건부 자격',
+  BASIC_QUALIFICATION: '법령상 기본 자격·결격',
+  PROCEDURE: '입찰 절차',
   DOCUMENT: '제출 서류',
   OTHER: '기타',
 };
