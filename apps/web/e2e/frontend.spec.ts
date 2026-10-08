@@ -162,3 +162,12 @@ test('ML recommendation mock shows rank, score, model version, and independent q
   await expect(page.getByRole('link', { name: /추천 근거 원문 열기/ }))
     .toHaveAttribute('href', /\/api\/v1\/notices\//);
 });
+test('seven existing product routes remain reachable with local API mocks', async ({ page }) => {
+  await mockApi(page);
+  for (const route of ['/notices', '/qualification', '/ask-back', '/evidence', '/evaluation', '/changes', '/company']) {
+    await page.goto(route);
+    await expect(page.locator('#main-content')).toBeVisible();
+    await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(route.replace('/', '\\/') + '$'));
+  }
+});
