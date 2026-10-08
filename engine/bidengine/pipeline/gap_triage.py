@@ -18,6 +18,8 @@ _LIST_INTRO_RE = re.compile(
     r"(?:다음|아래|하기)\s*(?:의|각)?\s*.{0,25}?(?:각\s*호|어느\s*하나|모두|요건|자격)"
 )
 _JOINT_RE = re.compile(r"공동\s*(?:수급|계약|도급|이행)|분담\s*이행|하도급")
+# 건설업역 상호시장 진출(종합↔전문) 허용·불허 안내. 자격을 좁히지 않는다 — 참고 정보로 보여 준다.
+_MUTUAL_MARKET_RE = re.compile(r"상호\s*시장\s*진출")
 # 수의계약 배제 사유·청렴 서약처럼 모든 입찰자에게 같은 결격. 회사 프로필로 판정할 자격이 아니다.
 _COMMON_EXTRA_RE = re.compile(
     r"수의\s*계약\s*배제|지방\s*의회\s*의원|지방자치단체의\s*장|계약\s*이행\s*능력이\s*없|지연\s*배상금|청렴|"
@@ -85,6 +87,8 @@ def classify_gap(raw: str, *, seen: set[str] = frozenset(), containers: Iterable
     if has(_JOINT_RE):
         # 공동수급·하도급 허용 여부는 회사 자격이 아니라 입찰 방식이다 — 확인 목록이 아니라 참고 정보로 보여 준다.
         return "JOINT_CONTRACT_NOTE"
+    if has(_MUTUAL_MARKET_RE):
+        return "MUTUAL_MARKET_NOTE"
     if len(compact) <= 30 and not _PREDICATE_RE.search(compact) and not substantive:
         return "HEADING"
     if len(compact) <= 70 and has(_LIST_INTRO_RE) and not substantive:

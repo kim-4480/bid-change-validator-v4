@@ -319,6 +319,12 @@ def analyze_qualification_documents(
                     {"code": "CLAUSE_NOT_LABELLED", "raw": text, "reason": "MODEL_NO_REQUIREMENT"}
                 )
 
+    canonicalized["requirements"] = mark_general_contractor_allowed(
+        list(canonicalized["requirements"]),
+        [item.raw for item in canonicalized["requirements"]]
+        + [str(item.get("raw") or "") for item in canonicalized["diagnostics"] if isinstance(item, dict)]
+        + list(extraction.get("clause_texts") or []),
+    )
     kept, dropped = drop_checklist_duplicates(list(canonicalized["requirements"]))
     kept, fragments = drop_checklist_fragments(kept)
     if dropped or fragments:
@@ -389,6 +395,26 @@ def drop_checklist_duplicates(requirements: list) -> tuple[list, list]:
         seen.append((requirement.type, norm))
         kept.append(requirement)
     return kept, dropped
+
+
+_MUTUAL_MARKET_ALLOWED_RE = re.compile(r"상호\s*시장\s*진출[^.。]{0,30}?허용(?!\s*하지|\s*되지|\s*않)")
+_MUTUAL_MARKET_DENIED_RE = re.compile(r"상호\s*시장\s*진출[^.。]{0,30}?(?:허용\s*하지|허용\s*되지|불허|허용\s*않)")
+
+
+def mark_general_contractor_allowed(requirements: list, texts: list[str]) -> list:
+    """공고가 건설업역 상호시장 진출을 허용하면(종합건설업자도 전문공사 참여) 전문공사업 요건(49xx)에 표시를 단다.
+
+    판정은 이 표시가 있으면 전문공사업이 없어도 종합공사업을 가진 회사를 '미달' 이 아니라 '확인 필요' 로 둔다. 어느 종합
+    공사업이 그 전문공사를 대신하는지는 시행령 범위라 엔진이 확정하지 않는다. 허용하지 않는다는 문장이 있으면 달지 않는다.
+    """
+    joined = "\n".join(" ".join((text or "").split()) for text in texts)
+    if not _MUTUAL_MARKET_ALLOWED_RE.search(joined) or _MUTUAL_MARKET_DENIED_RE.search(joined):
+        return requirements
+    return [
+        r.model_copy(update={"scope": {**(r.scope or {}), "general_contractor_allowed": True}})
+        if r.type == "INDUSTRY" and re.fullmatch(r"49[0-9]{2}", str(r.value)) else r
+        for r in requirements
+    ]
 
 
 def drop_checklist_fragments(requirements: list) -> tuple[list, list]:

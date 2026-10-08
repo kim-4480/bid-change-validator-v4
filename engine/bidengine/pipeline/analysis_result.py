@@ -148,8 +148,8 @@ class AnalysisCoverage(BaseModel):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def notes(self) -> list[CoverageGap]:
-        """참고 정보: 공동수급·하도급 허용 여부처럼 회사 자격이 아니라 입찰 방식인 조항."""
-        return [gap for gap in self.ignored if gap.reason == "GAP_JOINT_CONTRACT_NOTE"]
+        """참고 정보: 공동수급·하도급 허용 여부, 건설업역 상호시장 진출 허용처럼 회사 자격이 아니라 입찰 방식인 조항."""
+        return [gap for gap in self.ignored if gap.reason in {"GAP_JOINT_CONTRACT_NOTE", "GAP_MUTUAL_MARKET_NOTE"}]
 
     @computed_field  # type: ignore[prop-decorator]
     @property

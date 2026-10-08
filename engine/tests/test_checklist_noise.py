@@ -60,3 +60,26 @@ def test_fragment_names_left_after_adaptation_are_dropped():
             _req("C", "REGISTRATION_CERTIFICATION", "규격적합확인서"), _req("D", "INDUSTRY", "5612")]
     kept, dropped = drop_checklist_fragments(reqs)
     assert [r.requirement_key for r in kept] == ["C", "D"] and [r.requirement_key for r in dropped] == ["A", "B"]
+
+
+def test_mutual_market_allowance_softens_specialty_industry_mismatch_for_general_contractors():
+    """'전문공사로 상호시장 진출 허용에 따라 종합건설업자의 참여를 허용' — 조경공사업(종합)만 가진 회사는 미달이 아니라 확인 필요."""
+    from datetime import date
+
+    from bidengine.judgment.rules import CompanyProfileSnapshot, ProfileCompleteness, ProfileIndustryFact, judge_requirement
+    from bidengine.pipeline.analysis_pipeline import mark_general_contractor_allowed
+    from bidengine.pipeline.gap_triage import classify_gap
+
+    allow = "※ 본 공사는 전문공사로 건설업역간 상호시장 진출 허용에 따라 종합건설업자의 참여를 허용합니다."
+    reqs = mark_general_contractor_allowed([_req("A", "INDUSTRY", "4993"), _req("B", "REGION", "강릉시")], [allow])
+    assert reqs[0].scope.get("general_contractor_allowed") and not reqs[1].scope.get("general_contractor_allowed")
+    deny = "본공사는 종합공사의 시공자격업체로 제한함(상호시장 진출을 허용하지 않음)"
+    assert not mark_general_contractor_allowed([_req("A", "INDUSTRY", "4993")], [deny])[0].scope.get("general_contractor_allowed")
+
+    general = CompanyProfileSnapshot(company_id="c", industries=[ProfileIndustryFact(code="0005", name="조경공사업", verified=True)],
+                                     completeness=ProfileCompleteness(industries=True))
+    other = general.model_copy(update={"industries": [ProfileIndustryFact(code="0036", name="정보통신공사업", verified=True)]})
+    judge = lambda req, company: judge_requirement(req, company, preflight_case_id="c", reference_date=date(2026, 10, 8)).status
+    assert judge(reqs[0], general) == "UNKNOWN"
+    assert judge(reqs[0], other) == "UNSATISFIED"
+    assert classify_gap(allow) == "MUTUAL_MARKET_NOTE"
