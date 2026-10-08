@@ -173,7 +173,16 @@ def search_notices(
     if normalized_query is not None:
         filters.extend(_keyword_filters(normalized_query))
 
-    total = db.scalar(select(func.count()).select_from(BidNotice).where(*filters)) or 0
+    total = db.scalar(
+        select(func.count())
+        .select_from(BidNotice)
+        .join(
+            BidNoticeVersion,
+            (BidNoticeVersion.notice_id == BidNotice.id)
+            & BidNoticeVersion.is_current.is_(True),
+        )
+        .where(*filters)
+    ) or 0
     rows = db.execute(
         select(BidNotice, BidNoticeVersion)
         .join(
@@ -182,7 +191,7 @@ def search_notices(
             & BidNoticeVersion.is_current.is_(True),
         )
         .where(*filters)
-        .order_by(BidNotice.last_seen_at.desc())
+        .order_by(BidNotice.last_seen_at.desc(), BidNotice.id.desc())
         .offset(offset)
         .limit(limit)
     ).all()

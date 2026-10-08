@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 
 import { CachedNoticeMatches } from '@/components/product/cached-notice-matches';
+import { NOTICE_PAGE_SIZE, noticePageRange } from '@/lib/notice-pagination';
 import { NavigationLink } from '@/components/navigation-link';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,14 +46,6 @@ type QuickTile = { label: string; value: string | number; icon: LucideIcon; filt
 */
 const HYDRATE_CONCURRENCY = 6;
 
-/*
-  목록에 한 번에 보여줄 공고 수. 카드 6장일 때는 100건을 불러와 6건만 보여줬는데,
-  「검색으로 좁혀서 고른다」는 이 화면의 전제와 어긋난다 (DL-007).
-  목록형으로 바꾸면서 한 화면에 비교할 수 있는 양으로 올린다.
-*/
-/* 첫 화면에 20줄은 길다. 위에 「회사 기준으로 판정 가능한 공고」가 있고 원하는 건 검색으로 찾는 구조라 10줄로 줄인다. */
-const VISIBLE_NOTICE_LIMIT = 10;
-
 export default function NoticesPage() {
   const [notices, setNotices] = useState<BidNoticeSummary[]>([]);
   const [noticeTotal, setNoticeTotal] = useState(0);
@@ -60,9 +53,9 @@ export default function NoticesPage() {
   const [company, setCompany] = useState<CompanyProfile | null>(null);
   const [caseMeta, setCaseMeta] = useState<Record<string, CaseStatusMeta>>({});
   const [query, setQuery] = useState('');
+  const [activeQuery, setActiveQuery] = useState('');
+  const [pageIndex, setPageIndex] = useState(0);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  /* 목록을 10줄로 줄이면서 11번째 이후를 볼 방법이 없어졌다 (#138 리뷰 4). 10줄씩 늘린다. */
-  const [visibleCount, setVisibleCount] = useState(VISIBLE_NOTICE_LIMIT);
   // 사업 유형은 목록 API가 그대로 주는 값이라 추측이 없다. 용역만 하는 회사에게 물품·공사는 볼 이유가 없다.
   const [businessTypeFilter, setBusinessTypeFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
@@ -114,10 +107,19 @@ export default function NoticesPage() {
     setMetaLoading(false);
   }
 
-  async function initialize(searchQuery = '') {
+  async function initialize(
+    searchQuery = activeQuery,
+    nextPage = pageIndex,
+    selectedBusinessType = businessTypeFilter,
+  ) {
     const generation = (searchGeneration.current += 1);
+    const normalizedQuery = searchQuery.trim();
+    setActiveQuery(normalizedQuery);
+    setPageIndex(nextPage);
     setLoading(true);
     setError('');
+    setNotices([]);
+    setNoticeTotal(0);
     setCaseMeta({});
     /*
       판정 표시도 같이 초기화한다. caseMeta만 비우고 metaLoading을 false로 두면,
@@ -129,9 +131,21 @@ export default function NoticesPage() {
     // 목록을 받아오는 동안 앞선 hydrate가 끝날 수 있다. 여기서 먼저 세대를 올려 그 응답을 버린다.
     hydrateGeneration.current += 1;
     try {
-      const [noticeResult, companies] = await Promise.all([listNotices(searchQuery), listCompanies()]);
+      const [noticeResult, companies] = await Promise.all([
+        listNotices(normalizedQuery, {
+          limit: NOTICE_PAGE_SIZE,
+          offset: nextPage * NOTICE_PAGE_SIZE,
+          businessType: selectedBusinessType,
+        }),
+        listCompanies(),
+      ]);
       // 이 사이에 새 검색이 시작됐으면 이건 지난 검색의 응답이다. 덮어쓰지 않는다.
       if (generation !== searchGeneration.current) return;
+      // If a concurrent deletion shrinks the dataset, load its last valid page.
+      if (nextPage > 0 && nextPage * NOTICE_PAGE_SIZE >= noticeResult.total) {
+        void initialize(normalizedQuery, Math.max(0, Math.ceil(noticeResult.total / NOTICE_PAGE_SIZE) - 1), selectedBusinessType);
+        return;
+      }
       const selectedCompany = companies[0] ?? null;
       setNotices(noticeResult.items);
       setNoticeTotal(noticeResult.total);
@@ -166,22 +180,15 @@ export default function NoticesPage() {
     return caseMeta[noticeId]?.judgment?.overall_status ?? 'unreviewed';
   }
 
-  const filteredNotices = useMemo(() => {
-    /*
-      서버 검색(/api/v1/notices?q=)과 같은 규칙이어야 한다 — 낱말로 나눠 낱말마다 공고번호·공고명·공고기관·수요기관 중
-      하나에 들어 있으면 된다(띄어쓰기 무시). 예전에는 검색어 전체를 한 덩어리로 다시 걸러, 서버가 '구미 교복'으로 찾은
-      공고나 수요기관으로 찾은 공고가 화면에서 사라졌다.
-    */
-    const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
-    return notices.filter((notice) => {
-      const haystack = [notice.bid_notice_no, notice.title, notice.announcing_institution_name, notice.demanding_institution_name]
-        .map((field) => (field ?? '').toLowerCase().replace(/\s+/g, ''));
-      const matchesText = tokens.every((token) => haystack.some((field) => field.includes(token)));
+  // Query and business type are filtered by the API, over all notice records.
+  // Qualification status is hydrated only for this page's entries.
+  const filteredNotices = useMemo(
+    () => notices.filter((notice) => {
       const status = caseMeta[notice.id]?.judgment?.overall_status ?? 'unreviewed';
-      const matchesType = businessTypeFilter === 'all' || notice.business_type === businessTypeFilter;
-      return matchesText && matchesType && (statusFilter === 'all' || status === statusFilter);
-    });
-  }, [notices, query, statusFilter, businessTypeFilter, caseMeta]);
+      return statusFilter === 'all' || status === statusFilter;
+    }),
+    [notices, statusFilter, caseMeta],
+  );
 
   /*
     기존 검토 건 여부는 이미 받아둔 cases에서 찾는다. caseMeta는 판정 상세까지 받은 뒤에야 차므로
@@ -202,11 +209,9 @@ export default function NoticesPage() {
   }, [cases, notices, company]);
 
   // 불러온 목록에 실제로 있는 유형만 버튼으로 만든다. 없는 유형을 띄우면 눌러도 0건이 나온다.
-  const businessTypeOptions = useMemo(() => {
-    const counts = new Map<string, number>();
-    notices.forEach((notice) => counts.set(notice.business_type, (counts.get(notice.business_type) ?? 0) + 1));
-    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
-  }, [notices]);
+  // All known types remain selectable even when absent on the current page.
+  const businessTypeOptions = Object.keys(BUSINESS_TYPE_LABEL).concat('OTHER');
+  const pageRange = noticePageRange(noticeTotal, pageIndex);
 
   const activeNotices = filteredNotices.filter((notice) => noticeStatus(notice.id) !== 'ineligible');
   const rejectedNotices = filteredNotices.filter((notice) => noticeStatus(notice.id) === 'ineligible');
@@ -326,7 +331,7 @@ export default function NoticesPage() {
           </div>
 
           {/* 업무 시작점은 검색이다. 검색 상자 하나에 제목·입력·단계 띠를 모두 담아 첫 화면의 상자를 하나로 유지한다. */}
-          <form onSubmit={(event) => { event.preventDefault(); void initialize(query); }} className="mt-4 overflow-hidden rounded-[24px] bg-white shadow-[0_16px_48px_rgba(55,70,120,0.12)]">
+          <form onSubmit={(event) => { event.preventDefault(); void initialize(query, 0, businessTypeFilter); }} className="mt-4 overflow-hidden rounded-[24px] bg-white shadow-[0_16px_48px_rgba(55,70,120,0.12)]">
             <div className="flex flex-col gap-5 p-7 lg:flex-row lg:items-end lg:justify-between">
               <div className="min-w-0">
                 <h1 className="text-[28px] font-extrabold leading-[1.25] tracking-[-0.04em] text-[var(--product-ink)]">검토할 공고를 바로 찾기</h1>
@@ -371,7 +376,7 @@ export default function NoticesPage() {
         {/* 실패를 알리기만 하면 사용자가 할 수 있는 일이 없다. 같은 조회를 바로 다시 걸 수 있게 둔다. */}
         {error && <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 sm:flex-row sm:items-center sm:justify-between">
           <span className="flex items-start gap-2"><AlertCircle className="mt-0.5 size-4 shrink-0" />{error}</span>
-          <Button type="button" variant="outline" size="sm" className="shrink-0 rounded-full border-rose-300 bg-white text-rose-700 hover:bg-rose-100" disabled={loading} onClick={() => void initialize(query)}>
+          <Button type="button" variant="outline" size="sm" className="shrink-0 rounded-full border-rose-300 bg-white text-rose-700 hover:bg-rose-100" disabled={loading} onClick={() => void initialize(activeQuery, pageIndex, businessTypeFilter)}>
             {loading ? <LoaderCircle className="animate-spin" /> : <RefreshCw />} 다시 시도
           </Button>
         </div>}
@@ -386,7 +391,7 @@ export default function NoticesPage() {
           */}
           <div className="mt-5 grid overflow-hidden rounded-[18px] border border-[var(--product-line)] bg-white grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
             {quickTiles.map(({ label, value, icon: Icon, filter }) => (
-              <button key={label} type="button" aria-pressed={statusFilter === filter} onClick={() => { setStatusFilter(filter); setVisibleCount(VISIBLE_NOTICE_LIMIT); }} className={`border-b border-r border-[var(--product-line)] px-3 py-4 text-center transition-colors last:border-r-0 hover:bg-[var(--product-tint)] lg:border-b-0 ${statusFilter === filter ? 'bg-[#eef1ff]' : ''}`}>
+              <button key={label} type="button" aria-pressed={statusFilter === filter} onClick={() => setStatusFilter(filter)} className={`border-b border-r border-[var(--product-line)] px-3 py-4 text-center transition-colors last:border-r-0 hover:bg-[var(--product-tint)] lg:border-b-0 ${statusFilter === filter ? 'bg-[#eef1ff]' : ''}`}>
                 <Icon className={`mx-auto size-5 ${statusFilter === filter ? 'text-[var(--product-accent-deep)]' : 'text-[var(--product-accent)]'}`} />
                 <span className="mt-1.5 block text-[13px] font-medium text-[var(--product-muted)]">{label}</span>
                 <strong className="mt-0.5 block text-[21px] leading-7 text-[var(--product-ink)]">{value}</strong>
@@ -397,13 +402,16 @@ export default function NoticesPage() {
           {/* 사업 유형은 라벨을 칩 줄 안에 넣어 한 줄로 끝낸다. 라벨만 따로 열을 차지할 값어치가 없다. */}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <span className="mr-0.5 text-[13px] font-bold text-[var(--product-muted)]">사업 유형</span>
-            <button type="button" aria-pressed={businessTypeFilter === 'all'} onClick={() => { setBusinessTypeFilter('all'); setVisibleCount(VISIBLE_NOTICE_LIMIT); }} className={`rounded-full border px-3.5 py-1.5 text-[13px] font-medium ${businessTypeFilter === 'all' ? 'border-[var(--product-accent)] bg-[#eef1ff] text-[var(--product-accent-deep)]' : 'border-[var(--product-line)] bg-white text-[var(--product-muted)]'}`}>전체 {notices.length}</button>
-            {businessTypeOptions.map(([type, count]) => <button key={type} type="button" aria-pressed={businessTypeFilter === type} onClick={() => { setBusinessTypeFilter(type); setVisibleCount(VISIBLE_NOTICE_LIMIT); }} className={`rounded-full border px-3.5 py-1.5 text-[13px] font-medium ${businessTypeFilter === type ? 'border-[var(--product-accent)] bg-[#eef1ff] text-[var(--product-accent-deep)]' : 'border-[var(--product-line)] bg-white text-[var(--product-muted)]'}`}>{labelOf(BUSINESS_TYPE_LABEL, type)} {count}</button>)}
+            <button type="button" aria-pressed={businessTypeFilter === 'all'} onClick={() => { setBusinessTypeFilter('all'); void initialize(activeQuery, 0, 'all'); }} className={`rounded-full border px-3.5 py-1.5 text-[13px] font-medium ${businessTypeFilter === 'all' ? 'border-[var(--product-accent)] bg-[#eef1ff] text-[var(--product-accent-deep)]' : 'border-[var(--product-line)] bg-white text-[var(--product-muted)]'}`}>전체</button>
+            {businessTypeOptions.map((type) => <button key={type} type="button" aria-pressed={businessTypeFilter === type} onClick={() => { setBusinessTypeFilter(type); void initialize(activeQuery, 0, type); }} className={`rounded-full border px-3.5 py-1.5 text-[13px] font-medium ${businessTypeFilter === type ? 'border-[var(--product-accent)] bg-[#eef1ff] text-[var(--product-accent-deep)]' : 'border-[var(--product-line)] bg-white text-[var(--product-muted)]'}`}>{labelOf(BUSINESS_TYPE_LABEL, type)}</button>)}
           </div>
 
           {metaLoading && metaProgress.total > 0 && <p className="mt-3 flex items-center gap-2 text-[15px] text-[var(--product-muted)]"><LoaderCircle className="size-4 animate-spin" />판정 상태를 불러오는 중입니다 · {metaProgress.done}/{metaProgress.total}건</p>}
           {/* DL-007 — 「전체 공고」가 아니라 「검색으로 좁힌 결과의 상위 N건」이라는 사실은 남기되, 문장이 아니라 수치로 적는다. */}
-          {!loading && <p className="mt-3 text-[13px] text-[var(--product-muted)]">검색 결과 {noticeTotal.toLocaleString()}건 · 불러온 {notices.length}건{businessTypeFilter !== 'all' || statusFilter !== 'all' ? ` · 필터 ${activeNotices.length}건` : ''} · 표시 {Math.min(activeNotices.length, visibleCount)}건</p>}
+          {!loading && <div className="mt-3 space-y-1 text-[13px] text-[var(--product-muted)]">
+            <p>검색·사업 유형 결과 전체 {noticeTotal.toLocaleString()}건 · 현재 페이지 {pageRange.start.toLocaleString()}–{pageRange.end.toLocaleString()}건 · 목록 표시 {activeNotices.length}건</p>
+            <p>검토 상태와 참가 불가 분류는 현재 페이지 {notices.length}건에만 적용됩니다. 전체 결과의 상태별 건수가 아닙니다.</p>
+          </div>}
 
           {loading ? <div className="grid min-h-64 place-items-center"><LoaderCircle className="size-7 animate-spin text-[var(--product-accent)]" /></div> : activeNotices.length ? (
             /*
@@ -416,7 +424,7 @@ export default function NoticesPage() {
               <div className="hidden grid-cols-[132px_minmax(0,1fr)_180px_96px_112px_128px] items-center gap-3 bg-[var(--product-tint)] px-5 py-3 text-[13px] font-bold text-[var(--product-muted)] lg:grid">
                 <span>검토 상태</span><span>공고명 · 공고번호</span><span>공고기관</span><span>유형</span><span>변경</span><span className="text-right">조치</span>
               </div>
-              {activeNotices.slice(0, visibleCount).map((notice) => {
+              {activeNotices.map((notice) => {
                 const status = noticeStatus(notice.id);
                 const meta = caseMeta[notice.id];
                 const changed = notice.current_version > 1;
@@ -441,28 +449,21 @@ export default function NoticesPage() {
                   </div>
                 );
               })}
-              {activeNotices.length > visibleCount && (
-                <div className="border-t border-[var(--product-line-2)] px-5 py-4 text-center">
-                  <Button type="button" variant="outline" className="rounded-full px-6" onClick={() => setVisibleCount((count) => count + VISIBLE_NOTICE_LIMIT)}>
-                    <ChevronDown /> 더 보기 · 남은 {activeNotices.length - visibleCount}건
-                  </Button>
-                </div>
-              )}
             </div>
           ) : (
             <div className="mt-7 rounded-[20px] border border-dashed border-[var(--product-line)] bg-[var(--product-tint)] px-6 py-16 text-center">
               <Search className="mx-auto size-8 text-[var(--product-faint)]" />
               {emptyReason === 'only-rejected' ? (
                 <>
-                  <p className="mt-3 font-semibold">검색 결과 {rejectedNotices.length}건이 모두 참가 불가입니다.</p>
+                  <p className="mt-3 font-semibold">현재 페이지의 {rejectedNotices.length}건이 모두 참가 불가입니다.</p>
                   <p className="mt-1 text-sm text-[var(--product-muted)]">회사 프로필 기준으로 참가가 어려운 공고라 아래 「참가 불가로 접어둔 공고」에 있습니다. 숨기지 않았습니다.</p>
                   <Button type="button" variant="outline" size="sm" className="mt-4 rounded-full" onClick={() => setShowRejected(true)}>아래에서 보기 ↓</Button>
                 </>
               ) : emptyReason === 'filtered-out' ? (
                 <>
-                  <p className="mt-3 font-semibold">검색 결과 {notices.length}건이 켜둔 필터에 걸려 표시되지 않았습니다.</p>
+                  <p className="mt-3 font-semibold">현재 페이지 {notices.length}건이 켜둔 필터에 걸려 표시되지 않았습니다.</p>
                   <p className="mt-1 text-sm text-[var(--product-muted)]">사업 유형 또는 검토 상태 필터를 해제하면 보입니다.</p>
-                  <Button type="button" variant="outline" size="sm" className="mt-4 rounded-full" onClick={() => { setBusinessTypeFilter('all'); setStatusFilter('all'); setVisibleCount(VISIBLE_NOTICE_LIMIT); }}>필터 모두 해제</Button>
+                  <Button type="button" variant="outline" size="sm" className="mt-4 rounded-full" onClick={() => { setBusinessTypeFilter('all'); setStatusFilter('all'); void initialize(activeQuery, 0, 'all'); }}>필터 모두 해제</Button>
                 </>
               ) : (
                 <>
@@ -471,6 +472,13 @@ export default function NoticesPage() {
                 </>
               )}
             </div>
+          )}
+          {!loading && noticeTotal > 0 && (
+            <nav aria-label="공고 페이지 이동" className="mt-6 flex flex-wrap items-center justify-center gap-4">
+              <Button type="button" variant="outline" disabled={!pageRange.hasPrevious} onClick={() => void initialize(activeQuery, pageIndex - 1, businessTypeFilter)}>이전 페이지</Button>
+              <span className="text-sm text-[var(--product-muted)]">{pageIndex + 1} / {pageRange.pageCount} 페이지</span>
+              <Button type="button" variant="outline" disabled={!pageRange.hasNext} onClick={() => void initialize(activeQuery, pageIndex + 1, businessTypeFilter)}>다음 페이지</Button>
+            </nav>
           )}
         </section>
 
