@@ -4,6 +4,8 @@ export type NoticeListOptions = {
   limit?: number;
   offset?: number;
   businessType?: string;
+  companyId?: string;
+  qualificationStatus?: string;
 };
 
 export function noticeListParams(query: string, options: NoticeListOptions = {}): URLSearchParams {
@@ -15,6 +17,10 @@ export function noticeListParams(query: string, options: NoticeListOptions = {})
   if (query.trim()) search.set('q', query.trim());
   if (options.businessType && options.businessType !== 'all') {
     search.set('business_type', options.businessType);
+  }
+  if (options.companyId) search.set('company_id', options.companyId);
+  if (options.qualificationStatus && options.qualificationStatus !== 'all') {
+    search.set('qualification_status', options.qualificationStatus);
   }
   return search;
 }

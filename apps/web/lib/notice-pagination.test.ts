@@ -44,3 +44,16 @@ void test('filter and query changes restart at offset zero', () => {
     start: 11, end: 14, pageCount: 2, hasPrevious: true, hasNext: false,
   });
 });
+
+void test('server-side company qualification filter combines with query and business type', () => {
+  const params = noticeListParams('new project', {
+    limit: NOTICE_PAGE_SIZE, offset: 110,
+    companyId: 'company-A', businessType: 'OTHER', qualificationStatus: 'eligible',
+  });
+  assert.equal(params.get('company_id'), 'company-A');
+  assert.equal(params.get('qualification_status'), 'eligible');
+  assert.equal(params.get('business_type'), 'OTHER');
+  assert.equal(params.get('q'), 'new project');
+  assert.equal(params.get('offset'), '110');
+  assert.equal(noticeListParams('', {qualificationStatus: 'all'}).has('qualification_status'), false);
+});

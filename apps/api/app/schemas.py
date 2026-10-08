@@ -530,6 +530,8 @@ class BidNoticeSummary(ApiModel):
     first_seen_at: datetime
     last_seen_at: datetime
     current_version: int
+    qualification_status: str | None = None
+    current_case_id: UUID | None = None
 
 
 class NoticeRelationRead(ApiModel):
@@ -603,6 +605,7 @@ class BidNoticeSearchResponse(ApiModel):
     limit: int
     offset: int
     items: list[BidNoticeSummary]
+    status_counts: dict[str, int] | None = None
 
 
 class NoticeSyncRequest(ApiModel):

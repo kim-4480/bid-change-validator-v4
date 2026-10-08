@@ -119,11 +119,12 @@ export const OVERALL_STATUS_COPY: Record<OverallStatus, { label: string; descrip
  * 「응찰 가능·자격 미달」, 검토 결론은 「참가 가능·참가 불가」로 갈려 있었다 (#138 리뷰).
  * 목록에는 아직 판정이 없는 행이 있어 'unreviewed'를 하나 더 둔다.
  */
-export const OVERALL_STATUS_BADGE: Record<OverallStatus | 'unreviewed', { label: string; className: string }> = {
+export const OVERALL_STATUS_BADGE: Record<OverallStatus | 'unreviewed' | 'needs_review', { label: string; className: string }> = {
   eligible: { label: '핵심 자격 충족', className: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
   insufficient_data: { label: '확인 필요', className: 'border-amber-200 bg-amber-50 text-amber-700' },
   ineligible: { label: '참가 불가', className: 'border-rose-200 bg-rose-50 text-rose-700' },
   unreviewed: { label: '미검토', className: 'border-slate-200 bg-slate-50 text-slate-600' },
+  needs_review: { label: '\uC7AC\uAC80\uD1A0 \uD544\uC694', className: 'border-violet-200 bg-violet-50 text-violet-700' },
 };
 
 /**
@@ -191,6 +192,7 @@ export const BUSINESS_TYPE_LABEL: Record<string, string> = {
   GOODS: '물품',
   CONSTRUCTION: '공사',
   FOREIGN: '외자',
+  OTHER: '\uAE30\uD0C0',
 };
 
 /** 첨부 뷰어 타입. PDF · RHWP만 실제로 확인된 값. */

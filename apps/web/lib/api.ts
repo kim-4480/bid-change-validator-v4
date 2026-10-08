@@ -123,6 +123,8 @@ export type BidNoticeSummary = {
   first_seen_at: string;
   last_seen_at: string;
   current_version: number;
+  qualification_status?: 'eligible' | 'insufficient_data' | 'ineligible' | 'unreviewed' | 'needs_review' | null;
+  current_case_id?: string | null;
 };
 
 export type BidNoticeDetail = BidNoticeSummary & {
@@ -160,6 +162,7 @@ type ListResponse<T> = {
   limit: number;
   offset: number;
   items: T[];
+  status_counts?: Record<string, number> | null;
 };
 
 export function listNotices(query = '', options: NoticeListOptions = {}) {
