@@ -17,11 +17,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: 한 PR이 한 영역만 건드리는지 검사
+      # 실패시키지 않고 영역별 변경 파일 수만 알려 준다(2026-10-08, ADR 0001 참고).
+      - name: PR이 바꾼 영역 알림
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          ALLOW_CROSS_ZONE: ${{ contains(github.event.pull_request.labels.*.name, 'cross-zone') }}
         run: |
           git diff --name-only "$BASE_SHA...$HEAD_SHA" > changed.txt
           python .github/scripts/zone_guard.py changed.txt

@@ -30,7 +30,9 @@
 ## 강제 장치
 
 1. CODEOWNERS (레포가 Public이거나 유료 플랜이 되면 브랜치 보호로 필수 승인 전환)
-2. CI zone guard: 한 PR이 두 영역 이상을 건드리면 실패 (`cross-zone` 라벨 예외, develop → main 통합 PR 제외)
+2. CI zone guard: PR이 바꾼 영역과 파일 수를 알림으로 남긴다. 실패시키지 않는다 (develop → main 통합 PR 제외)
+   - 2026-10-08 변경: 처음에는 두 영역 이상을 건드리면 실패시켰다(`cross-zone` 라벨 예외). 업무 분담이 영역별로 딱 나뉘지 않았고,
+     겹치는 코드는 병합 후 각자 pull 받아 맞추는 방식으로 협업하기로 해서 막는 규칙을 알림으로 바꿨다.
 3. import 경계: `engine/tests/test_engine_boundary.py` (엔진이 `apps`·`sqlalchemy`·`fastapi` 등을 import하면 실패). TS 쪽 `dependency-cruiser`는 FE 구조 정리 때 추가한다.
 
 ## 실행 순서
