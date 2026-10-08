@@ -8,7 +8,7 @@ import os
 import sqlite3
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import unquote
@@ -80,6 +80,15 @@ def parse_args() -> argparse.Namespace:
         default=list(DATASETS),
     )
     parser.add_argument("--institution-start-year", type=int, default=2000)
+    parser.add_argument("--institution-end-year", type=int)
+    parser.add_argument(
+        "--institution-query", choices=("registration", "change"),
+        default="registration",
+        help="registration uses inqryDiv=1; change uses inqryDiv=2",
+    )
+    parser.add_argument("--change-from", help="Start date (YYYY-MM-DD) for first or explicit change run")
+    parser.add_argument("--change-to", help="End date (YYYY-MM-DD); defaults to yesterday (KST)")
+    parser.add_argument("--change-window-days", type=int, default=7)
     parser.add_argument("--daily-limit", type=int, default=DEFAULT_DAILY_LIMIT)
     parser.add_argument("--request-delay", type=float, default=0.04)
     return parser.parse_args()
@@ -292,12 +301,25 @@ def is_active(dataset: str, item: dict[str, Any]) -> str:
     return "Y" if raw in ("Y", "1", "TRUE") else "N"
 
 
-def should_replace(old_changed: str, new_changed: str) -> bool:
+def should_replace(
+    old_changed: str,
+    new_changed: str,
+    old_source_window: str = "",
+    new_source_window: str = "",
+) -> bool:
+    """Prefer newer API change timestamps, not whichever query ran last."""
+    if old_source_window == new_source_window == "all":
+        # Preserve legacy industry/product behavior outside the institution change.
+        return not old_changed or bool(new_changed and new_changed >= old_changed)
+    if not new_changed:
+        return not old_changed and not old_source_window
     if not old_changed:
         return True
-    if not new_changed:
-        return False
-    return new_changed >= old_changed
+    # G2B uses YYYY-MM-DD HH:MM:SS; ISO dates compare in chronological order.
+    if new_changed != old_changed:
+        return new_changed > old_changed
+    # Equal timestamps: change-query payload takes precedence over registration.
+    return new_source_window.startswith("change:") and not old_source_window.startswith("change:")
 
 
 def store_page(
@@ -311,6 +333,34 @@ def store_page(
 ) -> None:
     config = DATASETS[dataset]
     total_pages = math.ceil(total_count / PAGE_SIZE) if total_count else 0
+    checkpoint = conn.execute(
+        "SELECT total_count, next_page, complete, params_json FROM checkpoint "
+        "WHERE dataset=? AND window_key=?",
+        (dataset, window_key),
+    ).fetchone()
+    if checkpoint:
+        if json.loads(checkpoint["params_json"]) != params:
+            raise ApiError(f"Checkpoint parameter conflict: {dataset} {window_key}")
+        if page > 1 and int(checkpoint["total_count"]) != total_count:
+            # The API is not a snapshot: replay this incomplete window from page 1
+            # on the next collect invocation rather than silently losing shifted rows.
+            with conn:
+                conn.execute(
+                    "UPDATE checkpoint SET total_count=?, total_pages=?, next_page=1, "
+                    "complete=0, updated_at=? WHERE dataset=? AND window_key=?",
+                    (total_count, max(1, total_pages), now_iso(), dataset, window_key),
+                )
+            raise ApiError(f"API total changed; retry from page 1: {dataset} {window_key}")
+        if page != int(checkpoint["next_page"]):
+            raise ApiError(f"Unexpected page for checkpoint: {dataset} {window_key} page={page}")
+    elif page != 1:
+        raise ApiError(f"Missing page-one checkpoint: {dataset} {window_key}")
+    expected = min(PAGE_SIZE, max(0, total_count - (page - 1) * PAGE_SIZE))
+    if page < 1 or (total_count and page > total_pages) or len(items) != expected:
+        raise ApiError(
+            f"Incomplete API page: {dataset} {window_key} "
+            f"page={page}, expected={expected}, got={len(items)}, total={total_count}"
+        )
     stamp = now_iso()
     with conn:
         for item in items:
@@ -321,7 +371,7 @@ def store_page(
             raw_json = json.dumps(item, ensure_ascii=False, sort_keys=True)
             changed_at = first_value(item, config["changed_fields"])
             old = conn.execute(
-                "SELECT name, changed_at, raw_json FROM records WHERE dataset=? AND code=?",
+                "SELECT name, changed_at, raw_json, source_window FROM records WHERE dataset=? AND code=?",
                 (dataset, code),
             ).fetchone()
             if old and old["name"] != name:
@@ -342,7 +392,10 @@ def store_page(
                         stamp,
                     ),
                 )
-            if not old or should_replace(old["changed_at"] or "", changed_at):
+            if not old or should_replace(
+                old["changed_at"] or "", changed_at,
+                old["source_window"] or "", window_key,
+            ):
                 conn.execute(
                     """
                     INSERT INTO records(
@@ -398,27 +451,101 @@ def store_page(
         )
 
 
-def windows_for(dataset: str, institution_start_year: int) -> list[tuple[str, dict[str, str]]]:
+def windows_for(
+    dataset: str, institution_start_year: int, institution_end_year: int | None = None
+) -> list[tuple[str, dict[str, str]]]:
     if dataset != "institution":
         return [("all", {})]
     current_year = datetime.now().year
-    if institution_start_year < 1 or institution_start_year > current_year:
-        raise ValueError("institution-start-year가 올바르지 않습니다")
+    end_year = institution_end_year if institution_end_year is not None else current_year
+    if not 1 <= institution_start_year <= end_year <= current_year:
+        raise ValueError("Invalid institution registration year range")
     windows: list[tuple[str, dict[str, str]]] = []
-    # 최신 기관을 먼저 사용할 수 있도록 현재 연도부터 과거로 내려간다.
-    # 2000년은 나라장터 초기 운영 시점보다 앞선 안전 여유 구간이다.
-    for year in range(current_year, institution_start_year - 1, -1):
-        end = datetime.now().astimezone().strftime("%Y%m%d%H%M") if year == current_year else f"{year}12312359"
-        windows.append(
-            (
-                str(year),
-                {
-                    "inqryDiv": "1",
-                    "inqryBgnDt": f"{year}01010000",
-                    "inqryEndDt": end,
-                },
-            )
+    # Keep legacy year-only checkpoint keys intact (e.g. 2000..2026).
+    for year in range(end_year, institution_start_year - 1, -1):
+        end = (
+            datetime.now().astimezone().strftime("%Y%m%d%H%M")
+            if year == current_year else f"{year}12312359"
         )
+        windows.append(
+            (str(year), {
+                "inqryDiv": "1",
+                "inqryBgnDt": f"{year}01010000",
+                "inqryEndDt": end,
+            })
+        )
+    return windows
+
+
+def change_windows_for(
+    conn: sqlite3.Connection,
+    start_text: str | None,
+    end_text: str | None,
+    window_days: int,
+) -> list[tuple[str, dict[str, str]]]:
+    """Plan complete KST calendar days; resume from the last finished range."""
+    if not 1 <= window_days <= 31:
+        raise ValueError("--change-window-days must be between 1 and 31")
+
+    def parse_day(value: str) -> date:
+        try:
+            parsed = date.fromisoformat(value)
+        except ValueError as exc:
+            raise ValueError(f"Invalid date: {value} (expected YYYY-MM-DD)") from exc
+        if parsed.isoformat() != value:
+            raise ValueError(f"Invalid date: {value} (expected YYYY-MM-DD)")
+        return parsed
+
+    # Closed days only by default: do not checkpoint an unfinished current day.
+    today_kst = datetime.now(timezone(timedelta(hours=9))).date()
+    end = parse_day(end_text) if end_text else today_kst - timedelta(days=1)
+    if end > today_kst:
+        raise ValueError("--change-to cannot be in the future")
+
+    existing = conn.execute(
+        "SELECT window_key, complete FROM checkpoint "
+        "WHERE dataset='institution' AND window_key LIKE 'change:%' "
+        "ORDER BY window_key"
+    ).fetchall()
+    if start_text:
+        start = parse_day(start_text)
+    elif not existing:
+        raise ValueError("First change run requires --change-from YYYY-MM-DD")
+    else:
+        # Never advance the automatic cursor past a failed or unfinished interval.
+        if any(not row["complete"] for row in existing):
+            print("PLAN change: unfinished checkpoints exist; run --mode collect first")
+            return []
+        intervals = []
+        for row in existing:
+            key = row["window_key"]
+            first, last = key.removeprefix("change:").split("-")
+            intervals.append((date.fromisoformat(first), date.fromisoformat(last)))
+        intervals.sort()
+        last_end = intervals[0][1]
+        for first, last in intervals[1:]:
+            if first > last_end + timedelta(days=1):
+                raise ValueError("Gap in change checkpoints: explicitly backfill it first")
+            last_end = max(last_end, last)
+        # Re-read the last completed day to protect boundary/late API updates.
+        start = last_end
+    if start > end:
+        return []
+
+    windows = []
+    cursor = start
+    while cursor <= end:
+        last = min(end, cursor + timedelta(days=window_days - 1))
+        first_key, last_key = cursor.strftime("%Y%m%d"), last.strftime("%Y%m%d")
+        windows.append((
+            f"change:{first_key}-{last_key}",
+            {
+                "inqryDiv": "2",
+                "inqryBgnDt": f"{first_key}0000",
+                "inqryEndDt": f"{last_key}2359",
+            },
+        ))
+        cursor = last + timedelta(days=1)
     return windows
 
 
@@ -430,8 +557,18 @@ def plan_dataset(
     institution_start_year: int,
     daily_limit: int,
     request_delay: float,
+    *,
+    institution_end_year: int | None = None,
+    institution_query: str = "registration",
+    change_from: str | None = None,
+    change_to: str | None = None,
+    change_window_days: int = 7,
 ) -> None:
-    windows = windows_for(dataset, institution_start_year)
+    windows = (
+        change_windows_for(conn, change_from, change_to, change_window_days)
+        if dataset == "institution" and institution_query == "change"
+        else windows_for(dataset, institution_start_year, institution_end_year)
+    )
     for index, (window_key, params) in enumerate(windows, start=1):
         existing = conn.execute(
             "SELECT total_count FROM checkpoint WHERE dataset=? AND window_key=?",
@@ -466,15 +603,32 @@ def collect_dataset(
     dataset: str,
     daily_limit: int,
     request_delay: float,
+    *,
+    institution_query: str = "registration",
+    institution_start_year: int = 2000,
+    institution_end_year: int | None = None,
 ) -> None:
-    rows = conn.execute(
-        """
-        SELECT * FROM checkpoint
-        WHERE dataset=? AND complete=0
-        ORDER BY CAST(window_key AS INTEGER) DESC
-        """,
-        (dataset,),
-    ).fetchall()
+    if dataset == "institution" and institution_query == "change":
+        rows = conn.execute(
+            "SELECT * FROM checkpoint WHERE dataset=? AND complete=0 "
+            "AND window_key LIKE 'change:%' ORDER BY window_key",
+            (dataset,),
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT * FROM checkpoint WHERE dataset=? AND complete=0 "
+            "AND window_key NOT LIKE 'change:%' ORDER BY CAST(window_key AS INTEGER) DESC",
+            (dataset,),
+        ).fetchall()
+        if dataset == "institution" and (
+            institution_start_year != 2000 or institution_end_year is not None
+        ):
+            end_year = institution_end_year or datetime.now().year
+            rows = [
+                row for row in rows
+                if row["window_key"].isdigit()
+                and institution_start_year <= int(row["window_key"]) <= end_year
+            ]
     if not rows:
         print(f"COLLECT {dataset}: 남은 페이지 없음", flush=True)
         return
@@ -593,6 +747,10 @@ def status(conn: sqlite3.Connection, datasets: list[str]) -> None:
 
 def main() -> int:
     args = parse_args()
+    if args.institution_query == "change" and args.datasets != ["institution"]:
+        raise ValueError("Change query requires --datasets institution")
+    if (args.change_from or args.change_to) and args.institution_query != "change":
+        raise ValueError("--change-from/--change-to require --institution-query change")
     ensure_dirs()
     conn = connect_db()
     try:
@@ -613,6 +771,11 @@ def main() -> int:
                         args.institution_start_year,
                         args.daily_limit,
                         args.request_delay,
+                        institution_end_year=args.institution_end_year,
+                        institution_query=args.institution_query,
+                        change_from=args.change_from,
+                        change_to=args.change_to,
+                        change_window_days=args.change_window_days,
                     )
             elif args.mode == "collect":
                 for dataset in args.datasets:
@@ -623,6 +786,9 @@ def main() -> int:
                         dataset,
                         args.daily_limit,
                         args.request_delay,
+                        institution_query=args.institution_query,
+                        institution_start_year=args.institution_start_year,
+                        institution_end_year=args.institution_end_year,
                     )
 
         for dataset in args.datasets:
