@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type SyntheticEvent } from 'react';
+import { useEffect, useState, useSyncExternalStore, type SyntheticEvent } from 'react';
 import { Building2, LoaderCircle, LockKeyhole, ShieldCheck } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,19 @@ import { ApiError } from '@/lib/api';
 import { getCurrentUser, login } from '@/lib/auth';
 import { replaceWith } from '@/lib/navigation';
 
+function subscribeHydration() {
+  return () => {};
+}
+
+function browserHydrated() {
+  return true;
+}
+
+function serverHydrated() {
+  return false;
+}
 export default function LoginPage() {
+  const hydrated = useSyncExternalStore(subscribeHydration, browserHydrated, serverHydrated);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -88,7 +100,7 @@ export default function LoginPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="px-0 pt-4">
-              <form className="space-y-5" onSubmit={submit}>
+              <form className="space-y-5" method="post" onSubmit={submit}>
                 <div className="space-y-2">
                   <Label htmlFor="username">아이디</Label>
                   <Input
@@ -119,7 +131,7 @@ export default function LoginPage() {
                     {error}
                   </p>
                 )}
-                <Button type="submit" size="lg" className="mt-2 h-11 w-full text-base" disabled={loading}>
+                <Button type="submit" size="lg" className="mt-2 h-11 w-full text-base" disabled={loading || !hydrated}>
                   {loading ? <LoaderCircle className="animate-spin" /> : <LockKeyhole />}
                   {loading ? '로그인 중' : '로그인'}
                 </Button>

@@ -88,6 +88,13 @@ const PAGE_INFO: Array<{ match: (pathname: string) => boolean; page: PageInfo }>
     },
   },
   {
+    match: (pathname) => pathname.startsWith('/recommendations'),
+    page: {
+      title: 'AI 추천',
+      description: '모델의 연관성 추천과 기존 자격판정 결과를 구분해 확인합니다.',
+      breadcrumb: '공고 추천',
+    },
+  },  {
     match: (pathname) => pathname.startsWith('/company') || pathname.startsWith('/company-profile'),
     page: {
       title: '회사 프로필',
@@ -214,7 +221,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             variant={page.variant}
           />
         )}
-        <div className={`app-shell-content ${legacyRouteClass}`}>{children}</div>
+        <div id="main-content" tabIndex={-1} className={`app-shell-content ${legacyRouteClass}`}>{children}</div>
         <AppFooter />
         <CopilotPanel />
       </div>
