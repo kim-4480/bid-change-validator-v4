@@ -1,5 +1,6 @@
 alembic==1.19.2
 boto3>=1.35,<2
+cryptography>=43,<51
 faiss-cpu>=1.12,<2
 fastapi==0.141.1
 langchain-core>=1.2,<2

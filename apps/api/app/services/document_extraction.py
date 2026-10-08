@@ -355,6 +355,15 @@ def extract_document(
     raise UnsupportedDocumentError("document format is not supported")
 
 
+def _clear_extraction_payload(document: NoticeDocument | ProposalDocument) -> None:
+    """Remove stale text metadata before recording an unsuccessful retry."""
+    document.extracted_text = None
+    document.extracted_blocks = None
+    document.extracted_char_count = 0
+    document.extracted_text_sha256 = None
+    document.text_extractor = None
+
+
 def extract_into_document(
     document: NoticeDocument | ProposalDocument,
     source: BinaryIO,
@@ -376,10 +385,12 @@ def extract_into_document(
         document.extraction_status = "EXTRACTED" if result.text else "EMPTY"
         document.extraction_error = None
     except UnsupportedDocumentError as error:
+        _clear_extraction_payload(document)
         document.extraction_status = "UNSUPPORTED"
         document.extraction_error = str(error)[:500]
         document.extracted_at = datetime.now(KST)
     except Exception as error:
+        _clear_extraction_payload(document)
         document.extraction_status = "FAILED"
         document.extraction_error = f"텍스트 추출 실패 ({type(error).__name__})"
         document.extracted_at = datetime.now(KST)
@@ -431,6 +442,7 @@ def extract_pending_documents(
                 root = Path(settings.document_storage_path).resolve()
                 target = (root / document.storage_key).resolve()
                 if root not in target.parents or not target.is_file():
+                    _clear_extraction_payload(document)
                     document.extraction_status = "FAILED"
                     document.extraction_error = "저장된 첨부파일이 없습니다."
                     document.extracted_at = datetime.now(KST)
@@ -446,9 +458,15 @@ def extract_pending_documents(
                     region=settings.aws_region,
                     endpoint_url=settings.document_s3_endpoint_url,
                 )
-                with SpooledTemporaryFile(max_size=8 * 1024 * 1024, mode="w+b") as temp:
-                    s3.download_fileobj(settings.document_s3_bucket, document.storage_key, temp)
-                    extract_into_document(document, temp)
+                try:
+                    with SpooledTemporaryFile(max_size=8 * 1024 * 1024, mode="w+b") as temp:
+                        s3.download_fileobj(settings.document_s3_bucket, document.storage_key, temp)
+                        extract_into_document(document, temp)
+                except Exception as error:
+                    _clear_extraction_payload(document)
+                    document.extraction_status = "FAILED"
+                    document.extraction_error = f"첨부파일 다운로드 실패 ({type(error).__name__})"
+                    document.extracted_at = datetime.now(KST)
             else:
                 raise ValueError("DOCUMENT_STORAGE_BACKEND must be LOCAL or S3")
             extracted_by_storage_key[document.storage_key] = document
