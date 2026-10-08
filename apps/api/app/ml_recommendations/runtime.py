@@ -35,12 +35,16 @@ def _load_local(directory):
 def score_notices(query,notices,*,local_dir=None,remote_url=None,timeout=1.0):
     """Rank rows with notice_id/title, returning (items, model, dataset, source, fallback_reason)."""
     if not notices:
-        return [],None,None,"rule_fallback","no_candidates"
+        return [],None,None,"lexical_fallback","no_candidates"
     local_dir=local_dir if local_dir is not None else os.getenv("BIDCHECK_ML_MODEL_DIR")
     remote_url=remote_url if remote_url is not None else os.getenv("BIDCHECK_ML_INFERENCE_URL")
     local_failure=None
     if local_dir:
         try:
+            if os.getenv("BIDCHECK_ML_ALLOW_SYNTHETIC")!="1":
+                audit=json.loads((Path(local_dir)/"evaluation.json").read_text(encoding="utf-8"))
+                if "SYNTHETIC" in audit.get("evaluation_scope",""):
+                    raise ValueError("model_has_no_human_validated_holdout")
             with _LOCK:
                 if local_dir not in _CACHE:
                     _CACHE[local_dir]=_load_local(local_dir)
@@ -54,6 +58,18 @@ def score_notices(query,notices,*,local_dir=None,remote_url=None,timeout=1.0):
             return ranked,"lightgbm-"+sha,version,"local_lightgbm",None
         except Exception as exc:
             local_failure=type(exc).__name__
+    hf_dir=os.getenv("BIDCHECK_ML_HF_DIR")
+    if hf_dir:
+        try:
+            if os.getenv("BIDCHECK_ML_ALLOW_SYNTHETIC")!="1":
+                meta=json.loads((Path(hf_dir)/"hf_finetune_evaluation.json").read_text(encoding="utf-8"))
+                if "SYNTHETIC" in meta.get("scope",""):
+                    raise ValueError("hf_model_has_no_human_validated_holdout")
+            from .hf_inference import score_hf
+            return score_hf(query,notices,hf_dir,os.environ["BIDCHECK_ML_HF_PRETRAINED"],
+                            os.getenv("BIDCHECK_ML_HF_KIND","cross_encoder"))
+        except Exception as exc:
+            local_failure=(local_failure+"/" if local_failure else "")+type(exc).__name__
     if remote_url:
         try:
             import httpx
@@ -78,4 +94,4 @@ def score_notices(query,notices,*,local_dir=None,remote_url=None,timeout=1.0):
             local_failure=(local_failure+"/" if local_failure else "")+type(exc).__name__
     ranked=sorted([dict(r,score=float(lexical(query,r["title"]))) for r in notices],
                   key=lambda r:(-r["score"],str(r["notice_id"])))
-    return ranked,None,None,"rule_fallback",local_failure or "model_not_configured"
+    return ranked,None,None,"lexical_fallback",local_failure or "model_not_configured"

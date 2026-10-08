@@ -32,7 +32,7 @@ def test_remote_without_approved_credentials_never_calls_network(monkeypatch):
     monkeypatch.setattr(httpx,"post",fail)
     out=score_notices("network",[{"notice_id":"1","title":"network"}],
         remote_url="https://remote.example/v1/score",local_dir="")
-    assert out[3]=="rule_fallback"
+    assert out[3]=="lexical_fallback"
     assert out[4]=="ValueError"
 
 def test_api_fallback_is_read_only_and_has_unknown_status(monkeypatch):
@@ -45,5 +45,5 @@ def test_api_fallback_is_read_only_and_has_unknown_status(monkeypatch):
         notice_id=uid,title="network",version_number=1,analysis_run_id=None,
         analysis_version=None,analysis_status="UNKNOWN",is_stale=False)])
     result=recommend_ml(MLRecommendationRequest(query="network"),db=object(),user=None)
-    assert result.scoring_source=="rule_fallback"
+    assert result.scoring_source=="lexical_fallback"
     assert result.items[0].qualification_state=="UNKNOWN"

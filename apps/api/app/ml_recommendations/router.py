@@ -4,6 +4,7 @@ Read-only inference. Nothing is persisted; no training on AWS EC2.
 """
 from __future__ import annotations
 from datetime import datetime
+import hashlib
 from typing import Literal
 from uuid import UUID
 
@@ -18,6 +19,7 @@ from ..database import get_db
 from ..analysis_models import QualificationAnalysisRun
 from ..models import BidNotice,BidNoticeVersion,Company
 from .runtime import score_notices
+from .qualification_adapter import _load_company, company_query, evaluate
 
 router=APIRouter(prefix="/api/v1/recommendations",tags=["ml recommendations"])
 
@@ -36,13 +38,16 @@ class MLNoticeRecommendation(BaseModel):
     analysis_run_id: UUID | None=None
     analysis_version: str | None=None
     analysis_status: str="UNKNOWN"
-    qualification_state: Literal["UNKNOWN","stale"]="UNKNOWN"
+    qualification_state: Literal["eligible","ineligible","insufficient_data","UNKNOWN","stale"]="UNKNOWN"
+    qualification_reason: str | None=None
+    rule_version: str | None=None
     is_stale: bool=False
 
 class MLRecommendationResponse(BaseModel):
     model_version: str | None
     dataset_version: str | None
-    scoring_source: Literal["local_lightgbm","remote_inference","rule_fallback"]
+    scoring_source: Literal["local_lightgbm","local_hf","remote_inference","lexical_fallback"]
+    input_sha256: str | None=None
     fallback_reason: str | None
     note: str="Relevance ranking is not a legal eligibility or award probability assessment."
     items: list[MLNoticeRecommendation]
@@ -87,29 +92,33 @@ def recommend_ml(
     query=request.query
     if request.company_id is not None:
         authorize_company_access(user,request.company_id)
-        company=db.get(Company,request.company_id)
-        if company is None:
+        try:
+            company=_load_company(db,request.company_id)
+        except Exception as error:
             from fastapi import HTTPException
-            raise HTTPException(status_code=404,detail="Company not found")
+            raise HTTPException(status_code=404,detail="Company not found") from error
         if query is None:
-            # Unlabeled profile text for relevance, never proof of legal eligibility.
-            query=" ".join(str(x) for x in (company.name,company.region_name,company.company_size)
-                           if x).strip()
+            query=company_query(company)
     if not query:
         from fastapi import HTTPException
         raise HTTPException(status_code=422,detail="Either query or company_id must be supplied")
     rows=candidates(db)
     ranked,model,dataset,source,reason=score_notices(query,rows)
+    qualifications=evaluate(db,request.company_id,ranked[:request.limit]) if request.company_id else {}
+    input_digest=hashlib.sha256(query.encode("utf-8")).hexdigest()
     items=[]
     for idx,row in enumerate(ranked[:request.limit],1):
+        qstate=qualifications.get(row["notice_id"],{})
         items.append(MLNoticeRecommendation(
             notice_id=row["notice_id"],title=row["title"],rank=idx,
             relevance_score=row["score"],
-            reason="Textual relevance; eligibility unverified" if source!="rule_fallback" else "Rule-based lexical fallback; eligibility unverified",
+            reason="Textual relevance only; not an eligibility verdict" if source!="lexical_fallback" else "Lexical overlap fallback; not a qualification judgment",
             version_number=row["version_number"],
             analysis_run_id=row["analysis_run_id"],analysis_version=row["analysis_version"],
             analysis_status=row["analysis_status"],
-            qualification_state="stale" if row["is_stale"] else "UNKNOWN",
+            qualification_state=qstate.get("state","stale" if row["is_stale"] else "UNKNOWN"),
+            qualification_reason=qstate.get("reason","No company or current validated analysis"),
+            rule_version=qstate.get("rule_version"),
             is_stale=row["is_stale"]))
     return MLRecommendationResponse(model_version=model,dataset_version=dataset,
-        scoring_source=source,fallback_reason=reason,items=items)
+        scoring_source=source,fallback_reason=reason,input_sha256=input_digest,items=items)

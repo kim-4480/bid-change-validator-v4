@@ -24,7 +24,7 @@ def load_rows(path):
 
 def terms(value):
     import re
-    return re.findall(r"[가-힣A-Za-z0-9]+", value.lower())
+    return re.findall(r"[\uac00-\ud7a3A-Za-z0-9]+",value.lower())
 
 def features(query, text):
     qa, ta = terms(query), terms(text)
@@ -242,7 +242,7 @@ def main():
     (out/"evaluation.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     if args.mlflow_local:
         import mlflow
-        mlflow.set_tracking_uri((out/"mlruns").resolve().as_uri())
+        mlflow.set_tracking_uri("sqlite:///" + (out/"mlflow.db").resolve().as_posix())
         with mlflow.start_run(run_name="bidcheck-offline-pseudo-eval"):
             mlflow.log_params(dict(seed=seed,epochs=args.epochs,dataset_sha256=actual_hash,device=args.device))
             for model,metrics in scores.items():

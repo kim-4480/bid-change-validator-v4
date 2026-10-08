@@ -42,7 +42,7 @@ def test_fallback_without_model(monkeypatch):
     ranked,model,dataset,source,why=score_notices("network",[
        {"notice_id":"1","title":"network hardware"},
        {"notice_id":"2","title":"office furniture"}])
-    assert source=="rule_fallback" and model is None and dataset is None
+    assert source=="lexical_fallback" and model is None and dataset is None
     assert ranked[0]["notice_id"]=="1" and why=="model_not_configured"
 
 
@@ -51,7 +51,7 @@ def test_fallback_corrupt_model(tmp_path,monkeypatch):
     (tmp_path/"lightgbm.txt").write_text("garbage")
     (tmp_path/"evaluation.json").write_text(json.dumps({"model_sha256":{"lightgbm.txt":"deadbeef"}}))
     _,_,_,source,why=score_notices("abc",[{"notice_id":"1","title":"abc"}],local_dir=str(tmp_path))
-    assert source=="rule_fallback" and why=="ValueError"
+    assert source=="lexical_fallback" and why=="ValueError"
 
 
 def test_router_path_exists():
