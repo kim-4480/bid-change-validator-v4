@@ -135,6 +135,24 @@ def _extract_hwpx(source: BinaryIO) -> ExtractionResult:
         )
         if not section_names:
             raise UnsupportedDocumentError("HWPX section XML was not found")
+        manifest_name = next(
+            (name for name in archive.namelist() if name.casefold() == "meta-inf/manifest.xml"),
+            None,
+        )
+        if manifest_name is not None:
+            manifest = ElementTree.fromstring(archive.read(manifest_name))
+            section_paths = {name.casefold() for name in section_names}
+            for entry in manifest.iter():
+                if _local_name(entry.tag) != "file-entry":
+                    continue
+                path = next(
+                    (value for key, value in entry.attrib.items() if _local_name(key) == "full-path"),
+                    "",
+                )
+                if path.lstrip("/").casefold() not in section_paths:
+                    continue
+                if any(_local_name(child.tag) == "encryption-data" for child in entry):
+                    raise UnsupportedDocumentError("encrypted HWPX section is not supported")
         blocks: list[dict[str, Any]] = []
         for section_index, section_name in enumerate(section_names):
             root = ElementTree.fromstring(archive.read(section_name))
