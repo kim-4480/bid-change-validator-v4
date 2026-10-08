@@ -487,6 +487,17 @@ def _company_size_set(value: str) -> set[str] | None:
     return allowed
 
 
+# 중소기업기본법상 중소기업에 드는 규모. 상호출자제한기업집단 소속 회사는 여기에 들 수 없다.
+_SME_SIZES = {"MICRO", "SMALL", "MEDIUM"}
+
+
+def _sme_confirmed_not_affiliate(profile: CompanyProfileSnapshot) -> bool:
+    """계열회사 답이 없고, 규모가 중소기업 이하로 확인됐다 — 상호출자제한기업집단 소속이 아니다."""
+    affiliation = profile.extensions.get("conglomerate_affiliate")
+    answered = isinstance(affiliation, dict) and affiliation.get("is_affiliate") is not None
+    return not answered and profile.company_size in _SME_SIZES and bool(profile.completeness.company_size)
+
+
 def _judge_company_size(
     requirement: QualificationRequirement,
     profile: CompanyProfileSnapshot,
@@ -521,6 +532,10 @@ def _judge_company_size(
     is_affiliate = (
         affiliation.get("is_affiliate") if isinstance(affiliation, dict) else None
     )
+    if is_affiliate is None and _sme_confirmed_not_affiliate(profile):
+        # 상호출자제한기업집단에 속한 회사는 중소기업이 될 수 없다(중소기업기본법 시행령 제3조 제1항 제2호 가목).
+        # 규모가 중소기업 이하로 확인된 회사는 소속이 아니다 — 묻지 않는다(2026-10-08, SW 공고마다 남던 확인 필요).
+        is_affiliate = False
     if satisfied and needs_affiliation:
         if is_affiliate is None:
             return _unknown(requirement, preflight_case_id)
@@ -971,6 +986,13 @@ def _judge_by_type(
     from bidengine.extensions import spec_for_requirement
 
     extension = spec_for_requirement(requirement)
+    if extension is not None and extension.key == "conglomerate_affiliate" and _sme_confirmed_not_affiliate(profile):
+        # 계열회사 조항만 있는 요건 — 중소기업 이하로 확인된 회사는 소속일 수 없다(_judge_company_size 와 같은 근거).
+        return _judgment(
+            requirement=requirement, preflight_case_id=preflight_case_id, status="SATISFIED",
+            basis_type="PROFILE", reason_code="RULE_MATCH",
+            profile_refs=[_profile_ref("company", "company_size", profile.company_size)],
+        )
     if extension is not None:
         status, _detail = extension.judge(
             profile.extensions.get(extension.key), requirement

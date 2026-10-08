@@ -134,7 +134,7 @@ _AFFIL_REQ_RE = re.compile(r"상호출자제한|기업집단|계열\s*(?:회사|
 # When a size restriction sits in the same sentence, the core company-size rule
 # has to weigh both together and this extension only supplies the answer.
 _SIZE_IN_SAME_REQUIREMENT_RE = re.compile(
-    r"(대기업|중견기업)[^.\n]{0,40}?(?:참여\s*(?:제한|불가|배제)|참가\s*불가|제외)"
+    r"(대기업|중견기업)[^.\n]{0,40}?(?:참여\s*(?:제한|불가|배제)|참가\s*불가|제외|(?:참여|참가)\s*할\s*수\s*없)"
 )
 
 _AFFIL_NO_RE = re.compile(r"아니|없|비해당|해당\s*(?:하지|되지)\s*않|미해당|무관")
@@ -146,6 +146,10 @@ def _affiliate_detect(requirement: QualificationRequirement) -> bool:
 
 
 def _affiliate_owns_judgment(requirement: QualificationRequirement) -> bool:
+    # 규모 요건은 규모 규칙이 계열회사 답과 함께 판정한다. 확장이 맡으면 '대기업 및 중견기업 … 참여할 수 없으며' 의
+    # 규모 배제가 사라진다(2026-10-08: 정규식이 '참여할 수 없' 을 몰라 대기업도 '아니오' 한 마디로 충족이 될 수 있었다).
+    if requirement.type == "COMPANY_SIZE":
+        return False
     return not _SIZE_IN_SAME_REQUIREMENT_RE.search(requirement.raw or "")
 
 
@@ -198,7 +202,7 @@ EXTENSION_SPECS: tuple[ExtensionSpec, ...] = (
         requirement_types=(),
         why=(
             "공고가 상호출자제한기업집단(대기업집단) 계열회사의 참여를 제한합니다. "
-            "기업규모와는 다른 정보라 규모만으로는 판정할 수 없어, 이런 공고에서만 받습니다."
+            "중소기업 이하로 확인된 회사는 법상 계열회사일 수 없어 묻지 않고, 그 밖의 회사에만 이런 공고에서 받습니다."
         ),
         ask="귀사가 상호출자제한기업집단(대기업집단) 계열회사에 해당하나요? (예 / 아니오)",
         input_hint="아니오",

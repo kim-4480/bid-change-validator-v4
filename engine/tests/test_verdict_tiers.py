@@ -71,3 +71,32 @@ def test_gap_repeating_extracted_closed_values_is_a_checklist_item():
     forest = CoverageGap(kind="UNREPRESENTABLE", raw="산림사업법인 또는 산림조합으로 본점이 곡성군",
                          reason="UNMAPPED_INDUSTRY/ALTERNATIVE_UNRESOLVED")
     assert not closed_values_covered(forest, [NS(type="REGION", value="곡성군")])
+
+
+def test_sme_company_is_not_a_conglomerate_affiliate():
+    """'대기업 및 중견기업 … 상호출자제한기업집단에 속하는 기업도 참여 불가' — 중소기업 이하로 확인된 회사는 소속일 수 없다."""
+    from bidengine.judgment.rules import ProfileCompleteness, judge_requirement
+
+    req = _req("S", "COMPANY_SIZE", "대기업 및 중견기업").model_copy(update={
+        "scope": {"restriction": "EXCLUDE"},
+        "raw": "대기업 및 중견기업인 소프트웨어 사업자는 참여할 수 없으며, 상호출자제한기업집단에 속하는 기업도 입찰에 참여할 수 없습니다.",
+    })
+    small = CompanyProfileSnapshot(company_id="c", company_size="SMALL", completeness=ProfileCompleteness(company_size=True))
+    assert judge_requirement(req, small, preflight_case_id="c", reference_date=date(2026, 10, 8)).status == "SATISFIED"
+    unconfirmed = small.model_copy(update={"completeness": ProfileCompleteness(company_size=False)})
+    assert judge_requirement(req, unconfirmed, preflight_case_id="c", reference_date=date(2026, 10, 8)).status == "UNKNOWN"
+    mid = CompanyProfileSnapshot(company_id="c", company_size="MID_SIZED", completeness=ProfileCompleteness(company_size=True))
+    assert judge_requirement(req, mid, preflight_case_id="c", reference_date=date(2026, 10, 8)).status == "UNSATISFIED"
+
+
+def test_large_company_is_excluded_even_if_it_says_it_is_not_an_affiliate():
+    """'대기업 및 중견기업인 … 참여할 수 없으며, 상호출자제한기업집단 … 도' — 규모 배제가 계열회사 답에 묻히면 안 된다."""
+    from bidengine.judgment.rules import ProfileCompleteness, judge_requirement
+
+    req = _req("S", "COMPANY_SIZE", "대기업 및 중견기업").model_copy(update={
+        "scope": {"restriction": "EXCLUDE"},
+        "raw": "대기업 및 중견기업인 소프트웨어 사업자는 본 입찰에 참여할 수 없으며, 상호출자제한기업집단에 속하는 기업도 입찰에 참여할 수 없습니다.",
+    })
+    large = CompanyProfileSnapshot(company_id="c", company_size="LARGE", completeness=ProfileCompleteness(company_size=True),
+                                   extensions={"conglomerate_affiliate": {"is_affiliate": False}})
+    assert judge_requirement(req, large, preflight_case_id="c", reference_date=date(2026, 10, 8)).status == "UNSATISFIED"
