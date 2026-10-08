@@ -1,4 +1,6 @@
 from io import BytesIO
+from types import SimpleNamespace
+from zipfile import ZipFile
 
 import pytest
 
@@ -6,6 +8,7 @@ from apps.api.app.services.document_extraction import (
     UnsupportedDocumentError,
     _decode_hwp_paragraph_text,
     extract_document,
+    extract_into_document,
 )
 
 
@@ -109,3 +112,55 @@ def test_hwp_extension_with_hwpx_zip_is_extracted() -> None:
     assert result.extractor == "HWPX_XML"
     assert result.text == "HWPX content from .hwp"
     assert len(result.blocks) == 1
+
+
+@pytest.mark.parametrize("filename", ["encrypted.hwpx", "misnamed.hwp"])
+def test_encrypted_hwpx_section_is_unsupported(filename: str) -> None:
+    source = BytesIO()
+    with ZipFile(source, "w") as archive:
+        archive.writestr("mimetype", "application/hwp+zip")
+        archive.writestr("Contents/section0.xml", b"\x73\x02\x41\xbf encrypted payload")
+        archive.writestr(
+            "META-INF/manifest.xml",
+            '<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0">'
+            '<manifest:file-entry manifest:full-path="Contents/section0.xml">'
+            '<manifest:encryption-data/>'
+            '</manifest:file-entry></manifest:manifest>',
+        )
+
+    document = SimpleNamespace(name=filename, content_type="application/octet-stream")
+    extract_into_document(document, source)
+
+    assert document.extraction_status == "UNSUPPORTED"
+    assert document.extracted_text is None
+    assert document.extracted_text_sha256 is None
+    assert "encrypted HWPX" in document.extraction_error
+
+
+def test_malformed_unencrypted_hwpx_remains_failed() -> None:
+    source = BytesIO()
+    with ZipFile(source, "w") as archive:
+        archive.writestr("Contents/section0.xml", b"not XML")
+
+    document = SimpleNamespace(name="broken.hwpx", content_type="application/octet-stream")
+    extract_into_document(document, source)
+
+    assert document.extraction_status == "FAILED"
+
+
+def test_encrypted_unrelated_hwpx_entry_does_not_hide_plain_section() -> None:
+    source = BytesIO()
+    with ZipFile(source, "w") as archive:
+        archive.writestr("Contents/section0.xml", "<section><p><t>Readable</t></p></section>")
+        archive.writestr(
+            "META-INF/manifest.xml",
+            '<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0">'
+            '<manifest:file-entry manifest:full-path="Preview/PrvText.txt">'
+            '<manifest:encryption-data/>'
+            '</manifest:file-entry></manifest:manifest>',
+        )
+
+    result = extract_document(source, filename="plain.hwpx", content_type=None)
+
+    assert result.extractor == "HWPX_XML"
+    assert result.text == "Readable"

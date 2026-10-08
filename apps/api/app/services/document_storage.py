@@ -8,6 +8,7 @@ from typing import BinaryIO, Protocol
 from zoneinfo import ZoneInfo
 
 import requests
+from botocore.exceptions import BotoCoreError, ClientError
 
 from ..config import Settings
 from ..models import NoticeDocument
@@ -185,7 +186,7 @@ class NoticeDocumentDownloader:
                     document.download_error = None
                     if extract_document:
                         extract_into_document(document, temp)
-        except (requests.RequestException, OSError, ValueError) as error:
+        except (requests.RequestException, OSError, ValueError, BotoCoreError, ClientError) as error:
             document.download_status = "FAILED"
             document.download_error = (
                 f"파일 다운로드 실패 ({type(error).__name__})"
