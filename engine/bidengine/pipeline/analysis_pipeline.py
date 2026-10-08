@@ -355,6 +355,7 @@ def analyze_qualification_documents(
         input_truncated=bool(extraction.get("input_truncated")),
         candidate_count=int(extraction.get("candidate_count") or 0),
     )
+    result = with_document_notes(result, chunks)
     if summarize_gaps:
         result = _with_gap_summaries(
             result, chunks, structured_extract=structured_extract,
@@ -434,6 +435,42 @@ def drop_checklist_fragments(requirements: list) -> tuple[list, list]:
         else:
             kept.append(requirement)
     return kept, dropped
+
+
+# 공동수급·하도급 허용 여부 문장. 자격 조항으로 선택되지 않아도(입찰 방식 절에 있는 경우가 많다) 참고 정보로 모은다.
+_JOINT_NOTE_RE = re.compile(r"(?:공동\s*(?:수급|도급|계약|이행)|하도급)[^\n.。]{0,40}?(?:허용|불가|불허|가능|않|금지)")
+# 허용 여부가 아니라 계약 이행 중의 의무(청렴 서약, 하도급 대금·직불, 불법 하도급 금지)를 말하는 문장은 참고 정보가 아니다.
+_NOTE_EXCLUDE_RE = re.compile(r"위반|서약|대금|직불|지급|일괄\s*하도급|재하도급|무면허|선금|하수급")
+_NOTE_SPLIT_RE = re.compile(r"\n|(?<=다\.)\s|(?<=함\.)\s|(?<=음\.)\s")
+
+
+def with_document_notes(result: RequirementAnalysisResult, chunks: list[dict[str, Any]]) -> RequirementAnalysisResult:
+    """문서 전체에서 공동수급·하도급 허용 여부 문장을 찾아 참고 정보(coverage.ignored, GAP_JOINT_CONTRACT_NOTE)에 더한다.
+
+    '라. 공동도급은 허용하지 않습니다.' 가 견적·입찰 방식 절에 있어 자격 조항으로 뽑히지 않으면 참고 정보에서 빠졌다
+    (2026-10-08 표본 j). 참고 정보일 뿐이라 판정·요건은 바꾸지 않는다. 같은 문장(띄어쓰기 무시)은 한 번만.
+    """
+    from bidengine.pipeline.analysis_result import CoverageGap
+
+    coverage = result.coverage
+    if coverage is None:
+        return result
+    compact = lambda text: "".join((text or "").split())
+    known = [compact(gap.raw) for gap in coverage.ignored if gap.reason == "GAP_JOINT_CONTRACT_NOTE"]
+    added: list = []
+    for chunk in chunks:
+        for line in _NOTE_SPLIT_RE.split(str(chunk.get("text") or "")):
+            line = " ".join(line.split())
+            if not line or len(line) > 140 or not _JOINT_NOTE_RE.search(line) or _NOTE_EXCLUDE_RE.search(line):
+                continue
+            key = compact(line)
+            if any(key in other or other in key for other in known):
+                continue
+            known.append(key)
+            added.append(CoverageGap(kind="IGNORED", raw=line, reason="GAP_JOINT_CONTRACT_NOTE"))
+    if not added:
+        return result
+    return result.model_copy(update={"coverage": coverage.model_copy(update={"ignored": [*coverage.ignored, *added]})})
 
 
 def _with_gap_summaries(result: RequirementAnalysisResult, chunks: list[dict[str, Any]], *, structured_extract: StructuredExtractor,
