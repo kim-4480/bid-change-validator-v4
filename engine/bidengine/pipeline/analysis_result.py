@@ -8,6 +8,7 @@ Backend-owned notice/document identifiers remain the source of truth.
 
 from __future__ import annotations
 
+import re
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, computed_field, model_validator
@@ -86,6 +87,7 @@ class CoverageGap(BaseModel):
     summary: str | None = None
 
 
+_INDUSTRY_WORD_RE = re.compile(r"공사업|[가-힣]업\s*(?:을|으로|를)?\s*(?:등록|면허)|업종")
 _VERDICT_GAP_CODES = ("UNMAPPED_INDUSTRY", "UNMAPPED_REGION", "UNMAPPED_COMPANY_SIZE", "UNMAPPED_REGISTRATION_CERTIFICATION")
 
 
@@ -101,6 +103,9 @@ def gap_blocks_verdict(gap: CoverageGap) -> bool:
     if gap.blocks_verdict is not None:
         return gap.blocks_verdict
     if (gap.reason or "").startswith(_VERDICT_GAP_CODES):
+        return True
+    if gap.reason == "COMPOSITE_PARTY_RULE" and _INDUSTRY_WORD_RE.search(gap.raw or ""):
+        # 공동도급 역할별 업종 자격 — 한 회사로 판정할 수 없지만 업종 자격이라 '적합' 을 막는다.
         return True
     return has_closed_value_text(gap.raw)
 
@@ -148,8 +153,8 @@ class AnalysisCoverage(BaseModel):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def notes(self) -> list[CoverageGap]:
-        """참고 정보: 공동수급·하도급 허용 여부처럼 회사 자격이 아니라 입찰 방식인 조항."""
-        return [gap for gap in self.ignored if gap.reason == "GAP_JOINT_CONTRACT_NOTE"]
+        """참고 정보: 공동수급·하도급 허용 여부, 건설업역 상호시장 진출 허용처럼 회사 자격이 아니라 입찰 방식인 조항."""
+        return [gap for gap in self.ignored if gap.reason in {"GAP_JOINT_CONTRACT_NOTE", "GAP_MUTUAL_MARKET_NOTE"}]
 
     @computed_field  # type: ignore[prop-decorator]
     @property

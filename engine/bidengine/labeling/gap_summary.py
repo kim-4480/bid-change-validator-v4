@@ -17,7 +17,7 @@ import hashlib
 import re
 from typing import Any, Callable, MutableMapping
 
-GAP_SUMMARY_VERSION = "gap-summary-v1"
+GAP_SUMMARY_VERSION = "gap-summary-v2"
 MAX_SUMMARY_CHARS = 140
 CONTEXT_CHARS = 220
 
@@ -31,6 +31,8 @@ CATEGORIES: dict[str, str] = {
     "INDUSTRY_ALTERNATIVE": "업종 대안·예외",
     "REGION_SIZE": "소재지·기업 규모",
     "CONDITIONAL": "조건부 자격",
+    "BASIC_QUALIFICATION": "법령상 기본 자격·결격",
+    "PROCEDURE": "입찰 절차",
     "DOCUMENT": "제출 서류",
     "OTHER": "기타",
 }
@@ -67,7 +69,9 @@ SYSTEM_PROMPT = """너는 입찰공고의 참가자격 조항을 사용자에게
 1. category: 조항이 무엇에 관한 것인지.
    LICENSE_PERMIT(면허·허가·등록), CERTIFICATION(인증·확인서), PERFORMANCE(실적), STAFF(인력),
    FACILITY_EQUIPMENT(시설·장비), PRODUCT_CONDITION(납품 물품 조건), INDUSTRY_ALTERNATIVE(업종 대안·예외),
-   REGION_SIZE(소재지·기업 규모), CONDITIONAL(특정 경우에만 적용되는 조건부 자격), DOCUMENT(제출 서류), OTHER(기타)
+   REGION_SIZE(소재지·기업 규모), CONDITIONAL(특정 경우에만 적용되는 조건부 자격),
+   BASIC_QUALIFICATION(법령·기관 규정이 정한 기본 자격이나 결격 사유), PROCEDURE(입찰 등록·서류 제출 같은 절차),
+   DOCUMENT(제출 서류), OTHER(위 어디에도 맞지 않을 때만)
 2. summary: 사용자가 무엇을 확인해야 하는지 한 문장. 원문에 있는 사실만 쓴다.
    - "~를 갖추어야 합니다", "~인 경우 ~해야 합니다" 처럼 공고가 요구하는 내용을 쓴다. 특정 경우에만 적용되면 그 경우를 앞에 쓴다.
    - 원문에 없는 숫자·기간·금액·이름을 만들지 않는다. 원문의 숫자는 그대로 옮긴다.

@@ -487,6 +487,17 @@ def _company_size_set(value: str) -> set[str] | None:
     return allowed
 
 
+# 중소기업기본법상 중소기업에 드는 규모. 상호출자제한기업집단 소속 회사는 여기에 들 수 없다.
+_SME_SIZES = {"MICRO", "SMALL", "MEDIUM"}
+
+
+def _sme_confirmed_not_affiliate(profile: CompanyProfileSnapshot) -> bool:
+    """계열회사 답이 없고, 규모가 중소기업 이하로 확인됐다 — 상호출자제한기업집단 소속이 아니다."""
+    affiliation = profile.extensions.get("conglomerate_affiliate")
+    answered = isinstance(affiliation, dict) and affiliation.get("is_affiliate") is not None
+    return not answered and profile.company_size in _SME_SIZES and bool(profile.completeness.company_size)
+
+
 def _judge_company_size(
     requirement: QualificationRequirement,
     profile: CompanyProfileSnapshot,
@@ -521,6 +532,10 @@ def _judge_company_size(
     is_affiliate = (
         affiliation.get("is_affiliate") if isinstance(affiliation, dict) else None
     )
+    if is_affiliate is None and _sme_confirmed_not_affiliate(profile):
+        # 상호출자제한기업집단에 속한 회사는 중소기업이 될 수 없다(중소기업기본법 시행령 제3조 제1항 제2호 가목).
+        # 규모가 중소기업 이하로 확인된 회사는 소속이 아니다 — 묻지 않는다(2026-10-08, SW 공고마다 남던 확인 필요).
+        is_affiliate = False
     if satisfied and needs_affiliation:
         if is_affiliate is None:
             return _unknown(requirement, preflight_case_id)
@@ -586,6 +601,11 @@ def _judge_industry(
         return _vocabulary_unknown(
             requirement, preflight_case_id, [("industry", "name", item.name) for item in profile.industries]
         )
+    general = [item for item in profile.industries if _norm(item.code) in _GENERAL_CONSTRUCTION_CODES]
+    if requirement.scope.get("general_contractor_allowed") and general:
+        # 공고가 상호시장 진출을 허용해 종합건설업자도 이 전문공사에 참여할 수 있다. 어느 종합공사업이 이 전문공사를
+        # 대신하는지는 시행령 범위라 엔진이 확정하지 않는다 — 미달로 단정하지 않고 확인 필요로 둔다(2026-10-08).
+        return _vocabulary_unknown(requirement, preflight_case_id, [("industry", "code", item.code) for item in general])
     return _judgment(
         requirement=requirement,
         preflight_case_id=preflight_case_id,
@@ -594,6 +614,10 @@ def _judge_industry(
         reason_code="RULE_MISMATCH",
         profile_refs=[],
     )
+
+
+# 건설산업기본법의 종합공사업: 토목·건축·토목건축·산업환경설비·조경.
+_GENERAL_CONSTRUCTION_CODES = {"0001", "0002", "0003", "0004", "0005"}
 
 
 def _judge_staff(
@@ -971,6 +995,13 @@ def _judge_by_type(
     from bidengine.extensions import spec_for_requirement
 
     extension = spec_for_requirement(requirement)
+    if extension is not None and extension.key == "conglomerate_affiliate" and _sme_confirmed_not_affiliate(profile):
+        # 계열회사 조항만 있는 요건 — 중소기업 이하로 확인된 회사는 소속일 수 없다(_judge_company_size 와 같은 근거).
+        return _judgment(
+            requirement=requirement, preflight_case_id=preflight_case_id, status="SATISFIED",
+            basis_type="PROFILE", reason_code="RULE_MATCH",
+            profile_refs=[_profile_ref("company", "company_size", profile.company_size)],
+        )
     if extension is not None:
         status, _detail = extension.judge(
             profile.extensions.get(extension.key), requirement

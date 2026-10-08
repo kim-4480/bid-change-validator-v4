@@ -107,7 +107,11 @@ class DbIndustryNameResolver:
     def __init__(self, db: Session) -> None:
         by_name: dict[str, str] = {}
         ambiguous: set[str] = set()
-        for code, name in db.execute(select(IndustryCode.code, IndustryCode.name).where(IndustryCode.active.is_(True))):
+        rows = list(db.execute(select(IndustryCode.code, IndustryCode.name).where(IndustryCode.active.is_(True))))
+        from bidengine.normalization.industry_family import family_index
+
+        self._families = family_index(((code, name) for code, name in rows), _normalize_name)
+        for code, name in rows:
             key = _normalize_name(name)
             if key in by_name and by_name[key] != code:
                 ambiguous.add(key)
@@ -118,3 +122,7 @@ class DbIndustryNameResolver:
 
     def code_for(self, name: str) -> str | None:
         return self._by_name.get(_normalize_name(name))
+
+    def family_codes(self, name: str) -> list[str]:
+        """세부명 없이 쓴 묶음 이름("산림조합")의 세부명 업종 코드들. 없으면 빈 목록."""
+        return self._families.get(_normalize_name(name), [])
