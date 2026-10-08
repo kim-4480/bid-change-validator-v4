@@ -4,6 +4,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { JudgmentDisclaimer } from '@/components/product/judgment-disclaimer';
 import { CopilotNavigationLink } from './navigation-link';
 import { CopilotMascot } from './mascot';
 import { EnvelopeAnswer } from './envelope-answer';
@@ -96,6 +97,7 @@ function PanelBody({ caseId, page }: { caseId: string; page: typeof pages[keyof 
   const jobsExpanded = jobsOpen;
   return <>
     <div className={`copilot-content${empty ? ' copilot-content-empty' : ''}`}>
+      <JudgmentDisclaimer compact className="px-1" />
       {empty && <div className="copilot-empty" data-state="EMPTY">
         <CopilotMascot size={64} />
         <h3>{caseId ? '확인할 업무를 선택해 주세요' : '검토할 공고를 먼저 선택해 주세요'}</h3>

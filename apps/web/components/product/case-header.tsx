@@ -1,6 +1,7 @@
 'use client';
 
 import { CopilotNavigationLink } from '@/components/copilot/navigation-link';
+import { JudgmentDisclaimer } from '@/components/product/judgment-disclaimer';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import type { CaseWorkspace } from '@/lib/case-workspace';
@@ -38,11 +39,15 @@ export function CaseTabs({ caseId, active }: { caseId: string; active: 'qualific
     ['changes', '/changes', '변경 이력'],
   ] as const;
 
+  // 판정 안내는 검토 화면 모두(참가자격·확인 필요·근거 원문·평가 대응·변경 이력)에 같은 자리로 붙는다.
   return (
-    <nav className="mt-5 flex flex-wrap gap-2 border-b border-[var(--product-line)] pb-3" aria-label="입찰 검토 화면">
-      {items.map(([key, href, label]) => (
-        <CopilotNavigationLink caseId={caseId} key={key} href={workspaceHref(href, caseId)} className={`rounded-full px-5 py-2 text-[13px] font-semibold ${active === key ? 'bg-[var(--product-ink)] text-white' : 'border border-[var(--product-line)] bg-white text-[var(--product-body)]'}`}>{label}</CopilotNavigationLink>
-      ))}
-    </nav>
+    <>
+      <nav className="mt-5 flex flex-wrap gap-2 border-b border-[var(--product-line)] pb-3" aria-label="입찰 검토 화면">
+        {items.map(([key, href, label]) => (
+          <CopilotNavigationLink caseId={caseId} key={key} href={workspaceHref(href, caseId)} className={`rounded-full px-5 py-2 text-[13px] font-semibold ${active === key ? 'bg-[var(--product-ink)] text-white' : 'border border-[var(--product-line)] bg-white text-[var(--product-body)]'}`}>{label}</CopilotNavigationLink>
+        ))}
+      </nav>
+      <JudgmentDisclaimer className="mt-3" />
+    </>
   );
 }

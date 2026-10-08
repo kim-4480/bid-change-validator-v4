@@ -10,6 +10,7 @@ import { listNoticeMatches, type NoticeMatch } from '@/lib/notice-matching-api';
 import { navigateTo } from '@/lib/navigation';
 /* 판정 라벨은 화면마다 따로 두지 않는다. 같은 값이 다른 이름으로 불리던 것을 공통 맵으로 모았다 (#138 리뷰). */
 import { analysisBadgeLabel, OVERALL_STATUS_BADGE } from '@/lib/status-copy';
+import { JudgmentDisclaimer } from '@/components/product/judgment-disclaimer';
 
 export function CachedNoticeMatches() {
   const [matches, setMatches] = useState<NoticeMatch[]>([]);
@@ -78,6 +79,7 @@ export function CachedNoticeMatches() {
           <h2 className="text-[28px] font-extrabold tracking-[-0.035em]">회사 기준으로 판정 가능한 공고</h2><span className="text-[13px] text-[var(--product-muted)]">분석 완료 {matches.length}건</span>
         </div>
         {error && <p className="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-[13px] text-rose-700">{error}</p>}
+        <JudgmentDisclaimer className="mt-3" />
         {matches.length ? <div className="mt-5 grid gap-4 lg:grid-cols-3">{matches.slice(0, 6).map((item) => { const meta = OVERALL_STATUS_BADGE[item.overall_status]; return <article key={item.notice_id} className="rounded-[20px] border border-[var(--product-line)] bg-white p-5"><div className="flex items-center justify-between"><span className={`rounded-full px-3 py-1 text-[13px] font-bold ${meta.className}`}>{meta.label}</span><span className="text-[13px] text-[var(--product-muted)]">{analysisBadgeLabel(item.analysis_status)}</span></div><h3 className="mt-4 line-clamp-2 text-[15px] font-bold leading-6">{item.title}</h3><p className="mt-2 text-[13px] text-[var(--product-muted)]">{item.institution_name ?? '기관 미상'} · {item.bid_notice_no}</p>{item.satisfied_count + item.unknown_count + item.unsatisfied_count > 0 ? <div className="mt-4 flex gap-3 text-[13px]"><span className="text-emerald-700">충족 {item.satisfied_count}</span><span className="text-amber-700">확인 {item.unknown_count}</span><span className="text-rose-700">미달 {item.unsatisfied_count}</span></div> : <p className="mt-4 text-[13px] text-[var(--product-muted)]">{item.requirement_count === 0 ? '자격요건 미확보' : '판정된 항목 없음'}</p>}<Button size="sm" className="mt-5 rounded-full" onClick={() => void openReview(item)} disabled={busy !== null}>{busy === item.notice_id ? <LoaderCircle className="animate-spin" /> : null} 검토 열기 <ArrowRight /></Button></article>; })}</div> : <div className="mt-5 rounded-[20px] border border-dashed border-[var(--product-line)] px-6 py-10 text-center text-[13px] text-[var(--product-muted)]">분석이 끝난 공고가 아직 없습니다. 아래에서 검토를 실행하면 여기에 쌓입니다.</div>}
       </div>
     </section>

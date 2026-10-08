@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 
 import { CachedNoticeMatches } from '@/components/product/cached-notice-matches';
+import { JudgmentDisclaimer } from '@/components/product/judgment-disclaimer';
 import { NavigationLink } from '@/components/navigation-link';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -393,6 +394,8 @@ export default function NoticesPage() {
               </button>
             ))}
           </div>
+
+          <JudgmentDisclaimer className="mt-3" />
 
           {/* 사업 유형은 라벨을 칩 줄 안에 넣어 한 줄로 끝낸다. 라벨만 따로 열을 차지할 값어치가 없다. */}
           <div className="mt-3 flex flex-wrap items-center gap-2">
