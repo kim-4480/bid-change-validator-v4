@@ -8,6 +8,7 @@ import hashlib
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 from tempfile import SpooledTemporaryFile
 from typing import BinaryIO, Iterator
 from zoneinfo import ZoneInfo
@@ -105,8 +106,13 @@ def probe_document_source(settings: Settings, storage_key: str) -> dict[str, int
 def _transient_s3_error(error: Exception) -> bool:
     response = getattr(error, "response", None)
     code = str(response.get("Error", {}).get("Code", "")) if isinstance(response, dict) else ""
-    return code in {"408", "429", "500", "502", "503", "504", "SlowDown", "RequestTimeout", "InternalError"} or (
-        type(error).__name__ in {"ConnectTimeoutError", "ReadTimeoutError", "EndpointConnectionError", "ConnectionClosedError"}
+    return (
+        code in {"408", "429", "500", "502", "503", "504", "SlowDown", "RequestTimeout", "InternalError"}
+        or isinstance(error, TimeoutError)
+        or type(error).__name__ in {
+            "ConnectTimeoutError", "ReadTimeoutError",
+            "EndpointConnectionError", "ConnectionClosedError",
+        }
     )
 
 
@@ -197,6 +203,49 @@ def _copy_bounded(source: BinaryIO, target: BinaryIO, max_bytes: int) -> None:
         target.write(chunk)
 
 
+def _valid_retained_extraction(document: NoticeDocument) -> bool:
+    """Only keep a verifiable prior successful payload on an unsuccessful retry.
+
+    It remains *inactive* while extraction_status != EXTRACTED. No new columns,
+    no migration, and no false success on S3/parser failures.
+    """
+    text = document.extracted_text
+    blocks = document.extracted_blocks
+    if not (
+        isinstance(text, str)
+        and text
+        and isinstance(blocks, list)
+        and blocks
+        and document.extracted_at is not None
+        and bool(document.text_extractor)
+        and isinstance(document.file_sha256, str)
+        and len(document.file_sha256) == 64
+        and all(char in "0123456789abcdefABCDEF" for char in document.file_sha256)
+        and isinstance(document.extracted_text_sha256, str)
+        and document.extracted_char_count == len(text)
+    ):
+        return False
+    try:
+        block_text = "\n\n".join(block["text"] for block in blocks)
+        return (
+            block_text == text
+            and hashlib.sha256(text.encode("utf-8")).hexdigest() == document.extracted_text_sha256
+        )
+    except (TypeError, KeyError):
+        return False
+
+
+def _invalidate_extraction(
+    document: NoticeDocument, *, status: str, reason: str | None
+) -> None:
+    """Preserve validated historical bytes, but make them non-current."""
+    if not _valid_retained_extraction(document):
+        _clear_extraction(document)
+        document.extracted_at = datetime.now(KST)
+    document.extraction_status = status
+    document.extraction_error = reason
+
+
 def _clear_extraction(document: NoticeDocument) -> None:
     document.extracted_text = None
     document.extracted_blocks = None
@@ -213,42 +262,64 @@ def process_document(
     *,
     settings: Settings,
 ) -> None:
-    """Fail closed: stale text is removed before each attempt."""
-    _clear_extraction(document)
+    """Publish extraction atomically, without destroying prior evidence on failure.
+
+    EXTRACTED documents are not eligible for the PENDING/FAILED retry pipeline.
+    A failed retry leaves verified previous text in storage, but status != EXTRACTED
+    ensures analysis and RAG cannot use that text as current evidence.
+    """
+    if document.extraction_status == "EXTRACTED":
+        return
+
     try:
         with verified_document_source(settings, document) as (source, digest, size):
-            # Populate missing legacy metadata only after verifying original bytes.
             if not document.file_sha256:
                 document.file_sha256 = digest
             if document.file_size_bytes is None:
                 document.file_size_bytes = size
+
+            # Parse into a detached object. Parser failure, EMPTY and UNSUPPORTED
+            # must not overwrite an older extract before status is determined.
+            candidate = SimpleNamespace(
+                name=document.name,
+                content_type=document.content_type,
+                extraction_status="PENDING",
+                extraction_error=None,
+            )
             try:
-                extract_into_document(document, source)
+                extract_into_document(candidate, source)
             except Exception:
                 raise AttachmentReadError("PARSER_FAILED")
-            if document.extraction_status == "FAILED":
-                # The parser wrapper records its own exception rather than raising.
-                details = document.extraction_error or ""
+
+            if candidate.extraction_status == "FAILED":
+                details = candidate.extraction_error or ""
                 raise AttachmentReadError("PARSER_FAILED:" + details[:180])
-            if document.extraction_status == "EXTRACTED":
-                actual_text_sha = hashlib.sha256(
-                    (document.extracted_text or "").encode("utf-8")
-                ).hexdigest()
-                if actual_text_sha != document.extracted_text_sha256:
-                    raise AttachmentReadError("EXTRACTED_SHA256_MISMATCH")
-                if len(document.extracted_text or "") != document.extracted_char_count:
-                    raise AttachmentReadError("EXTRACTED_LENGTH_MISMATCH")
+            if candidate.extraction_status in {"EMPTY", "UNSUPPORTED"}:
+                _invalidate_extraction(
+                    document,
+                    status=candidate.extraction_status,
+                    reason=candidate.extraction_error,
+                )
+                return
+            if candidate.extraction_status != "EXTRACTED":
+                raise AttachmentReadError("PARSER_INVALID_STATUS")
+
+            text = candidate.extracted_text
+            if not isinstance(text, str) or not text:
+                raise AttachmentReadError("EXTRACTED_EMPTY_TEXT")
+            actual_sha = hashlib.sha256(text.encode("utf-8")).hexdigest()
+            if actual_sha != candidate.extracted_text_sha256:
+                raise AttachmentReadError("EXTRACTED_SHA256_MISMATCH")
+            if len(text) != candidate.extracted_char_count:
+                raise AttachmentReadError("EXTRACTED_LENGTH_MISMATCH")
+            if not candidate.extracted_blocks:
+                raise AttachmentReadError("EXTRACTED_MISSING_BLOCKS")
+            copy_extraction(candidate, document)
     except AttachmentReadError as error:
-        _clear_extraction(document)
-        document.extraction_status = "FAILED"
-        document.extraction_error = error.category
-        document.extracted_at = datetime.now(KST)
+        _invalidate_extraction(document, status="FAILED", reason=error.category)
     except Exception:
-        # Do not leak credentials/URLs in persisted exception text.
-        _clear_extraction(document)
-        document.extraction_status = "FAILED"
-        document.extraction_error = "SOURCE_READ_FAILED"
-        document.extracted_at = datetime.now(KST)
+        # Never persist credential-bearing S3 exception messages.
+        _invalidate_extraction(document, status="FAILED", reason="SOURCE_READ_FAILED")
 
 
 def extract_pending_documents(
@@ -283,7 +354,14 @@ def extract_pending_documents(
         )
         cached = batch_cache.get(key)
         if cached is not None:
-            copy_extraction(cached, document)
+            if cached.extraction_status == "EXTRACTED":
+                copy_extraction(cached, document)
+            else:
+                _invalidate_extraction(
+                    document,
+                    status=cached.extraction_status,
+                    reason=cached.extraction_error,
+                )
             # Legacy duplicate rows with missing original metadata must receive
             # the verified hash/size too, not just the extracted text.
             if not document.file_sha256:
