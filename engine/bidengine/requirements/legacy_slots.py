@@ -253,6 +253,10 @@ _EXCEPTION_WORDS_RE = re.compile(
 # "기타자유업(행사대행업)(9901)" 처럼 업종명 뒤에 설명 괄호가 하나 더 끼기도 한다(01684825, J20).
 # "소프트웨어사업자(1468)" 처럼 '…업자' 로 끝나는 이름도 같다(2026-10-07 표본 h).
 _NAMED_INDUSTRY_CODE_RE = re.compile(r"[가-힣A-Za-z·ㆍ\s]{2,}?업(?:자)?\s*\)?\s*\(\s*([0-9]{4})\s*\)")
+# 이름 뒤 괄호·대괄호에 쓴 4자리 코드("[출판사신고(1517)]", "인쇄사[1518]"). 이름이 '…업' 으로 끝나지 않아도 업종코드일 수 있다.
+# 마스터에는 1900~2099 코드가 없으니 연도("(2026)")는 뺀다. 판정을 막는 검사(has_closed_value_text)에만 쓴다 — 놓친 코드가
+# 조용히 확인 항목으로 빠져 업종 없는 회사에 '충족' 이 나가지 않게(2026-10-08 표본 l 745369).
+_PAREN_CODE_RE = re.compile(r"[가-힣]\s*[\]\)］]?\s*[\(\[［]\s*((?!19|20)[0-9]{4})\s*[\)\]］]")
 # [재현 2026-09-15, 검수] "가공업(1257)을 등록하고 ISO 9001을 보유한 업체 또는 운반업(1227)을
 # 등록한 업체" 를 실제로 돌리면 ["1257","1227"] 를 돌려줬다. 조각마다 코드가 "하나 있는지"만
 # 보고 "그것 말고 다른 게 있는지"는 안 봤다 — "AND ISO 9001" 이 조용히 사라진 채
@@ -410,7 +414,10 @@ def has_closed_value_text(raw: str) -> bool:
     compact = _compact(raw)
     if any(find_regions(strip_decorations(raw))) or _SIZE_WORD_RE.search(_size_text(raw)):
         return True
-    return bool(_INDUSTRY_CODE_RE.search(compact) or _NAMED_INDUSTRY_CODE_RE.search(compact) or _PRODUCT_CODE_RE.search(compact))
+    return bool(
+        _INDUSTRY_CODE_RE.search(compact) or _NAMED_INDUSTRY_CODE_RE.search(compact)
+        or _PAREN_CODE_RE.search(compact) or _PRODUCT_CODE_RE.search(compact)
+    )
 
 
 def excluded_company_sizes(raw: str) -> list[str]:

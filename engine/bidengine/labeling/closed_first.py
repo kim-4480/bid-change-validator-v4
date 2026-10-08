@@ -463,7 +463,11 @@ def _closed_requirements(polarity: str, text: str, candidates: list[Candidate], 
                 return None
             return {"type": "REGION", "value": c.value, "scope": {}}
         if c.kind == "INDUSTRY":
-            return {"type": "INDUSTRY", "value": c.value, "scope": {"industry_name": c.surface}}
+            scope = {"industry_name": c.surface}
+            if c.family:
+                # 공고에 코드도 정확한 업종명도 없이 묶음 이름에서 추론한 코드다. 미달의 근거로 쓰지 않는다(판정기).
+                scope["evidence"] = "family"
+            return {"type": "INDUSTRY", "value": c.value, "scope": scope}
         if c.kind == "PRODUCT":
             return {"type": "REGISTRATION_CERTIFICATION", "value": c.value, "scope": {"kind": "REGISTRATION", "source_name": c.surface}}
         return None
