@@ -74,7 +74,7 @@ def lgb_score(model,row):
 def dcg(labels):
     return sum((2**v-1)/math.log2(i+2) for i,v in enumerate(labels))
 
-def rank_metrics(groups, score_fn, k=3):
+def rank_metrics(groups, score_fn, k=3, min_label=1):
     keys=["Recall@K","Precision@K","MRR","nDCG@K"]
     values={key:[] for key in keys}
     elapsed=[]
@@ -83,12 +83,12 @@ def rank_metrics(groups, score_fn, k=3):
         clock=time.perf_counter()
         scored=sorted(((score_fn(r),r) for r in group),key=lambda x:(-x[0],x[1]["notice_id"]))
         elapsed.append((time.perf_counter()-clock)*1000)
-        gold=[r for r in group if r["label"]>0]
+        gold=[r for r in group if r["label"]>=min_label]
         ranked=[r for _,r in scored]
-        relevant=sum(r["label"]>0 for r in ranked[:k])
+        relevant=sum(r["label"]>=min_label for r in ranked[:k])
         values["Recall@K"].append(relevant/max(1,len(gold)))
         values["Precision@K"].append(relevant/max(1,min(k,len(ranked))))
-        values["MRR"].append(next((1/(i+1) for i,r in enumerate(ranked) if r["label"]>0),0))
+        values["MRR"].append(next((1/(i+1) for i,r in enumerate(ranked) if r["label"]>=min_label),0))
         ideal=dcg(sorted((r["label"] for r in group),reverse=True)[:k])
         values["nDCG@K"].append(dcg([r["label"] for r in ranked[:k]])/ideal if ideal else 0)
         if ranked and ranked[0]["label"]==0 and len(failures)<10:
@@ -159,7 +159,7 @@ def deep_fit(rows,output,seed,device="cpu",epochs=2):
             rng.shuffle(train)
             losses=[]
             for group in train:
-                pos=next((r for r in group if r["label"]>0),None)
+                pos=next((r for r in group if r["label"]>=min_label),None)
                 neg=next((r for r in group if r["label"]==0),None)
                 if pos is None or neg is None:
                     continue

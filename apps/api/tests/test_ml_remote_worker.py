@@ -46,4 +46,5 @@ def test_api_fallback_is_read_only_and_has_unknown_status(monkeypatch):
         analysis_version=None,analysis_status="UNKNOWN",is_stale=False)])
     result=recommend_ml(MLRecommendationRequest(query="network"),db=object(),user=None)
     assert result.scoring_source=="lexical_fallback"
-    assert result.items[0].qualification_state=="UNKNOWN"
+    assert result.items == []  # Unknown must NEVER appear as eligible.
+    assert result.needs_review_items[0].qualification_state=="UNKNOWN"

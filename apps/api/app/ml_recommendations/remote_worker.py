@@ -13,6 +13,7 @@ app = FastAPI(title="BidCheck ML Inference Worker")
 class Notice(BaseModel):
     notice_id: str
     title: str
+    notice_text: str | None = None
 
 class ScoreRequest(BaseModel):
     query: str = Field(min_length=2, max_length=500)
@@ -37,7 +38,7 @@ def predict(request: ScoreRequest, authorization: str | None = Header(default=No
         raise HTTPException(status_code=401, detail="Unauthorized")
     try:
         scoring, version = model()
-        scores = [float(scoring({"query_text": request.query, "notice_text": item.title}))
+        scores = [float(scoring({"query_text": request.query, "notice_text": item.notice_text or item.title}))
                   for item in request.notices]
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Model unavailable") from exc

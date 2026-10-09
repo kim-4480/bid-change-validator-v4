@@ -72,9 +72,15 @@ def validated_reviews(dataset_dir,completed_csv,output):
     destination=Path(output);destination.parent.mkdir(parents=True,exist_ok=True)
     with destination.open("w",encoding="utf-8") as f:
         for r in reviewed:f.write(json.dumps(r,ensure_ascii=False,sort_keys=True,default=str)+"\n")
-    return {"reviewed":len(reviewed),"label_counts":dict((i,sum(x["label"]==i for x in reviewed)) for i in range(4)),
-            "sha256":hashlib.sha256(destination.read_bytes()).hexdigest(),"valid_holdout":valid,"evaluation_permitted":valid,
-            "limitation":None if valid else "Review labels archived, but holdout cannot be used for model accuracy"}
+    report = {"reviewed":len(reviewed),
+              "label_counts":dict((i,sum(x["label"]==i for x in reviewed)) for i in range(4)),
+              "sha256":hashlib.sha256(destination.read_bytes()).hexdigest(),
+              "source_dataset_sha256":manifest["sha256"]["company_notice_pairs.jsonl"],
+              "valid_holdout":valid,"evaluation_permitted":valid,
+              "limitation":None if valid else "Review labels archived, but holdout cannot be used for model accuracy"}
+    destination.with_name(destination.name + ".validation.json").write_text(
+        json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2),encoding="utf-8")
+    return report
 
 def main():
     p=argparse.ArgumentParser(description="Human relevance grades 0..3; qualification status is separate")

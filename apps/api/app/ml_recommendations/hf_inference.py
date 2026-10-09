@@ -57,7 +57,7 @@ def load_finetuned(directory,pretrained,kind="cross_encoder",device="cpu"):
 
 def score_hf(query,notices,dir,pretrained,kind="cross_encoder",device="cpu"):
     scorer,sha,meta=load_finetuned(str(dir),str(pretrained),kind,device)
-    values=[scorer(query,n["title"]) for n in notices]
+    values=[scorer(query,n.get("notice_text") or n["title"]) for n in notices]
     ranked=sorted((dict(row,score=float(v)) for row,v in zip(notices,values)),
                   key=lambda x:(-x["score"],str(x["notice_id"])))
     return ranked,"hf-"+kind+"-"+sha[:12],meta.get("dataset_sha256","unknown"),"local_hf",None
