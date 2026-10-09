@@ -1,4 +1,5 @@
-from bideval.qualification_metrics import extraction_prf, verdict_quality
+import pytest
+from bideval.qualification_metrics import extraction_prf, verdict_quality, retrieval_recall_at_k
 
 
 def test_precision_recall_f1_on_verified_fixture():
@@ -32,3 +33,36 @@ def test_verdict_metrics_flag_false_positive_and_unknown():
 def test_unreviewed_label_metrics_remain_null():
     report = verdict_quality({"A": "SATISFIED"}, {"A": "UNKNOWN"}, labels_verified=False)
     assert all(value is None for value in report.values())
+
+
+def test_verified_disjoint_extraction_has_zero_f1():
+    result = extraction_prf({"pred"}, {"gold"}, labels_verified=True)
+    assert result["precision"] == 0.0
+    assert result["recall"] == 0.0
+    assert result["f1"] == 0.0
+
+
+def test_retrieval_recall_at_k_uses_approved_versioned_chunk_ids():
+    hits = [("chunk-a", "version-1"), ("chunk-b", "version-1"), ("chunk-c", "version-1")]
+    report = retrieval_recall_at_k(hits, {"chunk-b", "chunk-d"}, notice_version_id="version-1",
+                                  k=2, labels_verified=True)
+    assert report == {"recall_at_k": 0.5, "retrieved_relevant": 1, "relevant": 2}
+
+
+def test_retrieval_unreviewed_or_empty_truth_never_reports_quality():
+    hits = [("chunk-a", "version-1")]
+    for verified, gold in ((False, {"chunk-a"}), (True, set())):
+        report = retrieval_recall_at_k(hits, gold, notice_version_id="version-1",
+                                      k=1, labels_verified=verified)
+        assert all(value is None for value in report.values())
+
+
+@pytest.mark.parametrize("hits", [
+    [("chunk-a", "version-1"), ("chunk-b", "version-2")],
+    [("chunk-a", "version-1"), ("chunk-a", "version-1")],
+    [("", "version-1")],
+])
+def test_retrieval_refuses_cross_version_duplicate_or_empty_hits(hits):
+    with pytest.raises(ValueError):
+        retrieval_recall_at_k(hits, {"chunk-a"}, notice_version_id="version-1",
+                              k=2, labels_verified=True)
