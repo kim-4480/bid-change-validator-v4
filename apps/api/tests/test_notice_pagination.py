@@ -65,7 +65,9 @@ def test_notice_pagination_counts_and_limit_offset(total, offset, expected):
 
     list_sql = str(db.list_statement.compile(compile_kwargs={"literal_binds": True})).lower()
     count_sql = str(db.count_statement.compile(compile_kwargs={"literal_binds": True})).lower()
-    assert "order by bid_notices.last_seen_at desc, bid_notices.id desc" in list_sql
+    assert "order by case when" in list_sql
+    assert "bid_notice_versions.bid_closed_at" in list_sql
+    assert "bid_notices.last_seen_at desc, bid_notices.id desc" in list_sql
     assert f"offset {offset}" in list_sql
     assert "limit 10" in list_sql
     assert "bid_notices.business_type = 'goods'" in list_sql

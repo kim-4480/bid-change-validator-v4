@@ -44,6 +44,8 @@ class Settings(BaseSettings):
     processing_batch_size: int = Field(default=10, ge=1, le=100)
     processing_poll_interval_seconds: int = Field(default=30, ge=1, le=3600)
     processing_enable_external: bool = False
+    qualification_self_service_enabled: bool = False
+    qualification_self_service_daily_limit: int = Field(default=3, ge=1, le=100)
     auth_bootstrap_admin_username: str = "admin"
     auth_bootstrap_admin_password: str = "admin"
     auth_session_ttl_hours: int = Field(default=12, ge=1, le=720)
