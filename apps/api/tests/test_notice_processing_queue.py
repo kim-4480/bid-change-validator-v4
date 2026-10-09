@@ -185,3 +185,17 @@ def test_extraction_input_drift_requeues_current_fingerprint(state, monkeypatch)
     assert len(jobs) == 2
     assert db.get(NoticeProcessingJob, original.id).status == "SUPERSEDED"
     assert next(job for job in jobs if job.id != original.id).status == "PENDING"
+
+def test_user_can_request_without_admin_approval(state):
+    db, notice, version, actor, client, admin, ordinary = state
+    actor["user"] = ordinary
+    url = f"/api/v1/notices/{notice.id}/versions/1/qualification-analysis/request"
+    first = client.post(url)
+    assert first.status_code == 202, first.text
+    assert first.json()["approved"] is False
+    assert first.json()["job_status"] == "PENDING"
+    assert client.post(url).json()["job_id"] == first.json()["job_id"]
+    job = db.get(NoticeProcessingJob, first.json()["job_id"])
+    assert job.approved_by_id is None
+    assert claim_approved_analysis_job(db, version_id=version.id) is None
+

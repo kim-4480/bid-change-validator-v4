@@ -347,6 +347,21 @@ export function listQualificationAnalyses(noticeId: string, versionNumber: numbe
   );
 }
 
+export type QualificationAnalysisRequest = {
+  notice_version_id: string;
+  job_id: string;
+  job_status: string;
+  approved: boolean;
+  documents_ready: boolean;
+};
+
+export function requestQualificationAnalysis(noticeId: string, versionNumber: number) {
+  return request<QualificationAnalysisRequest>(
+    `/api/v1/notices/${noticeId}/versions/${versionNumber}/qualification-analysis/request`,
+    { method: 'POST' },
+  );
+}
+
 export function runQualificationAnalysis(noticeId: string, versionNumber: number) {
   return request<QualificationAnalysisRun>(
     `/api/v1/notices/${noticeId}/versions/${versionNumber}/qualification-analysis`,

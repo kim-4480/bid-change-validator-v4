@@ -64,12 +64,12 @@ def feature_text(version: BidNoticeVersion, *, notice=None) -> str:
 
 def enqueue_version_job(
     db: Session, *, version_id: UUID, stage: str, priority: int = 0,
-    approved_by_id: UUID | None = None,
+    approved_by_id: UUID | None = None, allow_unapproved_analysis: bool = False,
 ) -> NoticeProcessingJob:
     version = load_version(db, version_id, lock=True)
     if version is None:
         raise ValueError("NOTICE_VERSION_NOT_FOUND")
-    if stage == "ANALYZE" and approved_by_id is None:
+    if stage == "ANALYZE" and approved_by_id is None and not allow_unapproved_analysis:
         raise ValueError("ANALYSIS_APPROVAL_REQUIRED")
     fingerprint = input_fingerprint(version, stage)
     now = datetime.now(timezone.utc)

@@ -22,6 +22,7 @@ import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { navigateTo, replaceWith } from '@/lib/navigation';
 import type { HighlightSource } from '@/lib/source-highlight';
 import {
+  ApiError,
   getNotice,
   getNoticeVersions,
   listNotices,
@@ -37,6 +38,7 @@ import {
   listCompanies,
   listQualificationQuestions,
   runQualificationAnalysis,
+  requestQualificationAnalysis,
   runQualificationJudgment,
   type CanonicalRequirement,
   type CompanyProfile,
@@ -48,6 +50,8 @@ import {
   type QualificationQuestion,
   type RequirementTier,
 } from '@/lib/qualification-api';
+
+class AnalysisApprovalPending extends Error {}
 
 type Busy = 'load' | 'create' | 'review' | null;
 type ReviewStep = 'idle' | 'analysis' | 'judgment' | 'done';
@@ -324,6 +328,7 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
       }
     } catch (cause) {
       if (request === generation.current) setError(cause instanceof Error ? cause.message : '초기 데이터를 불러오지 못했습니다.');
+      }
     } finally {
       if (request === generation.current) setBusy(null);
     }
@@ -364,7 +369,17 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
 
   async function getOrRunAnalysis(versionNumber: number, existing: QualificationAnalysisSummary | null, force: boolean) {
     if (!force && canReuseAnalysis(existing)) return existing!;
-    return runQualificationAnalysis(activeCase!.notice_id, versionNumber);
+    try {
+      return await runQualificationAnalysis(activeCase!.notice_id, versionNumber);
+    } catch (cause) {
+      if (cause instanceof ApiError && cause.code === 'ANALYSIS_APPROVAL_REQUIRED') {
+        const requested = await requestQualificationAnalysis(activeCase!.notice_id, versionNumber);
+        throw new AnalysisApprovalPending(requested.documents_ready
+          ? '?? ??? ??????. ?? ?? ????? ??? ?? ??? ??? ??? ???? ????. ?? ? ??? ?? ??? ???.'
+          : '?? ??? ??????. ???? ??????? ??? ??? ? ??? ???? ???? ??? ??? ? ????.');
+      }
+      throw cause;
+    }
   }
 
   async function runFullReview(force = false) {
@@ -433,7 +448,12 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
     } catch (cause) {
       if (request !== generation.current) return;
       setReviewStep('idle');
-      setError(cause instanceof Error ? cause.message : '참가자격 검토에 실패했습니다.');
+      if (cause instanceof AnalysisApprovalPending) {
+        setMessageTone('warn');
+        setMessage(cause.message);
+        setError('');
+      } else {
+        setError(cause instanceof Error ? cause.message : '참가자격 검토에 실패했습니다.');
     } finally {
       controller.releaseReview(activeCase.id);
       if (request === generation.current) setBusy(null);

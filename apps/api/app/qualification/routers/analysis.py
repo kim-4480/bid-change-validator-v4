@@ -3,15 +3,18 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from bidengine.providers.openai import OpenAIStructuredExtractor
 from ...analysis_schemas import QualificationAnalysisRunRead, QualificationAnalysisRunSummary
+from ...auth import get_current_user
+from ...auth_models import AppUser
 from ...database import get_db
 from ...errors import ApiError
 from ...models import BidNoticeVersion
-from ...services.notice_processing import claim_approved_analysis_job, finish_job
+from ...services.notice_processing import claim_approved_analysis_job, enqueue_version_job, finish_job
 from ..analysis import (
     QualificationAnalysisError,
     analysis_run_response,
@@ -27,6 +30,48 @@ router = APIRouter(tags=["qualification analysis"])
 def _analysis_error(error: QualificationAnalysisError) -> ApiError:
     status_code = 404 if error.code in {"NOTICE_VERSION_NOT_FOUND", "ANALYSIS_RUN_NOT_FOUND"} else 422
     return ApiError(status_code, error.code, error.message)
+
+
+class QualificationAnalysisRequestRead(BaseModel):
+    notice_version_id: UUID
+    job_id: UUID
+    job_status: str
+    approved: bool
+    documents_ready: bool
+
+
+@router.post(
+    "/api/v1/notices/{notice_id}/versions/{version_number}/qualification-analysis/request",
+    response_model=QualificationAnalysisRequestRead,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def request_qualification_analysis(
+    notice_id: UUID,
+    version_number: int,
+    db: Session = Depends(get_db),
+    _user: AppUser = Depends(get_current_user),
+) -> QualificationAnalysisRequestRead:
+    """Request review without granting permission to spend tokens or run an LLM."""
+    version = db.scalar(select(BidNoticeVersion).where(
+        BidNoticeVersion.notice_id == notice_id,
+        BidNoticeVersion.version_number == version_number,
+    ))
+    if version is None:
+        raise ApiError(404, "NOTICE_VERSION_NOT_FOUND", "?? ??? ?? ? ????.")
+    ready = bool(version.documents) and all(
+        doc.download_status == "DOWNLOADED" and doc.extraction_status == "EXTRACTED"
+        for doc in version.documents
+    )
+    if not ready:
+        enqueue_version_job(db, version_id=version.id, stage="EXTRACT")
+    job = enqueue_version_job(
+        db, version_id=version.id, stage="ANALYZE", allow_unapproved_analysis=True,
+    )
+    db.commit()
+    return QualificationAnalysisRequestRead(
+        notice_version_id=version.id, job_id=job.id, job_status=job.status,
+        approved=bool(job.approved_by_id and job.approved_at), documents_ready=ready,
+    )
 
 
 @router.post(
