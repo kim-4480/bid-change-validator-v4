@@ -29,20 +29,7 @@ services:
     environment: *db
     volumes:
       - *ca
-    command:
-      - python
-      - -c
-      - |
-        from sqlalchemy import text
-        from app.database import engine
-        with engine.connect() as conn:
-            conn.execute(text('SET TRANSACTION READ ONLY'))
-            version = conn.execute(text('SELECT version_num FROM alembic_version')).scalar_one()
-            user = conn.execute(text('SELECT current_user')).scalar_one()
-            tls = conn.execute(text('SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()')).scalar_one()
-            rls = conn.execute(text("SELECT row_security_active('public.qualification_graph_runs'::regclass)")).scalar_one()
-            assert (version, user, tls, rls) == ('024_analysis_run_coverage', 'bidcheck_app', True, True)
-            print('AWS_SCHEMA_CHECK_OK', version, user, 'TLS', tls, 'RLS', rls)
+    command: ["python", "-m", "app.aws_schema_check"]
 
   api:
     image: ${API_IMAGE:?API_IMAGE is required}
