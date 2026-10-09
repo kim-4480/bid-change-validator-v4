@@ -122,6 +122,36 @@ services:
       - notice_documents_data:/data/notice-documents
     command: ["python", "-m", "app.workers.notice_polling"]
 
+  processing-worker:
+    profiles: ["processing"]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}}
+      DATABASE_POOL_SIZE: "1"
+      DATABASE_MAX_OVERFLOW: "0"
+      DOCUMENT_STORAGE_BACKEND: ${DOCUMENT_STORAGE_BACKEND:-LOCAL}
+      DOCUMENT_STORAGE_PATH: /data/notice-documents
+      DOCUMENT_RAG_INDEX_ROOT: /data/document-rag
+      DOCUMENT_S3_BUCKET: ${DOCUMENT_S3_BUCKET:-}
+      DOCUMENT_S3_PREFIX: ${DOCUMENT_S3_PREFIX:-notice-documents}
+      AWS_REGION: ${AWS_REGION:-ap-northeast-2}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      PROCESSING_ENABLE_EXTERNAL: ${PROCESSING_ENABLE_EXTERNAL:-false}
+      PROCESSING_BATCH_SIZE: ${PROCESSING_BATCH_SIZE:-10}
+      PROCESSING_POLL_INTERVAL_SECONDS: ${PROCESSING_POLL_INTERVAL_SECONDS:-30}
+    volumes:
+      - notice_documents_data:/data/notice-documents
+      - document_rag_index_data:/data/document-rag
+    command: ["python", "-m", "app.workers.notice_processing"]
+
   migrate:
     build:
       context: .
@@ -166,3 +196,4 @@ volumes:
   notice_documents_data:
     external: true
     name: ${NOTICE_DOCUMENTS_VOLUME:-bid-change-validator-v4_notice_documents_data}
+  document_rag_index_data:

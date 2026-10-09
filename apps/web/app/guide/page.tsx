@@ -71,9 +71,9 @@ const SCREEN_GROUPS = [
 
 /* 라벨과 색은 공통 맵에서 가져온다. 여기에 문구를 또 적으면 화면마다 다른 이름이 된다 (#138 리뷰). */
 const BADGES = [
-  { key: 'eligible', icon: CheckCircle2, body: '판정한 필수 항목에서 미달이 없습니다.' },
-  { key: 'insufficient_data', icon: CircleHelp, body: '회사 정보가 없거나 근거를 찾지 못해 판정하지 않았습니다.' },
-  { key: 'ineligible', icon: XCircle, body: '미달 항목이 있어 지금 상태로는 참가할 수 없습니다.' },
+  { key: 'core_met', icon: CheckCircle2, body: '검증된 핵심 요건을 충족합니다. 입찰 참가 가능을 보증하지 않습니다.' },
+  { key: 'needs_review', icon: CircleHelp, body: '회사 정보·원문 근거·분석 커버리지가 부족해 확인이 필요합니다.' },
+  { key: 'core_unmet', icon: XCircle, body: '근거가 확인된 핵심 요건에 미충족 항목이 있습니다. 법적 참가 불가 확정은 아닙니다.' },
   { key: 'unreviewed', icon: FileCheck2, body: '아직 검토를 시작하지 않은 공고입니다.' },
 ] as const;
 

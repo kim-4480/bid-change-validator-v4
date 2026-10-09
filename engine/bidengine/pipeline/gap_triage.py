@@ -158,12 +158,12 @@ def closed_values_in(text: str) -> dict[str, set[str]]:
     from bidengine.judgment.clause_safety import strip_decorations
     from bidengine.normalization.regions import find_regions
     from bidengine.requirements.legacy_slots import (
-        _INDUSTRY_CODE_RE, _NAMED_INDUSTRY_CODE_RE, _PRODUCT_CODE_RE, _SIZE_WORD_RE, _size_text,
+        _INDUSTRY_CODE_RE, _NAMED_INDUSTRY_CODE_RE, _PAREN_CODE_RE, _PRODUCT_CODE_RE, _SIZE_WORD_RE, _size_text,
     )
 
     compact = _compact(text)
     codes = {code for group in _INDUSTRY_CODE_RE.findall(compact) for code in re.findall(r"[0-9]{4}", group)}
-    codes |= set(_NAMED_INDUSTRY_CODE_RE.findall(compact)) | set(_PRODUCT_CODE_RE.findall(compact))
+    codes |= set(_NAMED_INDUSTRY_CODE_RE.findall(compact)) | set(_PAREN_CODE_RE.findall(compact)) | set(_PRODUCT_CODE_RE.findall(compact))
     sidos, subs = find_regions(strip_decorations(text or ""))
     return {"codes": codes, "regions": set(sidos) | set(subs), "sizes": set(_SIZE_WORD_RE.findall(_size_text(text or "")))}
 

@@ -24,6 +24,7 @@ from .document_extraction import copy_extraction
 from .notice_change_history import upsert_notice_change_history
 from .notice_facts import upsert_g2b_notice_facts
 from .notice_history_backfill import enqueue_notice_history_backfill
+from .notice_processing import enqueue_version_job
 from .json_safety import sanitize_json_value
 
 
@@ -461,6 +462,8 @@ def run_notice_sync(
                         document_downloader=document_downloader,
                     )
                     count_result(result)
+                    if result in {"CREATED", "NEW_VERSION"}:
+                        enqueue_version_job(db, version_id=version.id, stage="EXTRACT")
                     queue_previous_notice(item)
                     if (
                         result == "CREATED"

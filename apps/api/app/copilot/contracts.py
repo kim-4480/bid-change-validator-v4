@@ -14,7 +14,7 @@ from bidengine.contracts import (
 )
 from bidengine.pipeline.analysis_result import AnalysisDiagnostic, DroppedRequirement
 from ..ask_back_schemas import QualificationQuestionRead
-from bidengine.judgment.rules import OverallQualificationStatus, ProfileCompleteness
+from bidengine.judgment.rules import OverallQualificationStatus, ProfileCompleteness, normalize_overall_status
 
 
 class ProductProvenance(BaseModel):
@@ -55,6 +55,11 @@ class QualificationSummary(BaseModel):
     judgment_counts: dict[JudgmentStatus, int]
     judgments: list[RequirementJudgmentSummary]
     analysis_scope: AnalysisScope | None = None
+
+    @field_validator("overall_status", mode="before")
+    @classmethod
+    def legacy_verdict_needs_review(cls, value: str) -> OverallQualificationStatus:
+        return normalize_overall_status(value)
 
 
 class RequirementEvidenceResult(BaseModel):

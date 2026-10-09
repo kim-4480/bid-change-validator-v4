@@ -308,7 +308,7 @@ def test_numbered_sub_items_under_any_of_are_alternatives_but_region_stays_commo
     company = CompanyProfileSnapshot(company_id="c", region_name="강원특별자치도 강릉시",
                                      industries=[ProfileIndustryFact(code="4993", name="조경식재ㆍ시설물공사업", verified=True)])
     assert judge_requirements(requirements, company, preflight_case_id="c", reference_date=date(2026, 10, 7),
-                              coverage_complete=True).overall_status == "eligible"
+                              coverage_complete=True).overall_status == "core_met"
 
 
 def test_clause_whose_only_open_name_was_noise_stays_for_review():

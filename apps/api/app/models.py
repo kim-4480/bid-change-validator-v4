@@ -626,6 +626,59 @@ Index(
 )
 
 
+class NoticeProcessingJob(Base):
+    """Version-scoped, fingerprinted post-collection work; never an implicit LLM approval."""
+
+    __tablename__ = "notice_processing_jobs"
+    __table_args__ = (
+        UniqueConstraint("notice_version_id", "stage", "input_fingerprint", name="uq_notice_processing_input"),
+        CheckConstraint("stage IN ('EXTRACT', 'INDEX', 'FEATURES', 'ANALYZE')", name="notice_processing_stage_valid"),
+        CheckConstraint("status IN ('PENDING', 'RUNNING', 'COMPLETED', 'FAILED', 'SUPERSEDED')", name="notice_processing_status_valid"),
+        CheckConstraint("attempts >= 0", name="notice_processing_attempts_nonnegative"),
+    )
+
+    id: Mapped[UUID] = mapped_column(PostgresUUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    notice_version_id: Mapped[UUID] = mapped_column(PostgresUUID(as_uuid=True), ForeignKey("bid_notice_versions.id", ondelete="CASCADE"), nullable=False)
+    stage: Mapped[str] = mapped_column(Text, nullable=False)
+    input_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="PENDING")
+    priority: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    retry_budget: Mapped[int] = mapped_column(Integer, nullable=False, default=3)
+    next_attempt_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_error: Mapped[str | None] = mapped_column(Text)
+    approved_by_id: Mapped[UUID | None] = mapped_column(PostgresUUID(as_uuid=True), ForeignKey("app_users.id", ondelete="RESTRICT"))
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
+
+
+class NoticeProcessingAttempt(Base):
+    """Persisted worker execution history, including interrupted-lease retries."""
+
+    __tablename__ = "notice_processing_attempts"
+
+    id: Mapped[UUID] = mapped_column(PostgresUUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    job_id: Mapped[UUID] = mapped_column(PostgresUUID(as_uuid=True), ForeignKey("notice_processing_jobs.id", ondelete="CASCADE"), nullable=False)
+    attempt_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    outcome: Mapped[str] = mapped_column(Text, nullable=False)
+    error: Mapped[str | None] = mapped_column(Text)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class NoticeRecommendationFeature(Base):
+    """Materialized, version-bound lexical features; relevance is not qualification."""
+
+    __tablename__ = "notice_recommendation_features"
+
+    notice_version_id: Mapped[UUID] = mapped_column(PostgresUUID(as_uuid=True), ForeignKey("bid_notice_versions.id", ondelete="CASCADE"), primary_key=True)
+    input_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    search_text: Mapped[str] = mapped_column(Text, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
+
+
 class PreflightCase(Base):
     __tablename__ = "preflight_cases"
     __table_args__ = (
@@ -734,6 +787,48 @@ class ProposalDocument(Base):
         )
 
 
+class RelevanceReviewLabel(Base):
+    """A human business-relevance grade, never a qualification verdict."""
+
+    __tablename__ = "relevance_review_labels"
+    __table_args__ = (
+        UniqueConstraint("company_id", "notice_version_id", name="uq_relevance_review_pair"),
+        CheckConstraint("grade BETWEEN 0 AND 3", name="relevance_review_grade_valid"),
+        CheckConstraint("status IN ('DRAFT', 'APPROVED', 'REOPENED')", name="relevance_review_status_valid"),
+        CheckConstraint("subject_origin IN ('REAL', 'SYNTHETIC', 'UNKNOWN')", name="relevance_review_origin_valid"),
+    )
+
+    id: Mapped[UUID] = mapped_column(PostgresUUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    company_id: Mapped[UUID] = mapped_column(PostgresUUID(as_uuid=True), ForeignKey("companies.id", ondelete="RESTRICT"), nullable=False)
+    notice_version_id: Mapped[UUID] = mapped_column(PostgresUUID(as_uuid=True), ForeignKey("bid_notice_versions.id", ondelete="RESTRICT"), nullable=False)
+    grade: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    rationale: Mapped[str] = mapped_column(Text, nullable=False)
+    subject_origin: Mapped[str] = mapped_column(Text, nullable=False, default="UNKNOWN")
+    company_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    notice_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="DRAFT")
+    reviewer_id: Mapped[UUID] = mapped_column(PostgresUUID(as_uuid=True), ForeignKey("app_users.id", ondelete="RESTRICT"), nullable=False)
+    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    approved_by_id: Mapped[UUID | None] = mapped_column(PostgresUUID(as_uuid=True), ForeignKey("app_users.id", ondelete="RESTRICT"))
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("now()"), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("now()"), nullable=False)
+
+
+class RelevanceReviewEvent(Base):
+    """Append-only audit of human review and independent approval."""
+
+    __tablename__ = "relevance_review_events"
+
+    id: Mapped[UUID] = mapped_column(PostgresUUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    label_id: Mapped[UUID] = mapped_column(PostgresUUID(as_uuid=True), ForeignKey("relevance_review_labels.id", ondelete="RESTRICT"), nullable=False)
+    actor_id: Mapped[UUID] = mapped_column(PostgresUUID(as_uuid=True), ForeignKey("app_users.id", ondelete="RESTRICT"), nullable=False)
+    action: Mapped[str] = mapped_column(Text, nullable=False)
+    before_state: Mapped[dict | None] = mapped_column(JSONB)
+    after_state: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("now()"), nullable=False)
+
+
 Index("idx_bid_notices_title", BidNotice.title)
 Index("idx_bid_notices_last_seen", BidNotice.last_seen_at.desc())
 Index("idx_bid_notices_business_type", BidNotice.business_type, BidNotice.last_seen_at)
@@ -752,3 +847,4 @@ Index("idx_notice_collection_runs_started", NoticeCollectionRun.started_at.desc(
 Index("idx_preflight_cases_notice", PreflightCase.notice_id, PreflightCase.created_at)
 Index("idx_preflight_cases_company", PreflightCase.company_id, PreflightCase.created_at)
 Index("idx_proposal_documents_case", ProposalDocument.case_id, ProposalDocument.document_order)
+Index("idx_relevance_review_status", RelevanceReviewLabel.status, RelevanceReviewLabel.reviewed_at.desc())

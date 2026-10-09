@@ -37,7 +37,7 @@ def _fixture():
         ),
     ]
     summary = QualificationSummary(
-        provenance=provenance, overall_status="ineligible", analysis_status="PARTIAL",
+        provenance=provenance, overall_status="core_unmet", analysis_status="PARTIAL",
         judgment_counts={"SATISFIED": 1, "UNSATISFIED": 1, "UNKNOWN": 0},
         judgments=judgments, analysis_scope=AnalysisScope(analysis_run_id=provenance.analysis_run_id),
     )
@@ -51,7 +51,7 @@ def _fixture():
     mapping = SourceMap()
     identity = mapping.add(source)
     presentation = Presentation(
-        conclusion="현재 저장된 판정은 참가 불가입니다.",
+        conclusion="현재 저장된 판정은 핵심 요건 미충족입니다.",
         reasons=[Reason(text="업종 — 단체급식업 등록 필요", requirement_key="R1", evidence_refs=[identity])],
         limitations=["분석이 부분 완료 상태입니다."],
     )
@@ -85,10 +85,10 @@ def test_narrator_compacts_product_truth_without_changing_product_state(monkeypa
     sent = {}
     def extractor(system, body, schema):
         sent["body"] = body
-        assert schema["schema"]["properties"]["status"]["enum"] == ["ineligible"]
+        assert schema["schema"]["properties"]["status"]["enum"] == ["core_unmet"]
         return {
-            "status": "ineligible",
-            "conclusion": "현재는 참가 불가로 판정됐어요.",
+            "status": "core_unmet",
+            "conclusion": "현재는 핵심 요건 미충족으로 판정됐어요. 법적 참가 불가능을 확정하지 않습니다.",
             "points": [{"requirement_key": "R1", "text": "단체급식업 등록 조건을 충족하지 못했습니다."}],
             "caveat": "현재 분석은 일부 항목이 자동 판정 범위에 포함되지 않은 PARTIAL 상태입니다.",
             "next_action": "필요하면 미달 요건의 원문 근거를 확인해 보세요.",
@@ -98,7 +98,7 @@ def test_narrator_compacts_product_truth_without_changing_product_state(monkeypa
     narrated = apply_product_narration(SimpleNamespace(), request, result, extractor=extractor)
 
     assert narrated.product_state.model_dump(mode="json") == original_state
-    assert narrated.presentation.conclusion == "현재는 참가 불가로 판정됐어요."
+    assert narrated.presentation.conclusion == "현재는 핵심 요건 미충족으로 판정됐어요. 법적 참가 불가능을 확정하지 않습니다."
     assert [reason.requirement_key for reason in narrated.presentation.reasons] == ["R1"]
     assert "R2" not in narrated.answer
     assert narrated.sources and narrated.citations == narrated.sources
@@ -113,7 +113,7 @@ def test_narrator_cannot_flip_product_status(monkeypatch):
 
     def extractor(*args):
         return {
-            "status": "eligible",
+            "status": "core_met",
             "conclusion": "참가 가능합니다.",
             "points": [], "caveat": None, "next_action": None,
         }
@@ -130,8 +130,8 @@ def test_narrator_unknown_requirement_falls_back(monkeypatch):
 
     def extractor(*args):
         return {
-            "status": "ineligible",
-            "conclusion": "참가 불가입니다.",
+            "status": "core_unmet",
+            "conclusion": "핵심 요건 미충족입니다.",
             "points": [{"requirement_key": "R999", "text": "없는 요건"}],
             "caveat": None, "next_action": None,
         }

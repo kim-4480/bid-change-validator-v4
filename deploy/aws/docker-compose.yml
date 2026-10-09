@@ -29,20 +29,7 @@ services:
     environment: *db
     volumes:
       - *ca
-    command:
-      - python
-      - -c
-      - |
-        from sqlalchemy import text
-        from app.database import engine
-        with engine.connect() as conn:
-            conn.execute(text('SET TRANSACTION READ ONLY'))
-            version = conn.execute(text('SELECT version_num FROM alembic_version')).scalar_one()
-            user = conn.execute(text('SELECT current_user')).scalar_one()
-            tls = conn.execute(text('SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()')).scalar_one()
-            rls = conn.execute(text("SELECT row_security_active('public.qualification_graph_runs'::regclass)")).scalar_one()
-            assert (version, user, tls, rls) == ('024_analysis_run_coverage', 'bidcheck_app', True, True)
-            print('AWS_SCHEMA_CHECK_OK', version, user, 'TLS', tls, 'RLS', rls)
+    command: ["python", "-m", "app.aws_schema_check"]
 
   api:
     image: ${API_IMAGE:?API_IMAGE is required}
@@ -67,8 +54,10 @@ services:
       AUTH_COOKIE_SECURE: "true"
       AUTH_BOOTSTRAP_ADMIN_USERNAME: ${AUTH_BOOTSTRAP_ADMIN_USERNAME:?Admin username is required}
       AUTH_BOOTSTRAP_ADMIN_PASSWORD: ${AUTH_BOOTSTRAP_ADMIN_PASSWORD:?Admin password is required}
+      DOCUMENT_RAG_INDEX_ROOT: /data/document-rag
     volumes:
       - *ca
+      - document_rag_index_data:/data/document-rag
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 15s
@@ -98,6 +87,26 @@ services:
     volumes:
       - *ca
     command: ["python", "-m", "app.workers.notice_polling"]
+
+  processing-worker:
+    profiles: ["processing"]
+    image: ${API_IMAGE:?API_IMAGE is required}
+    restart: unless-stopped
+    depends_on:
+      schema-check:
+        condition: service_completed_successfully
+    environment:
+      <<: [*db, *documents]
+      DATABASE_POOL_SIZE: "1"
+      PROCESSING_ENABLE_EXTERNAL: ${PROCESSING_ENABLE_EXTERNAL:-false}
+      PROCESSING_BATCH_SIZE: ${PROCESSING_BATCH_SIZE:-10}
+      PROCESSING_POLL_INTERVAL_SECONDS: ${PROCESSING_POLL_INTERVAL_SECONDS:-30}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      DOCUMENT_RAG_INDEX_ROOT: /data/document-rag
+    volumes:
+      - *ca
+      - document_rag_index_data:/data/document-rag
+    command: ["python", "-m", "app.workers.notice_processing"]
 
   web:
     image: ${WEB_IMAGE:?WEB_IMAGE is required}
@@ -135,3 +144,4 @@ services:
 volumes:
   caddy_data:
   caddy_config:
+  document_rag_index_data:

@@ -7,7 +7,7 @@ from apps.api.app.analysis_models import QualificationAnalysisRun, Qualification
 from apps.api.app.database import SessionLocal
 from apps.api.app.judgment_models import QualificationJudgmentRun
 from bidengine.judgment.rules import RULE_VERSION
-from apps.api.tests.test_mvp_golden_e2e import _seed_golden_case, _cleanup, client, REFERENCE_DATE
+from apps.api.tests.test_mvp_golden_e2e import _seed_golden_case, _ground_analysis_documents, _cleanup, client, REFERENCE_DATE
 
 
 pytestmark = pytest.mark.usefixtures("seed_required_master_codes")
@@ -17,6 +17,8 @@ pytestmark = pytest.mark.usefixtures("seed_required_master_codes")
 def scenario():
     seed = _seed_golden_case()
     try:
+        with SessionLocal() as db:
+            _ground_analysis_documents(db, seed)
         yield seed
     finally:
         _cleanup(seed)
@@ -40,7 +42,7 @@ def test_partial_answer_keeps_abstention_and_rejects_stale_overwrite(scenario):
     response = answer(scenario, original)
     assert response.status_code == 200, response.text
     result = response.json()['result']
-    assert result['overall_status'] == 'insufficient_data'
+    assert result['overall_status'] == 'needs_review'
     assert result['analysis_status'] == 'PARTIAL'
     assert next(j for j in result['judgments'] if j['requirement_key'] == 'REQ-REGISTRATION')['basis_type'] == 'USER_ANSWER'
     assert answer(scenario, original).status_code == 409
@@ -73,7 +75,7 @@ def test_revalidation_refuses_incompatible_source(scenario, override, code):
 
 def test_revalidation_refuses_source_from_previous_rule_version(scenario):
     source = judge(scenario)
-    assert source['rule_version'] == RULE_VERSION == 'qualification-rules-v0.3'
+    assert source['rule_version'] == RULE_VERSION == 'qualification-rules-v0.4-core-requirements'
 
     with SessionLocal() as db:
         run = db.get(QualificationJudgmentRun, source['id'])
@@ -90,6 +92,23 @@ def test_revalidation_refuses_source_from_previous_rule_version(scenario):
     )
     assert response.status_code == 409, response.text
     assert response.json()['error']['code'] == 'RULE_CHANGED_FULL_REJUDGMENT_REQUIRED'
+
+
+@pytest.mark.parametrize('legacy_status', ['eligible', 'ineligible', 'insufficient_data'])
+def test_historical_participation_verdict_is_read_as_review_without_rewriting_history(scenario, legacy_status):
+    source = judge(scenario)
+    with SessionLocal() as db:
+        run = db.get(QualificationJudgmentRun, source['id'])
+        run.overall_status = legacy_status
+        run.rule_version = 'qualification-rules-v0.3'
+        db.commit()
+    detail = client.get(f"/api/v1/qualification-judgment-runs/{source['id']}")
+    listing = client.get(f"/api/v1/preflight-cases/{scenario['case_id']}/qualification-judgment-runs")
+    assert detail.status_code == listing.status_code == 200
+    assert detail.json()['overall_status'] == 'needs_review'
+    assert listing.json()[0]['overall_status'] == 'needs_review'
+    with SessionLocal() as db:
+        assert db.get(QualificationJudgmentRun, source['id']).overall_status == legacy_status
 
 
 @pytest.mark.parametrize("operation", ["qualification-judgments", "qualification-revalidation"])

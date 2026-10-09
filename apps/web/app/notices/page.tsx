@@ -28,11 +28,11 @@ import { createPreflightCaseWithCompany, listCompanies, type CompanyProfile } fr
 import { navigateTo } from '@/lib/navigation';
 import { productProfileCoverage } from '@/lib/product-profile';
 import { ASK_BACK_REASON_COPY, BUSINESS_TYPE_LABEL, labelOf, OVERALL_STATUS_BADGE } from '@/lib/status-copy';
-type OverallStatus = 'eligible' | 'ineligible' | 'insufficient_data' | 'unreviewed' | 'needs_review';
+type OverallStatus = 'core_met' | 'core_unmet' | 'unreviewed' | 'needs_review';
 type StatusFilter = 'all' | OverallStatus;
 type QuickTile = { label: string; value: string | number; icon: LucideIcon; filter: StatusFilter };
 const EMPTY_COUNTS: Record<OverallStatus, number> = {
-  eligible: 0, insufficient_data: 0, ineligible: 0, unreviewed: 0, needs_review: 0,
+  core_met: 0, core_unmet: 0, unreviewed: 0, needs_review: 0,
 };
 
 export default function NoticesPage() {
@@ -118,23 +118,22 @@ export default function NoticesPage() {
   );
   const businessTypeOptions = Object.keys(BUSINESS_TYPE_LABEL);
   const pageRange = noticePageRange(noticeTotal, pageIndex);
-  const activeNotices = notices.filter((row) => row.qualification_status !== 'ineligible');
-  const rejectedNotices = notices.filter((row) => row.qualification_status === 'ineligible');
+  const activeNotices = notices.filter((row) => row.qualification_status !== 'core_unmet');
+  const rejectedNotices = notices.filter((row) => row.qualification_status === 'core_unmet');
   const emptyReason = notices.length === 0 ? 'no-result' : rejectedNotices.length > 0 ? 'only-rejected' : 'filtered-out';
   const rejectedOpen = showRejected;
   const profile = productProfileCoverage(company);
   const missingProfile = profile.missing.map((area) => area.label);
   const profileReady = Boolean(company) && missingProfile.length === 0;
   const counts = statusCounts;
-  const unknownTotal = statusCounts.insufficient_data;
-  const firstUnknownCase = notices.find((row) => row.qualification_status === 'insufficient_data' && row.current_case_id);
+  const unknownTotal = statusCounts.needs_review;
+  const firstUnknownCase = notices.find((row) => row.qualification_status === 'needs_review' && row.current_case_id);
   const quickTiles: QuickTile[] = [
     { label: '전체', value: company ? Object.values(statusCounts).reduce((sum, count) => sum + count, 0) : noticeTotal, icon: LayoutGrid, filter: 'all' },
-    { label: '핵심 자격 충족', value: counts.eligible, icon: CheckCircle2, filter: 'eligible' },
-    { label: '확인 필요', value: counts.insufficient_data, icon: CircleHelp, filter: 'insufficient_data' },
-    { label: '참가 불가', value: counts.ineligible, icon: XCircle, filter: 'ineligible' },
+    { label: '핵심 요건 충족', value: counts.core_met, icon: CheckCircle2, filter: 'core_met' },
+    { label: '확인 필요', value: counts.needs_review, icon: CircleHelp, filter: 'needs_review' },
+    { label: '핵심 요건 미충족', value: counts.core_unmet, icon: XCircle, filter: 'core_unmet' },
     { label: '미검토', value: counts.unreviewed, icon: FileCheck2, filter: 'unreviewed' },
-    { label: '재검토 필요', value: counts.needs_review, icon: RefreshCw, filter: 'needs_review' },
   ];
 
   async function startReview(notice: BidNoticeSummary) {
@@ -319,8 +318,8 @@ export default function NoticesPage() {
               <Search className="mx-auto size-8 text-[var(--product-faint)]" />
               {emptyReason === 'only-rejected' ? (
                 <>
-                  <p className="mt-3 font-semibold">현재 페이지의 {rejectedNotices.length}건이 모두 참가 불가입니다.</p>
-                  <p className="mt-1 text-sm text-[var(--product-muted)]">회사 프로필 기준으로 참가가 어려운 공고라 아래 「참가 불가로 접어둔 공고」에 있습니다. 숨기지 않았습니다.</p>
+                  <p className="mt-3 font-semibold">현재 페이지의 {rejectedNotices.length}건은 모두 핵심 요건 미충족입니다.</p>
+                  <p className="mt-1 text-sm text-[var(--product-muted)]">확인된 핵심 요건에 미충족 항목이 있어 아래에 접어 두었습니다. 법적 참가 불가 확정은 아닙니다.</p>
                   <Button type="button" variant="outline" size="sm" className="mt-4 rounded-full" onClick={() => setShowRejected(true)}>아래에서 보기 ↓</Button>
                 </>
               ) : emptyReason === 'filtered-out' ? (
@@ -347,11 +346,11 @@ export default function NoticesPage() {
         </section>
 
         <section className="mt-12 overflow-hidden rounded-[22px] border border-[var(--product-line)] bg-[var(--product-tint)]">
-          <button type="button" onClick={() => setShowRejected((value) => !value)} className="flex w-full items-center gap-4 px-6 py-5 text-left"><ChevronDown className={`size-5 transition-transform ${rejectedOpen ? 'rotate-180' : ''}`} /><div className="flex-1"><h3 className="text-[18px] font-bold text-[var(--product-ink)]">참가 불가로 접어둔 공고{loading ? '' : ` ${rejectedNotices.length}건`}</h3><p className="mt-1 text-[15px] text-[var(--product-muted)]">숨기지 않습니다. 조건이나 회사 정보가 바뀌면 다시 검토할 수 있습니다.</p></div><span className="text-[15px] font-medium">{rejectedOpen ? '접기' : '펼치기'}</span></button>
+          <button type="button" onClick={() => setShowRejected((value) => !value)} className="flex w-full items-center gap-4 px-6 py-5 text-left"><ChevronDown className={`size-5 transition-transform ${rejectedOpen ? 'rotate-180' : ''}`} /><div className="flex-1"><h3 className="text-[18px] font-bold text-[var(--product-ink)]">핵심 요건 미충족 공고{loading ? '' : ` ${rejectedNotices.length}건`}</h3><p className="mt-1 text-[15px] text-[var(--product-muted)]">숨기지 않습니다. 조건이나 회사 정보가 바뀌면 다시 검토할 수 있습니다.</p></div><span className="text-[15px] font-medium">{rejectedOpen ? '접기' : '펼치기'}</span></button>
           {rejectedOpen && <div className="border-t border-[var(--product-line)] bg-white px-6">{rejectedNotices.length ? rejectedNotices.map((notice) => {
-            return <div key={notice.id} className="flex flex-col gap-3 border-b border-[var(--product-line-2)] py-5 last:border-b-0 md:flex-row md:items-center"><span className={`w-fit rounded-full border px-3 py-1 text-[13px] font-semibold ${OVERALL_STATUS_BADGE.ineligible.className}`}>{OVERALL_STATUS_BADGE.ineligible.label}</span><div className="min-w-0 flex-1"><strong className="block truncate text-[15px]">{notice.title}</strong>{/* 공고번호로 검색해 찾아온 행에 공고번호가 없으면 같은 건인지 확인할 수 없다. 판정 요약과 같이 적는다. */}
+            return <div key={notice.id} className="flex flex-col gap-3 border-b border-[var(--product-line-2)] py-5 last:border-b-0 md:flex-row md:items-center"><span className={`w-fit rounded-full border px-3 py-1 text-[13px] font-semibold ${OVERALL_STATUS_BADGE.core_unmet.className}`}>{OVERALL_STATUS_BADGE.core_unmet.label}</span><div className="min-w-0 flex-1"><strong className="block truncate text-[15px]">{notice.title}</strong>{/* 공고번호로 검색해 찾아온 행에 공고번호가 없으면 같은 건인지 확인할 수 없다. 판정 요약과 같이 적는다. */}
               <span className="mt-1 block text-[13px] text-[var(--product-muted)]">{notice.bid_notice_no}</span></div><button type="button" onClick={() => void startReview(notice)} className="text-left text-[15px] font-semibold text-[var(--product-accent-deep)]">근거 확인 →</button></div>;
-          }) : <p className="py-8 text-center text-sm text-[var(--product-muted)]">{loading ? '판정 상태를 불러오는 중입니다.' : '현재 참가 불가로 판정된 공고가 없습니다.'}</p>}</div>}
+          }) : <p className="py-8 text-center text-sm text-[var(--product-muted)]">{loading ? '판정 상태를 불러오는 중입니다.' : '현재 핵심 요건 미충족 공고가 없습니다.'}</p>}</div>}
         </section>
 
         {/*

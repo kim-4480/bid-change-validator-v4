@@ -4,7 +4,8 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import FileResponse, RedirectResponse, Response
-from sqlalchemy import case as sql_case, exists, func, or_, select
+from sqlalchemy import String, Text, case as sql_case, cast, exists, func, literal, or_, select
+from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.orm import Session, selectinload
 
 from ..auth import authorize_company_access, get_optional_current_user
@@ -176,11 +177,42 @@ def _company_notice_status(company_id: UUID):
     matching the rule version counts. Older cases without a current judgment
     are needs_review rather than being mistaken for never reviewed.
     """
+    # Recompute the same canonical document lineage as
+    # qualification_analysis_document_fingerprint in PostgreSQL. Status filters
+    # and pagination happen in SQL, so checking staleness after LIMIT would
+    # miscount and could expose an obsolete core_met badge.
+    document_json = func.concat(
+        literal('{"document_id":"'), cast(NoticeDocument.id, Text),
+        literal('","extracted_text_sha256":'),
+        sql_case(
+            (NoticeDocument.extracted_text_sha256.is_(None), literal("null")),
+            else_=func.concat(literal('"'), NoticeDocument.extracted_text_sha256, literal('"')),
+        ),
+        literal("}"),
+    )
+    document_rows = (
+        select(func.coalesce(func.string_agg(
+            document_json,
+            aggregate_order_by(literal(","), cast(NoticeDocument.id, String)),
+        ), literal("")))
+        .where(
+            NoticeDocument.notice_version_id == BidNoticeVersion.id,
+            NoticeDocument.extraction_status == "EXTRACTED",
+            NoticeDocument.extracted_blocks.is_not(None),
+            func.jsonb_array_length(NoticeDocument.extracted_blocks) > 0,
+        )
+        .correlate(BidNoticeVersion)
+        .scalar_subquery()
+    )
+    fingerprint = func.encode(func.sha256(func.convert_to(func.concat(
+        literal("qualification-analysis-input-v1\n["), document_rows, literal("]")
+    ), literal("UTF8"))), literal("hex"))
     latest_analysis = (
         select(QualificationAnalysisRun.id)
         .where(
             QualificationAnalysisRun.notice_version_id == BidNoticeVersion.id,
             QualificationAnalysisRun.status != "FAILED",
+            QualificationAnalysisRun.input_fingerprint == fingerprint,
         )
         .order_by(QualificationAnalysisRun.created_at.desc(), QualificationAnalysisRun.id.desc())
         .limit(1)
@@ -256,7 +288,7 @@ def search_notices(
     offset: Annotated[int, Query(ge=0)] = 0,
     company_id: UUID | None = None,
     qualification_status: Annotated[
-        str | None, Query(pattern="^(eligible|ineligible|insufficient_data|unreviewed|needs_review)$")
+        str | None, Query(pattern="^(core_met|core_unmet|unreviewed|needs_review)$")
     ] = None,
     db: Session = Depends(get_db),
     user: AppUser | None = Depends(get_optional_current_user),
@@ -312,7 +344,7 @@ def search_notices(
     )
     status_counts = {
         key: counts.get(key, 0)
-        for key in ("eligible", "insufficient_data", "ineligible", "unreviewed", "needs_review")
+        for key in ("core_met", "core_unmet", "unreviewed", "needs_review")
     }
     total = sum(status_counts.values()) if qualification_status is None else status_counts[qualification_status]
 

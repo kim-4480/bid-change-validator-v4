@@ -81,7 +81,7 @@ def answer_grounded_document_question(
     # company eligibility request cannot be smuggled through the RAG path.
     if _is_company_eligibility_question(case.id, request.message) or _is_company_eligibility_question(case.id, question):
         result.intent = "QUALIFICATION_SUMMARY"
-        result.answer = "회사 참가 가능 여부는 공고문 생성 답변이 아니라 저장된 판정 결과에서 확인해 주세요."
+        result.answer = "회사의 핵심 요건 상태는 공고문 생성 답변이 아니라 저장된 판정 결과에서 확인해 주세요. 이는 법적 참가 가능 보증이 아닙니다."
         result.presentation = Presentation(conclusion=result.answer)
         return _finalize(result)
 
@@ -138,7 +138,7 @@ def answer_grounded_document_question(
             reasons=[Reason(text="답변에 실제로 사용한 공고문 근거입니다.", evidence_refs=refs)],
             limitations=[
                 "이 설명은 현재 공고 버전에서 검색된 공개 원문 근거에 한정됩니다.",
-                "회사 참가 가능·불가 판정은 저장된 판정 결과에서 별도로 확인해야 합니다.",
+                "회사의 핵심 요건 상태는 저장된 판정 결과에서 별도로 확인해야 하며 법적 참가 가능·불가능 확정은 아닙니다.",
             ],
         )
     else:

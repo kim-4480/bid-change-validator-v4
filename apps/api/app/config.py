@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     notice_poll_business_types: str = "SERVICE,GOODS,CONSTRUCTION,FOREIGN"
     notice_history_backfill_batch_size: int = Field(default=10, ge=1, le=100)
     notice_history_backfill_retry_minutes: int = Field(default=15, ge=1, le=1_440)
+    processing_batch_size: int = Field(default=10, ge=1, le=100)
+    processing_poll_interval_seconds: int = Field(default=30, ge=1, le=3600)
+    processing_enable_external: bool = False
     auth_bootstrap_admin_username: str = "admin"
     auth_bootstrap_admin_password: str = "admin"
     auth_session_ttl_hours: int = Field(default=12, ge=1, le=720)

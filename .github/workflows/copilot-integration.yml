@@ -13,7 +13,7 @@ jobs:
     timeout-minutes: 20
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
           POSTGRES_DB: copilot_ci
           POSTGRES_USER: copilot_ci
