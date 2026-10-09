@@ -15,6 +15,10 @@ from app.ml_recommendations import router as ml_router
 from app.ml_recommendations.registry import active_model_dir, register_and_promote
 from app.ml_recommendations.runtime import score_notices
 from app.ml_recommendations.search_compare import bm25_map, rrf_map
+from app.analysis_models import QualificationAnalysisRun
+from app.database import SessionLocal
+from app.models import BidNotice, BidNoticeVersion, NoticeDocument
+from app.qualification.analysis import qualification_analysis_version_fingerprint
 
 
 NOW = datetime(2026, 10, 9, 8, tzinfo=timezone.utc)
@@ -78,7 +82,8 @@ def test_query_only_can_never_be_eligible():
     assert all(r.qualification_state == "UNKNOWN" for r in review)
 
 
-def test_entire_candidate_corpus_not_truncated():
+def test_entire_candidate_corpus_not_truncated(monkeypatch):
+    monkeypatch.setattr(ml_router, "_current_analysis_runs", lambda db, ids: ({}, set()))
     class FakeDB:
         def __init__(self):
             self.rows = []
@@ -102,6 +107,96 @@ def test_entire_candidate_corpus_not_truncated():
     rows = ml_router.candidates(FakeDB(), now=NOW)
     assert len(rows) == 217
     assert all("notice_text" in row for row in rows)
+
+
+def test_ml_candidate_lineage_uses_latest_valid_run_on_postgresql():
+    db = SessionLocal()
+    notice_id, version_id, document_id = uuid4(), uuid4(), uuid4()
+    try:
+        notice = BidNotice(
+            id=notice_id, bid_notice_no=f"TEST-ML-LINEAGE-{notice_id}",
+            title="lineage test", business_type="SERVICE",
+            first_seen_at=NOW, last_seen_at=NOW,
+        )
+        version = BidNoticeVersion(
+            id=version_id, notice_id=notice_id, version_number=1,
+            bid_notice_order="000", is_current=True, source_endpoint="pytest",
+            payload_hash="1" * 64, raw_json={}, collected_at=NOW,
+            posted_at=NOW - timedelta(days=1),
+            bid_closed_at=NOW + timedelta(days=2),
+        )
+        document = NoticeDocument(
+            id=document_id, notice_version_id=version_id,
+            document_order=0, name="notice.pdf", url="https://example.invalid/test.pdf",
+            source_field="stdNtceDocUrl", download_status="DOWNLOADED",
+            extraction_status="EXTRACTED", extracted_text_sha256="a" * 64,
+            extracted_blocks=[{"text": "qualification"}],
+        )
+        version.documents = [document]
+        db.add_all([notice, version])
+        db.flush()
+        valid_fingerprint = qualification_analysis_version_fingerprint(version)
+        older_valid = QualificationAnalysisRun(
+            id=uuid4(), notice_version_id=version_id, contract_version="test",
+            analysis_kind="QUALIFICATION_REQUIREMENTS", status="SUCCEEDED",
+            input_fingerprint=valid_fingerprint, created_at=NOW,
+        )
+        newer_stale = QualificationAnalysisRun(
+            id=uuid4(), notice_version_id=version_id, contract_version="test",
+            analysis_kind="QUALIFICATION_REQUIREMENTS", status="SUCCEEDED",
+            input_fingerprint="f" * 64, created_at=NOW + timedelta(minutes=1),
+        )
+        db.add_all([older_valid, newer_stale])
+        db.flush()
+
+        selected, history = ml_router._current_analysis_runs(db, [version_id])
+        assert selected[version_id].id == older_valid.id
+        assert version_id in history
+        candidate = next(row for row in ml_router.candidates(db, now=NOW)
+                         if row["notice_id"] == str(notice_id))
+        assert candidate["analysis_run_id"] == str(older_valid.id)
+        assert candidate["is_stale"] is False
+
+        document.extracted_text_sha256 = "b" * 64
+        db.flush()
+        selected, history = ml_router._current_analysis_runs(db, [version_id])
+        assert selected == {} and version_id in history
+        candidate = next(row for row in ml_router.candidates(db, now=NOW)
+                         if row["notice_id"] == str(notice_id))
+        assert candidate["analysis_run_id"] is None
+        assert candidate["is_stale"] is True
+
+        newest_valid = QualificationAnalysisRun(
+            id=uuid4(), notice_version_id=version_id, contract_version="test",
+            analysis_kind="QUALIFICATION_REQUIREMENTS", status="SUCCEEDED",
+            input_fingerprint=qualification_analysis_version_fingerprint(version),
+            created_at=NOW + timedelta(minutes=2),
+        )
+        db.add(newest_valid)
+        db.flush()
+        selected, _ = ml_router._current_analysis_runs(db, [version_id])
+        assert selected[version_id].id == newest_valid.id
+        candidate = next(row for row in ml_router.candidates(db, now=NOW)
+                         if row["notice_id"] == str(notice_id))
+        assert candidate["analysis_run_id"] == str(newest_valid.id)
+        assert candidate["is_stale"] is False
+
+        newest_valid.status = "FAILED"
+        db.flush()
+        candidate = next(row for row in ml_router.candidates(db, now=NOW)
+                         if row["notice_id"] == str(notice_id))
+        assert candidate["analysis_run_id"] == str(newest_valid.id)
+        assert candidate["analysis_status"] == "FAILED"
+
+        newest_valid.input_fingerprint = None
+        db.flush()
+        candidate = next(row for row in ml_router.candidates(db, now=NOW)
+                         if row["notice_id"] == str(notice_id))
+        assert candidate["analysis_run_id"] is None
+        assert candidate["is_stale"] is True
+    finally:
+        db.rollback()
+        db.close()
 
 
 def test_unapproved_registry_refuses_promotion(tmp_path):

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from decimal import Decimal
+from typing import Iterable
 from uuid import UUID
 
 from sqlalchemy import select
@@ -79,13 +80,23 @@ def qualification_analysis_input_fingerprint(
     analysis_input: QualificationAnalysisInput,
 ) -> str:
     """Fingerprint the exact extracted document revisions supplied to analysis."""
+    return qualification_analysis_document_fingerprint(
+        (document.document_id, document.extracted_text_sha256)
+        for document in analysis_input.documents
+    )
+
+
+def qualification_analysis_document_fingerprint(
+    documents: Iterable[tuple[str, str | None]],
+) -> str:
+    """Hash document identity and text revision without loading extracted blocks."""
     lineage = sorted(
         (
             {
-                "document_id": document.document_id,
-                "extracted_text_sha256": document.extracted_text_sha256,
+                "document_id": document_id,
+                "extracted_text_sha256": extracted_text_sha256,
             }
-            for document in analysis_input.documents
+            for document_id, extracted_text_sha256 in documents
         ),
         key=lambda item: item["document_id"],
     )

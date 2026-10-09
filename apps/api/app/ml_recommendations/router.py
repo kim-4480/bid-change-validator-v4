@@ -13,14 +13,15 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, func, or_, select, tuple_
 from sqlalchemy.orm import Session, load_only
 
 from ..auth import authorize_company_access, get_optional_current_user
 from ..auth_models import AppUser
 from ..database import get_db
 from ..analysis_models import QualificationAnalysisRun
-from ..models import BidNotice, BidNoticeVersion
+from ..models import BidNotice, BidNoticeVersion, NoticeDocument
+from ..qualification.analysis import qualification_analysis_document_fingerprint
 from .qualification_adapter import _load_company, company_query, evaluate
 from .runtime import score_notices
 
@@ -92,6 +93,58 @@ def eligible_window(version, *, now: datetime) -> tuple[str, datetime] | None:
     return ("assumed_40_days", deadline) if posted <= now and deadline > now else None
 
 
+def _current_analysis_runs(
+    db: Session, version_ids: list[UUID]
+) -> tuple[dict[UUID, QualificationAnalysisRun], set[UUID]]:
+    """Select the newest valid run per version; retain evidence of stale history."""
+    documents: dict[UUID, list[tuple[str, str | None]]] = {version_id: [] for version_id in version_ids}
+    for version_id, document_id, extracted_hash in db.execute(
+        select(
+            NoticeDocument.notice_version_id,
+            NoticeDocument.id,
+            NoticeDocument.extracted_text_sha256,
+        ).where(
+            NoticeDocument.notice_version_id.in_(version_ids),
+            NoticeDocument.extraction_status == "EXTRACTED",
+            NoticeDocument.extracted_blocks.is_not(None),
+            func.jsonb_array_length(NoticeDocument.extracted_blocks) > 0,
+        )
+    ):
+        documents[version_id].append((str(document_id), extracted_hash))
+    fingerprints = {
+        version_id: qualification_analysis_document_fingerprint(documents[version_id])
+        for version_id in version_ids
+    }
+    ranked = (
+        select(
+            QualificationAnalysisRun.id.label("run_id"),
+            func.row_number().over(
+                partition_by=QualificationAnalysisRun.notice_version_id,
+                order_by=(
+                    QualificationAnalysisRun.created_at.desc(),
+                    QualificationAnalysisRun.id.desc(),
+                ),
+            ).label("rank"),
+        )
+        .where(tuple_(
+            QualificationAnalysisRun.notice_version_id,
+            QualificationAnalysisRun.input_fingerprint,
+        ).in_(list(fingerprints.items())))
+        .subquery()
+    )
+    valid = db.scalars(
+        select(QualificationAnalysisRun)
+        .join(ranked, ranked.c.run_id == QualificationAnalysisRun.id)
+        .where(ranked.c.rank == 1)
+    ).all()
+    history = set(db.scalars(
+        select(QualificationAnalysisRun.notice_version_id)
+        .where(QualificationAnalysisRun.notice_version_id.in_(version_ids))
+        .distinct()
+    ).all())
+    return {run.notice_version_id: run for run in valid}, history
+
+
 def candidates(db: Session, *, now: datetime | None = None) -> list[dict]:
     """Scan *all* currently valid notices, never just the last 150.
 
@@ -141,14 +194,7 @@ def candidates(db: Session, *, now: datetime | None = None) -> list[dict]:
             .where(BidNoticeVersion.notice_id.in_(notice_ids),
                    BidNoticeVersion.is_current.is_(False))
         ).all())
-        runs = db.scalars(
-            select(QualificationAnalysisRun)
-            .where(QualificationAnalysisRun.notice_version_id.in_(version_ids))
-            .order_by(QualificationAnalysisRun.created_at.desc(), QualificationAnalysisRun.id.desc())
-        ).all()
-        latest = {}
-        for run in runs:
-            latest.setdefault(run.notice_version_id, run)
+        latest, current_history = _current_analysis_runs(db, version_ids)
         for notice, version in batch:
             window = eligible_window(version, now=now)
             if not window or not _not_cancelled(notice.notice_kind):
@@ -164,7 +210,7 @@ def candidates(db: Session, *, now: datetime | None = None) -> list[dict]:
                 "analysis_run_id": str(run.id) if run else None,
                 "analysis_version": run.contract_version if run else None,
                 "analysis_status": run.status if run else "UNKNOWN",
-                "is_stale": run is None and notice.id in previous,
+                "is_stale": run is None and (version.id in current_history or notice.id in previous),
                 "deadline_source": window[0], "effective_deadline": window[1],
             })
         batch.clear()
