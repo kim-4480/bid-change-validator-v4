@@ -100,6 +100,9 @@ export function AppHeader({
                 {item.label}
               </a>
             ))}
+            {(user?.role === 'SYSTEM_ADMIN' || user?.role === 'ADMIN') && (
+              <NavigationLink href="/admin" className="app-nav-link" aria-current={pathname.startsWith('/admin') ? 'page' : undefined}>운영 관리</NavigationLink>
+            )}
           </nav>
         </PageContainer>
       </div>

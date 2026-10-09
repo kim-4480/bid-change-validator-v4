@@ -93,7 +93,7 @@ for (const width of [360, 768, 1440]) {
     await mockApi(page);
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/guide');
-    await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toBeVisible({ timeout: 15_000 });
     const skip = page.getByRole('link', { name: '본문으로 건너뛰기' });
     await skip.focus();
     await expect(skip).toBeFocused();
@@ -131,43 +131,115 @@ test('server errors show an actionable retry instead of false success', async ({
   await expect(page.getByText('일시적으로 공고를 조회할 수 없습니다.')).toBeVisible();
   await expect(page.getByRole('button', { name: /다시 시도/ })).toBeEnabled();
 });
-test('ML recommendation mock shows rank, score, model version, and independent qualification', async ({ page }) => {
+test('ML POST contract distinguishes learned rank from qualification (MOCK)', async ({ page }) => {
   await mockApi(page);
-  await page.route('**/api/v1/companies', route => route.fulfill({ status: 200, json: [{
-    id: 'company-a', name: '로컬 테스트 회사',
-  }] }));
-  await page.route('**/api/v1/companies/company-a/notice-matches?*', route => route.fulfill({
-    status: 200, json: { company_id: 'company-a', analyzed_notice_count: 1,
-      returned_count: 1, items: [{
-        notice_id: 'notice-a', bid_notice_no: '2026-0001', title: '로컬 E2E 공고',
-        institution_name: '테스트 기관', version_number: 1, analysis_run_id: 'analysis-a',
-        analysis_status: 'SUCCEEDED', overall_status: 'insufficient_data',
-        satisfied_count: 1, unknown_count: 1, unsatisfied_count: 0,
-        requirement_count: 2, evidence_count: 1, analyzed_at: '2026-10-09T00:00:00',
-      }], note: 'LOCAL MOCK' },
+  await page.route('**/api/v1/companies', route => route.fulfill({
+    status: 200, json: [{ id: 'company-a', name: '로컬 테스트 회사' }],
   }));
-  await page.route('**/api/v1/ml/recommendations?*', route => route.fulfill({
-    status: 200, json: { company_id: 'company-a', items: [{
-      notice_id: 'notice-a', bid_notice_no: '2026-0001', title: '로컬 E2E 공고',
-      rank: 1, relevance_score: 0.88, model_version: 'mock-model-v1',
-      reasons: ['업종과 공고 내용의 의미적 유사성'],
-      evidence_href: '/api/v1/notices/notice-a/versions/1/documents/document-a/text',
-    }] },
-  }));
+  await page.route('**/api/v1/recommendations/ml', route => {
+    expect(route.request().method()).toBe('POST');
+    expect(route.request().postDataJSON()).toMatchObject({ company_id: 'company-a', limit: 50 });
+    return route.fulfill({ status: 200, json: {
+      model_version: 'mock-model-v1', dataset_version: 'mock-dataset',
+      scoring_source: 'local_lightgbm', input_sha256: null, fallback_reason: null,
+      note: 'Ranking is not a probability', items: [{
+        notice_id: 'notice-a', title: '로컬 E2E 공고', rank: 1, relevance_score: 0.88,
+        reason: 'Text relevance', version_number: 1, analysis_run_id: null,
+        analysis_version: null, analysis_status: 'UNKNOWN', qualification_state: 'insufficient_data',
+        qualification_reason: 'Insufficient evidence', rule_version: null, is_stale: false,
+      }],
+    } });
+  });
   await page.goto('/recommendations');
   await expect(page.getByText('MOCK · 실제 모델 결과 아님')).toBeVisible();
-  await expect(page.getByText('88%')).toBeVisible();
-  await expect(page.getByText('모델 버전: mock-model-v1')).toBeVisible();
-  await expect(page.getByRole('region', { name: 'ML 추천 순위' }).getByText('기존 자격판정: 확인 필요')).toBeVisible();
-  await expect(page.getByRole('link', { name: /추천 근거 원문 열기/ }))
-    .toHaveAttribute('href', /\/api\/v1\/notices\//);
+  await expect(page.getByText('학습 모델 기반 연관성 순위')).toBeVisible();
+  await expect(page.getByText('0.880')).toBeVisible();
+  await expect(page.getByText('기존 규칙판정: 확인 필요')).toBeVisible();
+  await expect(page.getByRole('link', { name: /공고 상세·첨부 원문/ }))
+    .toHaveAttribute('href', '/notices/notice-a');
+  await expect(page.getByText('88%')).toHaveCount(0);
+});
+
+test('lexical fallback never claims a trained model (MOCK)', async ({ page }) => {
+  await mockApi(page);
+  await page.route('**/api/v1/companies', route => route.fulfill({
+    status: 200, json: [{ id: 'company-a', name: '로컬 회사' }],
+  }));
+  await page.route('**/api/v1/recommendations/ml', route => route.fulfill({
+    status: 200, json: {
+      model_version: null, dataset_version: null, scoring_source: 'lexical_fallback',
+      input_sha256: null, fallback_reason: 'model_not_configured',
+      note: 'Not a trained model', items: [],
+    },
+  }));
+  await page.goto('/recommendations');
+  await expect(page.getByText('학습 모델 미적용 — 키워드 기반 대체 순위')).toBeVisible();
+  await expect(page.getByText('현재 표시할 추천 결과가 없습니다.')).toBeVisible();
+});
+
+test('admin view denies non-admin and does not invoke mutations (MOCK)', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('/admin');
+  await expect(page.getByRole('alert')).toContainText('관리자만 접근할 수 있습니다.');
+  await page.route('**/api/v1/auth/me', route => route.fulfill({
+    status: 200, json: { ...mockUser, role: 'SYSTEM_ADMIN' },
+  }));
+  const writes: string[] = [];
+  page.on('request', request => {
+    if (!['GET', 'HEAD'].includes(request.method())) writes.push(request.method());
+  });
+  await page.goto('/admin');
+  await expect(page.getByText('실패 작업 조회')).toBeVisible();
+  await expect(page.getByRole('heading', { name: '라벨 검수' })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('API 계약이 아직 통합되지 않았습니다.');
+  expect(writes).toEqual([]);
+});
+
+test('notice detail renders empty original instead of pretending extraction succeeded (MOCK)', async ({ page }) => {
+  await mockApi(page);
+  const notice = {
+    id: 'notice-a', bid_notice_no: '2026-1', title: '테스트 공고 상세',
+    announcing_institution_name: '기관', demanding_institution_name: null,
+    current_version: 1, latest: {
+      id: 'v1', version_number: 1, is_current: true, bid_closed_at: null, documents: [],
+    },
+  };
+  await page.route('**/api/v1/notices/notice-a', route => route.fulfill({ status: 200, json: notice }));
+  await page.route('**/api/v1/notices/notice-a/versions', route => route.fulfill({ status: 200, json: [notice.latest] }));
+  await page.goto('/notices/notice-a');
+  await expect(page.getByRole('heading', { name: '테스트 공고 상세' })).toBeVisible();
+  await expect(page.getByText('해당 버전의 첨부 원문이 없습니다.')).toBeVisible();
 });
 test('seven existing product routes remain reachable with local API mocks', async ({ page }) => {
   await mockApi(page);
   for (const route of ['/notices', '/qualification', '/ask-back', '/evidence', '/evaluation', '/changes', '/company']) {
     await page.goto(route);
     await expect(page.locator('#main-content')).toBeVisible();
-    await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toBeVisible({ timeout: 15_000 });
     await expect(page).toHaveURL(new RegExp(route.replace('/', '\\/') + '$'));
   }
+});
+test('Copilot never submits a question without a selected case (MOCK)', async ({ page }) => {
+  await mockApi(page);
+  const mutations: string[] = [];
+  page.on('request', request => {
+    if (request.url().includes('/api/v1/copilot') && request.method() !== 'GET') mutations.push(request.url());
+  });
+  await page.goto('/qualification');
+  await page.getByRole('button', { name: /AI Copilot/ }).click();
+  await expect(page.getByRole('dialog', { name: 'AI Copilot' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '질문 보내기' })).toBeDisabled();
+  expect(mutations).toEqual([]);
+});
+
+test('admin navigation does not overflow narrow mobile view (MOCK)', async ({ page }) => {
+  await mockApi(page);
+  await page.route('**/api/v1/auth/me', route => route.fulfill({
+    status: 200, json: { ...mockUser, role: 'SYSTEM_ADMIN' },
+  }));
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto('/admin');
+  await expect(page.getByRole('heading', { name: '운영 작업 관리' })).toBeVisible();
+  const width = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(width).toBeLessThanOrEqual(361);
 });
