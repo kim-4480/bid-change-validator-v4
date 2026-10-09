@@ -77,3 +77,12 @@ py -3.12 -m unittest discover -s scripts/tests -p "test_master_release_audit.py"
 py -3.12 scripts/master_release_audit.py --json
 ```
 Exit 2 from release audit indicates a real blocked release policy, not a passing run.
+
+## Local test evidence (MASTER branch)
+
+- Release policy checker unit tests: **6 PASS** (stdlib unittest).
+- Engine: **555 PASS** with `PYTHONPATH=engine;eval`.
+- Eval: **49 PASS** with `PYTHONPATH=engine;eval` and `PYTHONIOENCODING=utf-8`. The initial CP949 run had 48 PASS / 1 UnicodeEncodeError; re-run passed with valid UTF-8.
+- Backend DB tests: **NOT_RUN** (no isolated PG17 container prepared in this Worktree). Frontend lint/test/build: **NOT_RUN** (pnpm CLI unavailable here; open PR #24 shows lint FAIL). Full E2E: **NOT_RUN**.
+- Offline checker on develop: **4 PASS / 3 BLOCKED** (PG17 Backend CI, strict Frontend lint, Copilot PG17 CI); this is expected until PR #24 is integrated.
+- Draft PR creation attempt via GitHub connector: **BLOCKED (403 Resource not accessible by integration)**. Commit and push succeeded; this link is the PR creation page, NOT an opened PR: https://github.com/skn-34-jaehyunkim4480/bid-change-validator-v4/pull/new/docs/master-integration-contract-20261009
