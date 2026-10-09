@@ -17,20 +17,32 @@ async function sendConversationMessage(request: ConversationRequest): Promise<Co
     public_document_question: payload.public_document_question ?? payload.message,
     allow_external_processing: true,
   } : payload;
-  const response = await apiFetch('/api/v1/copilot/chat', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(semantic_processing ? { 'X-Copilot-Semantic-Processing': 'true' } : {}),
-    },
-    body: JSON.stringify({ ...body, response_version: '3.1' }),
-  });
-  if (!response.ok) {
-    const responseBody = (await response.json().catch(() => null)) as { error?: { message?: string; code?: string } } | null;
-    throw new ApiError(responseBody?.error?.message ?? `요청에 실패했습니다. (${response.status})`,
-      response.status, responseBody?.error?.code ?? 'HTTP_ERROR');
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 70000);
+  try {
+    const response = await apiFetch('/api/v1/copilot/chat', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(semantic_processing ? { 'X-Copilot-Semantic-Processing': 'true' } : {}),
+      },
+      body: JSON.stringify({ ...body, response_version: '3.1' }),
+    });
+    if (!response.ok) {
+      const responseBody = (await response.json().catch(() => null)) as { error?: { message?: string; code?: string } } | null;
+      throw new ApiError(responseBody?.error?.message ?? `요청에 실패했습니다. (${response.status})`,
+        response.status, responseBody?.error?.code ?? 'HTTP_ERROR');
+    }
+    return response.json() as Promise<CopilotChatResponse>;
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new ApiError('AI 응답 시간이 초과됐습니다. 잠시 후 다시 시도해 주세요.', 0, 'COPILOT_TIMEOUT');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
   }
-  return response.json() as Promise<CopilotChatResponse>;
 }
 
 function canonical(value: unknown): string {

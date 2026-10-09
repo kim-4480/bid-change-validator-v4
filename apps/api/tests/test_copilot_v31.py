@@ -13,7 +13,7 @@ from apps.api.app.copilot.chat import CopilotChatRequest
 from apps.api.app.copilot.conversation_state import ConversationRepository
 from apps.api.app.copilot.model_gateway import BudgetExceeded, ModelGateway
 from apps.api.app.copilot.orchestration import coordinate, fallback_plan, resolve_target
-from apps.api.app.copilot.tool_adapters import ProductTools, _document_excerpt
+from apps.api.app.copilot.tool_adapters import DOCUMENT_BUNDLE_BUDGET_BYTES, ProductTools, _document_excerpt
 from apps.api.app.copilot.v31_contracts import (
     Claim, ConversationState, Draft, DraftClaim, EvidenceBundle, Fact, Scope, Source, Target, Task, TaskPlan, Verdicts,
 )
@@ -90,6 +90,14 @@ def test_verifier_failure_does_not_promote_raw_document_to_answer_prose():
     assert '검증하지 않은 문장' not in [c.text for c in claims]
 
 
+def test_generation_budget_failure_reports_safe_reason_without_raw_document():
+    gateway = FakeGateway({'generate': BudgetExceeded('INPUT_BUDGET')})
+    state = ConversationState(conversation_id=uuid4(), owner='u', scope=scope())
+    claims, partial, events = compose(bundle(), TaskPlan(goal='실적', tasks=[Task(kind='READ_DOCUMENT', question='실적')]), state, gateway)
+    assert partial and not claims
+    assert {'stage': 'generate', 'reason': 'BudgetExceeded', 'budget_code': 'INPUT_BUDGET'} in events
+
+
 def test_code_difference_question_routes_to_changes_without_document_dump():
     request = CopilotChatRequest(case_id=scope().case_id, message='1224와 1227은 무슨 차이야?')
     plan = fallback_plan(request)
@@ -125,6 +133,68 @@ def test_document_excerpt_removes_mojibake_duplicates_and_focuses_on_question():
     assert noise not in excerpt and '氠瑢' not in excerpt
     assert excerpt.count(repeated) <= 1
     assert len(excerpt) <= 1600
+
+
+def test_document_read_caps_model_evidence_without_claiming_full_coverage(monkeypatch):
+    from apps.api.app.copilot import tool_adapters
+    from bidengine.rag import langchain_pipeline
+
+    context = scope()
+    case = SimpleNamespace(id=context.case_id, company_id=context.company_id,
+                           notice_id=context.notice_id, current_version_id=context.notice_version_id)
+    snapshot = SimpleNamespace(fingerprint='current-document-fingerprint', source_status='AVAILABLE',
+                               limitations=[], verification='VERIFIED')
+    readiness = SimpleNamespace(index=None, index_status='MISSING', generation=None)
+    passages = []
+    for index in range(30):
+        content = '업종 자격조건 1227 ' + str(index) + ' ' + ('공고문 내용 ' * 75)
+        metadata = SimpleNamespace(notice_version_id=str(context.notice_version_id),
+                                   document_id=str(uuid4()), document_name='공고문', chunk_id=f'chunk-{index}',
+                                   page=index, source_locations=[], source_sha256='a' * 64,
+                                   extracted_text_sha256='b' * 64)
+        passages.append(SimpleNamespace(text=content, metadata=metadata))
+    monkeypatch.setattr(tool_adapters, 'load_notice_version_for_rag', lambda *_: object())
+    monkeypatch.setattr(tool_adapters, 'snapshot_sources', lambda *_: snapshot)
+    monkeypatch.setattr(tool_adapters, 'inspect_index', lambda *_: readiness)
+    monkeypatch.setattr(langchain_pipeline, 'retrieve_current', lambda *_args, **_kwargs: (passages, {'returned_chunks': len(passages)}))
+    tools = ProductTools(None, case, allow_documents=True, gateway=SimpleNamespace(available=False))
+
+    tools.documents('업종 자격조건 1227 전체')
+
+    document_facts = [fact for fact in tools.bundle.facts if fact.kind == 'NOTICE_FACT']
+    assert 0 < len(document_facts) < len(passages)
+    assert tools.bundle.coverage['READ_DOCUMENT'] == 'PARTIAL'
+    assert tools.trace[-1]['omitted_chunks'] > 0
+    assert '전체가 아닌' in tools.bundle.limitations[-1]
+    assert len(json.dumps(tools.bundle.model_dump(mode='json'), ensure_ascii=False).encode('utf-8')) <= DOCUMENT_BUNDLE_BUDGET_BYTES + 500
+    assert all(fact.source_ids[0] in {source.source_id for source in tools.bundle.sources} for fact in document_facts)
+
+
+def test_generation_preflight_prunes_only_document_evidence():
+    context = scope()
+    evidence = EvidenceBundle(scope=context)
+    evidence.sources.append(Source(source_id='product', kind='PRODUCT', quote='저장된 판정 기준', scope=context))
+    evidence.facts.append(Fact(fact_id='product', kind='SERVER_RESULT', text='저장된 판정 기준',
+                               source_ids=['product'], scope=context))
+    for index in range(12):
+        source_id = f'doc-{index}'
+        evidence.sources.append(Source(source_id=source_id, kind='DOCUMENT', quote='공고문 근거 ' * 180, scope=context))
+        evidence.facts.append(Fact(fact_id=source_id, kind='NOTICE_FACT', text=f'원문 {index}',
+                                   source_ids=[source_id], scope=context))
+
+    class BudgetGateway(FakeGateway):
+        def call_limits(self, _stage): return 16000, 3000
+        def input_upper_bound(self, _stage, _prompt, body, _schema):
+            return 2000 + sum(len(item['quote'].encode('utf-8')) * 2 for item in body['evidence']['sources']), None
+
+    gateway = BudgetGateway({'generate': {'claims': []}})
+    compose(evidence, TaskPlan(goal='원문', tasks=[Task(kind='READ_DOCUMENT', question='원문')]),
+            ConversationState(conversation_id=uuid4(), owner='u', scope=context), gateway)
+
+    assert any(fact.fact_id == 'product' for fact in evidence.facts)
+    assert 0 < sum(fact.kind == 'NOTICE_FACT' for fact in evidence.facts) < 12
+    assert evidence.coverage['READ_DOCUMENT'] == 'PARTIAL'
+    assert gateway.input_upper_bound('generate', '', gateway.bodies[0], Draft)[0] <= 14000
 
 
 def test_invalid_sources_and_cross_company_rejected():

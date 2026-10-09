@@ -35,6 +35,16 @@ class ModelGateway:
     def remaining(self):
         return max(0, self.deadline - monotonic())
 
+    def input_upper_bound(self, stage, system, body, schema):
+        from bidengine.rag.langchain_pipeline import structured_messages
+        payload = json.dumps(body, ensure_ascii=False, default=str)
+        prompt = structured_messages(system, payload, examples=stage in {'generate', 'repair'})
+        upper = len((
+            ''.join(str(message.content) for message in prompt.to_messages())
+            + json.dumps(schema.model_json_schema())
+        ).encode('utf-8')) + 512
+        return upper, prompt
+
     def call(self, stage, system, body, schema):
         if not self.enabled:
             raise RuntimeError('MODEL_PROCESSING_DISABLED')
@@ -45,14 +55,9 @@ class ModelGateway:
             raise BudgetExceeded('PLAN_BUDGET')
         if stage == 'repair' and self.remaining() < 8:
             raise BudgetExceeded('REPAIR_AND_VALIDATION_BUDGET')
-        from bidengine.rag.langchain_pipeline import PROMPT_VERSION, invoke_structured, structured_messages
-        payload = json.dumps(body, ensure_ascii=False, default=str)
-        prompt = structured_messages(system, payload, examples=stage in {'generate', 'repair'})
+        from bidengine.rag.langchain_pipeline import PROMPT_VERSION, invoke_structured
         # UTF-8 bytes is a conservative token upper bound; include the response schema.
-        upper = len((
-            ''.join(str(message.content) for message in prompt.to_messages())
-            + json.dumps(schema.model_json_schema())
-        ).encode('utf-8')) + 512
+        upper, prompt = self.input_upper_bound(stage, system, body, schema)
         if stage in QUALITY_STAGES and self.allow_large_context and upper > 16000:
             self.large_context = True
         input_limit, output_limit = self.call_limits(stage)
