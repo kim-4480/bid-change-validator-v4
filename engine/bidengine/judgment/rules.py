@@ -20,7 +20,8 @@ from pydantic import BaseModel, Field
 
 from bidengine.contracts import Judgment, QualificationRequirement
 from bidengine.judgment.clause_safety import GUARD_REASON_EXCEPTION, is_guard_assessed, unsafe_clause_reason
-from bidengine.normalization.regions import region_name_relation
+from bidengine.normalization.region_vocab import SIGUNGU_PARENTS
+from bidengine.normalization.regions import SIDO_CANONICAL, SIDO_MERGED_INTO, find_regions, region_name_relation
 
 
 RULE_VERSION = "qualification-rules-v0.3"
@@ -541,6 +542,11 @@ def _judge_company_size(
             return _unknown(requirement, preflight_case_id)
         satisfied = not is_affiliate
 
+    narrower = _COMPANY_SIZE_ALIASES.get(str(requirement.scope.get("certificate_size") or ""))
+    if satisfied and narrower is not None and observed not in narrower:
+        # 조항의 규모 낱말로는 맞지만, 같은 조항이 요구하는 확인서는 더 좁은 규모의 것이다("중소기업자로서 …
+        # 소기업·소상공인 확인서"). 충족도 분명한 값으로만 확정한다 — 확인 필요(2026-10-08 회귀 측정의 틀린 충족).
+        return _vocabulary_unknown(requirement, preflight_case_id, [("company", "company_size", observed)])
     if not satisfied and not profile.completeness.company_size:
         return _unknown(requirement, preflight_case_id)
     if not satisfied and allowed is None:
@@ -600,6 +606,12 @@ def _judge_industry(
         # 확정하면 자격 있는 회사가 부적합이 된다(2026-10-06 가상 회사 시험의 틀린 미달 대부분).
         return _vocabulary_unknown(
             requirement, preflight_case_id, [("industry", "name", item.name) for item in profile.industries]
+        )
+    if requirement.scope.get("evidence") == "family":
+        # 공고에 이 코드도 정확한 업종명도 적혀 있지 않다 — 묶음 이름("폐기물수집·운반업")에서 추론한 코드다. 추론이
+        # 틀리면 자격 있는 회사가 부적합이 되므로 미달로 확정하지 않는다(2026-10-08, 부적합은 명시된 값으로만).
+        return _vocabulary_unknown(
+            requirement, preflight_case_id, [("industry", "code", item.code) for item in profile.industries]
         )
     general = [item for item in profile.industries if _norm(item.code) in _GENERAL_CONSTRUCTION_CODES]
     if requirement.scope.get("general_contractor_allowed") and general:
@@ -1165,9 +1177,64 @@ def judge_requirements(
         )
         for requirement in requirements
     ]
+    judgments = _soften_conflicting_misses(requirements, judgments)
     return JudgmentEvaluation(
         judgments=judgments,
         overall_status=derive_overall_status(
             requirements, judgments, analysis_status=analysis_status, coverage_complete=coverage_complete
         ),
     )
+
+
+def _soften_conflicting_misses(
+    requirements: list[QualificationRequirement], judgments: list[Judgment]
+) -> list[Judgment]:
+    """공고 안에서 서로 어긋나는 닫힌 값의 미달은 부적합의 근거로 쓰지 않는다(2026-10-08).
+
+    부적합은 공고가 분명히 말한 값으로만 낸다. 같은 종류의 필수 값이 둘인데 회사가 하나는 맞고 하나는 어긋나면,
+    어긋난 쪽이 본 자격인지 주석·사본·다른 조항에서 잘못 주운 값인지 엔진이 가를 수 없다.
+
+      - 규모: 허용 규모가 다른 필수 규모 요건 둘("중소기업" 충족, 주석의 "소기업 확인서" 미달).
+      - 지역: 서로 겹치지 않는 필수 지역 둘("경상남도" 충족, "울산" 미달) — 한 회사가 둘 다 맞을 수 없다.
+        "경기도" 와 "경기도 시흥시" 처럼 포개지는 지역은 둘 다 요구할 수 있으니 그대로 둔다.
+
+    어긋난 쪽 미달은 확인 필요가 된다. 회사가 둘 다 어긋나면(어느 쪽이든 미달) 부적합 그대로다.
+    """
+    by_key = {j.requirement_key: j for j in judgments}
+    plain = [
+        r for r in requirements
+        if r.requirement_role == "mandatory" and (r.group_operator or "ALL_OF") == "ALL_OF"
+        and str(r.scope.get("restriction") or "") != "EXCLUDE" and r.requirement_key in by_key
+    ]
+    soften: set[str] = set()
+    for kind in ("COMPANY_SIZE", "REGION"):
+        same = [r for r in plain if r.type == kind]
+        met = [r for r in same if by_key[r.requirement_key].status == "SATISFIED"]
+        for missed in (r for r in same if by_key[r.requirement_key].status == "UNSATISFIED"):
+            if any(_conflicting(kind, missed.value, other.value) for other in met):
+                soften.add(missed.requirement_key)
+    if not soften:
+        return judgments
+    return [
+        j.model_copy(update={"status": "UNKNOWN", "basis_type": "NONE", "reason_code": "NEEDS_REVIEW"})
+        if j.requirement_key in soften else j
+        for j in judgments
+    ]
+
+
+def _conflicting(kind: str, left: object, right: object) -> bool:
+    if kind == "COMPANY_SIZE":
+        a = _COMPANY_SIZE_ALIASES.get(str(left).strip()) or _company_size_set(str(left))
+        b = _COMPANY_SIZE_ALIASES.get(str(right).strip()) or _company_size_set(str(right))
+        return a is not None and b is not None and a != b
+    a, b = _sidos_of(left), _sidos_of(right)
+    return bool(a) and bool(b) and not (a & b)
+
+
+def _sidos_of(value: object) -> set[str]:
+    """지역 값이 속한 시·도(통합 전후 이름 포함). 사전에 없는 이름이면 빈 집합 — 겹치는지 모르니 어긋났다고 하지 않는다."""
+    sidos, subs = find_regions(str(value or ""))
+    found = set(sidos) | {SIDO_CANONICAL[p] for sub in subs for p in SIGUNGU_PARENTS.get(sub, ()) if p in SIDO_CANONICAL}
+    return found | {SIDO_MERGED_INTO[name] for name in found if name in SIDO_MERGED_INTO} | {
+        old for old, new in SIDO_MERGED_INTO.items() if new in found
+    }
