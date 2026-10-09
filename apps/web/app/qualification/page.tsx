@@ -328,7 +328,6 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
       }
     } catch (cause) {
       if (request === generation.current) setError(cause instanceof Error ? cause.message : '초기 데이터를 불러오지 못했습니다.');
-      }
     } finally {
       if (request === generation.current) setBusy(null);
     }
@@ -454,6 +453,7 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
         setError('');
       } else {
         setError(cause instanceof Error ? cause.message : '참가자격 검토에 실패했습니다.');
+      }
     } finally {
       controller.releaseReview(activeCase.id);
       if (request === generation.current) setBusy(null);
