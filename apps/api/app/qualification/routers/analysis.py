@@ -57,7 +57,7 @@ def request_qualification_analysis(
         BidNoticeVersion.version_number == version_number,
     ))
     if version is None:
-        raise ApiError(404, "NOTICE_VERSION_NOT_FOUND", "?? ??? ?? ? ????.")
+        raise ApiError(404, "NOTICE_VERSION_NOT_FOUND", "공고 차수를 찾을 수 없습니다.")
     ready = bool(version.documents) and all(
         doc.download_status == "DOWNLOADED" and doc.extraction_status == "EXTRACTED"
         for doc in version.documents
