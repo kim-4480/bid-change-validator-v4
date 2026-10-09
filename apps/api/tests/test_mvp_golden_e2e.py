@@ -1,11 +1,12 @@
 from datetime import date, datetime, timezone
 from decimal import Decimal
+from hashlib import sha256
 from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
 
-from apps.api.app.analysis_models import QualificationAnalysisRun, QualificationRequirementRecord
+from apps.api.app.analysis_models import QualificationAnalysisRun, QualificationEvidenceRecord, QualificationRequirementRecord
 from apps.api.app.database import SessionLocal
 from apps.api.app.main import app
 from apps.api.app.models import (
@@ -15,9 +16,14 @@ from apps.api.app.models import (
     CompanyPerformance,
     CompanyStaff,
     CompanyStaffRole,
+    NoticeDocument,
     PreflightCase,
 )
 from apps.api.app.qualification.analysis import qualification_analysis_version_fingerprint
+from apps.api.app.qualification.judgment import run_qualification_judgment
+from apps.api.app.qualification.revalidation import run_qualification_revalidation
+from apps.api.app.revalidation_schemas import QualificationRevalidationCreate
+from bidengine.pipeline.analysis_result import AnalysisCoverage
 
 
 pytestmark = pytest.mark.usefixtures("seed_required_master_codes")
@@ -256,6 +262,115 @@ def _cleanup(seed):
         db.close()
 
 
+def _ground_analysis_documents(db, seed):
+    """Attach complete, version-specific extracted texts and grounded evidence."""
+    for run_id in (seed["baseline_analysis_id"], seed["current_analysis_id"]):
+        run = db.get(QualificationAnalysisRun, run_id)
+        version = db.get(BidNoticeVersion, run.notice_version_id)
+        requirements = sorted(run.requirements, key=lambda item: item.requirement_key)
+        blocks = [{"block_index": index, "text": item.raw} for index, item in enumerate(requirements)]
+        text = "\n".join(item.raw for item in requirements)
+        file_hash = sha256(f"file:{version.id}:{text}".encode()).hexdigest()
+        text_hash = sha256(text.encode()).hexdigest()
+        document = NoticeDocument(
+            id=uuid4(), notice_version_id=version.id, document_order=0,
+            name="notice.pdf", url=f"https://example.invalid/{version.id}.pdf",
+            source_field="fixture_document", download_status="DOWNLOADED",
+            file_sha256=file_hash, extraction_status="EXTRACTED",
+            extracted_text=text, extracted_blocks=blocks,
+            extracted_text_sha256=text_hash,
+        )
+        db.add(document)
+        db.flush()
+        for index, requirement in enumerate(requirements):
+            key = f"EVD:{requirement.requirement_key}"
+            requirement.evidence_keys = [key]
+            db.add(QualificationEvidenceRecord(
+                id=uuid4(), analysis_run_id=run.id, evidence_key=key,
+                source_type="NOTICE_DOCUMENT", document_id=str(document.id),
+                notice_version_id=str(version.id), location={"block_start": index, "block_end": index},
+                quote=requirement.raw, source_sha256=file_hash,
+                extracted_text_sha256=text_hash,
+            ))
+        run.coverage = AnalysisCoverage(section_selection="anchored").model_dump(mode="json")
+        db.flush()
+        db.expire(version, ["documents"])
+        run.input_fingerprint = qualification_analysis_version_fingerprint(version)
+    db.commit()
+
+
+def test_revalidation_reuses_only_fully_grounded_unchanged_profile_judgments(monkeypatch):
+    seed = _seed_golden_case()
+    try:
+        with SessionLocal() as db:
+            _ground_analysis_documents(db, seed)
+            case = db.get(PreflightCase, seed["case_id"])
+            current_id = case.current_version_id
+            case.current_version_id = case.baseline_version_id
+            db.commit()
+            source = run_qualification_judgment(db, case_id=case.id, reference_date=date.fromisoformat(REFERENCE_DATE))
+            case.current_version_id = current_id
+            db.commit()
+
+            from apps.api.app.qualification import revalidation as module
+            original = module.judge_requirement
+            recalculated = []
+
+            def tracked(requirement, *args, **kwargs):
+                recalculated.append(requirement.requirement_key)
+                return original(requirement, *args, **kwargs)
+
+            monkeypatch.setattr(module, "judge_requirement", tracked)
+            result = run_qualification_revalidation(db, case_id=case.id, payload=QualificationRevalidationCreate(
+                source_judgment_run_id=source.id,
+                baseline_analysis_run_id=seed["baseline_analysis_id"],
+                current_analysis_run_id=seed["current_analysis_id"],
+                reference_date=date.fromisoformat(REFERENCE_DATE),
+            ))
+            assert result.revalidated_keys == ["REQ-PERFORMANCE-AMOUNT", "REQ-REGISTRATION"]
+            assert recalculated == result.revalidated_keys
+            by_key = {item.requirement_key: item for item in result.result.judgments}
+            assert by_key["REQ-REGION"].status == "SATISFIED"
+            assert by_key["REQ-STAFF"].status == "SATISFIED"
+            assert by_key["REQ-PERFORMANCE-AMOUNT"].status == "UNKNOWN"
+            assert by_key["REQ-REGISTRATION"].status == "UNKNOWN"
+    finally:
+        _cleanup(seed)
+
+
+def test_revalidation_reviews_unchanged_requirement_with_unverified_current_quote():
+    seed = _seed_golden_case()
+    try:
+        with SessionLocal() as db:
+            _ground_analysis_documents(db, seed)
+            case = db.get(PreflightCase, seed["case_id"])
+            current_id = case.current_version_id
+            case.current_version_id = case.baseline_version_id
+            db.commit()
+            source = run_qualification_judgment(db, case_id=case.id, reference_date=date.fromisoformat(REFERENCE_DATE))
+            case.current_version_id = current_id
+            current = db.get(QualificationAnalysisRun, seed["current_analysis_id"])
+            next(item for item in current.evidence if item.evidence_key == "EVD:REQ-REGION").quote = "원문에 없는 인용"
+            next(item for item in current.evidence if item.evidence_key == "EVD:REQ-PERFORMANCE-AMOUNT").quote = "원문에 없는 변경 조건"
+            db.commit()
+            result = run_qualification_revalidation(db, case_id=case.id, payload=QualificationRevalidationCreate(
+                source_judgment_run_id=source.id,
+                baseline_analysis_run_id=seed["baseline_analysis_id"],
+                current_analysis_run_id=seed["current_analysis_id"],
+                reference_date=date.fromisoformat(REFERENCE_DATE),
+            ))
+            by_key = {item.requirement_key: item for item in result.result.judgments}
+            assert by_key["REQ-REGION"].status == "UNKNOWN"
+            assert by_key["REQ-REGION"].reason_code == "NEEDS_REVIEW"
+            assert "REQ-REGION" not in result.revalidated_keys
+            assert by_key["REQ-PERFORMANCE-AMOUNT"].status == "UNKNOWN"
+            assert by_key["REQ-PERFORMANCE-AMOUNT"].reason_code == "NEEDS_REVIEW"
+            assert "REQ-PERFORMANCE-AMOUNT" not in result.revalidated_keys
+            assert by_key["REQ-STAFF"].status == "SATISFIED"
+    finally:
+        _cleanup(seed)
+
+
 def test_mvp_golden_path_judgment_ask_back_and_revalidation() -> None:
     seed = _seed_golden_case()
     try:
@@ -328,14 +443,15 @@ def test_mvp_golden_path_judgment_ask_back_and_revalidation() -> None:
         assert changes["REQ-REGION"]["change_type"] == "UNCHANGED"
         assert changes["REQ-STAFF"]["change_type"] == "UNCHANGED"
         assert changes["REQ-REGISTRATION"]["change_type"] == "UNCHANGED"
-        assert revalidation["revalidated_keys"] == ["REQ-PERFORMANCE-AMOUNT"]
+        # This legacy fixture has no extracted documents, evidence, or coverage.
+        # The impact planner must not copy even an apparently unchanged verdict.
+        assert revalidation["revalidated_keys"] == []
 
         result = revalidation["result"]
         # 실적 금액은 확인 항목이다(2026-10-07). 미달로 확정돼도 '부적합' 을 확정하지 않고 '적합' 도 주지 않는다.
         assert result["overall_status"] == "insufficient_data"
         result_by_key = {item["requirement_key"]: item for item in result["judgments"]}
-        assert result_by_key["REQ-PERFORMANCE-AMOUNT"]["status"] == "UNSATISFIED"
-        assert result_by_key["REQ-REGISTRATION"]["status"] == "SATISFIED"
-        assert result_by_key["REQ-REGISTRATION"]["basis_type"] == "USER_ANSWER"
+        assert {item["status"] for item in result_by_key.values()} == {"UNKNOWN"}
+        assert {item["basis_type"] for item in result_by_key.values()} == {"NONE"}
     finally:
         _cleanup(seed)

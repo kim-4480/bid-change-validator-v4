@@ -23,6 +23,7 @@ from ..services.notices import run_notice_sync
 KST = ZoneInfo("Asia/Seoul")
 WORKER_LOCK_KEY = 7_040_021_615
 MAX_RECOVERY_WINDOW = timedelta(days=30)
+MAX_HISTORY_BACKFILL_ATTEMPTS = 3
 logger = logging.getLogger("notice-polling")
 
 
@@ -272,6 +273,7 @@ def run_history_backfill_batch(
                     and_(
                         NoticeHistoryBackfillJob.status.in_(("PENDING", "FAILED")),
                         NoticeHistoryBackfillJob.next_attempt_at <= cycle_time,
+                        NoticeHistoryBackfillJob.attempts < MAX_HISTORY_BACKFILL_ATTEMPTS,
                     ),
                     and_(
                         NoticeHistoryBackfillJob.status == "RUNNING",
@@ -288,6 +290,15 @@ def run_history_backfill_batch(
         with SessionLocal() as db:
             job = db.get(NoticeHistoryBackfillJob, job_id)
             if job is None:
+                continue
+            if (
+                job.status == "RUNNING"
+                and job.attempts >= MAX_HISTORY_BACKFILL_ATTEMPTS
+            ):
+                job.status = "FAILED"
+                job.last_error = "Retry limit reached after worker interruption"
+                job.updated_at = cycle_time
+                db.commit()
                 continue
             notice = db.get(BidNotice, job.notice_id)
             if notice is None:

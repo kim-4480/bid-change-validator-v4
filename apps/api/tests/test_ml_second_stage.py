@@ -45,6 +45,23 @@ def test_local_human_review_preparation_has_no_oracle_labels(tmp_path):
     for filename,sha in result["sha256"].items():
         assert sha==hashlib.sha256((tmp_path/filename).read_bytes()).hexdigest()
 
+def test_bounded_review_export_keeps_all_companies_and_holdout_splits(tmp_path):
+    notices,one_company=input_data(12)
+    companies=[]
+    for name in ("Company A", "Company B", "Company C"):
+        company={**one_company[0],"company_id":str(uuid4()),"name":name}
+        companies.append(company)
+    result=create_review_dataset(notices,companies,tmp_path,max_pairs=36)
+    rows=[json.loads(line) for line in (tmp_path/"company_notice_pairs.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert result["pair_count"]==36
+    assert {row["company_id"] for row in rows}=={company["company_id"] for company in companies}
+    assert {row["split"] for row in rows}>={"train","validation","test"}
+    assert all(row["label"] is None and row["label_source"]=="unreviewed" for row in rows)
+    dates={split:[row["posted_at"] for row in rows if row["split"]==split]
+           for split in ("train","validation","test")}
+    assert max(dates["train"])<=min(dates["validation"])
+    assert max(dates["validation"])<=min(dates["test"])
+
 def _save_review(csv_path,fix=None):
     with csv_path.open(encoding="utf-8-sig",newline="") as f:
         reader=csv.DictReader(f);rows=list(reader);columns=reader.fieldnames

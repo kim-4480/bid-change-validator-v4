@@ -19,6 +19,7 @@ from .qualification.routers.matching import router as qualification_matching_rou
 from .qualification.routers.revalidation import router as qualification_revalidation_router
 from .routers.companies import router as companies_router
 from .routers.auth import router as auth_router
+from .routers.admin_jobs import router as admin_jobs_router
 from .routers.clause_reviews import router as clause_reviews_router
 from .routers.master_codes import router as master_codes_router
 from .routers.notices import router as notices_router
@@ -89,4 +90,5 @@ protected_api_router.include_router(qualification_revalidation_router)
 protected_api_router.include_router(qualification_matching_router)
 protected_api_router.include_router(ml_recommendations_router)
 protected_api_router.include_router(copilot_router)
+protected_api_router.include_router(admin_jobs_router)
 app.include_router(protected_api_router)

@@ -126,14 +126,31 @@ def create_review_dataset(notices,companies,out,seed=42,max_pairs=2000):
         families.setdefault(n["family_id"],[]).append(n["posted_at"] or "")
     ordered=sorted(families,key=lambda k:(min(families[k]),k))
     a,b=int(len(ordered)*.7),int(len(ordered)*.85)
-    fsplit={k:("train" if i<a else "validation" if i<b else "test") for i,k in enumerate(ordered)}
+    # A notice family can span a cutoff when a later amendment is published.
+    # Such a family cannot safely be assigned to either temporal partition.
+    first_cutoff=min(families[ordered[a]]) if feasible else None
+    second_cutoff=min(families[ordered[b]]) if feasible else None
+    fsplit={}
+    for family,posted in families.items():
+        first,last=min(posted),max(posted)
+        if not feasible or not first or not last or first_cutoff >= second_cutoff:
+            fsplit[family]="review_only"
+        elif last < first_cutoff:
+            fsplit[family]="train"
+        elif first >= first_cutoff and last < second_cutoff:
+            fsplit[family]="validation"
+        elif first >= second_cutoff:
+            fsplit[family]="test"
+        else:
+            fsplit[family]="review_only"
     # With a small number of companies this can become sparse; holdout remains
     # disabled unless all three splits contain actually reviewed positive pairs.
     cids=sorted(company_ids)
-    ca=max(1,int(len(cids)*.7))
-    cb=min(len(cids)-1,max(ca+1,int(len(cids)*.85)))
+    ca=max(1,min(len(cids)-2,int(len(cids)*.7))) if feasible else len(cids)
+    cb=max(ca+1,min(len(cids)-1,int(len(cids)*.85))) if feasible else len(cids)
     csplit={k:("train" if i<ca else "validation" if i<cb else "test") for i,k in enumerate(cids)}
     rows=[]
+    ranked_by_company=[]
     for company in companies:
         profile=_profile(company)
         matching=[]
@@ -143,8 +160,13 @@ def create_review_dataset(notices,companies,out,seed=42,max_pairs=2000):
         # Include lexical hard candidates + low-overlap negatives but DO NOT
         # assert that either group is actually positive/negative without review.
         matching.sort(key=lambda item:(-item[0],item[1]["notice_id"]))
-        for hint,notice in matching:
+        ranked_by_company.append((company,profile,matching))
+    # Round-robin prevents a bounded export from exhausting its pair budget on
+    # the first few companies and silently omitting validation/test companies.
+    for rank in range(len(notices)):
+        for company,profile,matching in ranked_by_company:
             if len(rows)>=max_pairs:break
+            hint,notice=matching[rank]
             split=(fsplit[notice["family_id"]]
                    if feasible and fsplit[notice["family_id"]]==csplit[company["company_id"]]
                    else "review_only")

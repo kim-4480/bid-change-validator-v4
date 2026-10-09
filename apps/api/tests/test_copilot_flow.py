@@ -328,7 +328,8 @@ def test_changed_notice_golden_and_revalidation_replay():
                 assert response.status_code == 200, response.text
             from apps.api.app.revalidation_schemas import QualificationRevalidationRead
             result = QualificationRevalidationRead.model_validate(response.json())
-            assert result.revalidated_keys == ['REQ-PERFORMANCE-AMOUNT']
+            # No source documents/evidence in this fixture: safe REVIEW, not reuse.
+            assert result.revalidated_keys == []
             assert result.result.notice_version_id == current_id
             assert result.source_judgment_run_id == source.id
             assert get_changed_notice(db, case.id).provenance.current.judgment_run_id == result.result_judgment_run_id
