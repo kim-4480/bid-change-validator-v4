@@ -33,18 +33,18 @@ def _overall(items, codes):
 def test_a_code_in_every_branch_is_required_and_the_rest_is_optional():
     out = combine_branches([[_code("1253"), _code("6728")], [_code("1253")]])
     assert [(r["value"], r.get("role")) for r in out] == [("1253", None), ("6728", "optional")]
-    assert _overall(out, ["1253"]) == "eligible"
-    assert _overall(out, ["6728"]) == "ineligible"
+    assert _overall(out, ["1253"]) == "core_met"
+    assert _overall(out, ["6728"]) == "core_unmet"
 
 
 def test_branches_with_several_codes_are_alternatives_as_wholes():
     out = combine_branches([[_code("0002")], [_code("4989"), _code("4991")]])
-    assert _overall(out, ["0002"]) == "eligible"
-    assert _overall(out, ["4989", "4991"]) == "eligible"
-    assert _overall(out, ["4991"]) == "insufficient_data"       # 갈래 구조는 코드가 읽은 것 — 부적합으로 확정하지 않는다
+    assert _overall(out, ["0002"]) == "core_met"
+    assert _overall(out, ["4989", "4991"]) == "core_met"
+    assert _overall(out, ["4991"]) == "needs_review"       # 갈래 구조는 코드가 읽은 것 — 부적합으로 확정하지 않는다
     out = combine_branches([[_code("1001"), _code("1002")], [_code("1001"), _code("1003")]])
     assert [r["value"] for r in out if not r.get("group")] == ["1001"]
-    assert _overall(out, ["1001", "1003"]) == "eligible" and _overall(out, ["1002", "1003"]) == "ineligible"
+    assert _overall(out, ["1001", "1003"]) == "core_met" and _overall(out, ["1002", "1003"]) == "core_unmet"
 
 
 def test_one_clause_is_split_on_or():
@@ -74,7 +74,7 @@ def test_sub_items_with_several_codes_and_a_relaxing_note():
     assert [(r["value"], r.get("role")) for r in without] == [("1229", None), ("1254", None), ("1389", "optional")]
     with_note = _combine_cross_branches(slots, [note])
     assert [(r["value"], r.get("role")) for r in with_note] == [("1254", None), ("1229", "optional"), ("1389", "optional")]
-    assert _overall(with_note, ["1254"]) == "eligible"
+    assert _overall(with_note, ["1254"]) == "core_met"
     # 대안 묶음이 이미 있거나 추론한 코드가 섞인 갈래는 풀지 않는다.
     grouped = [None, {"raw": "①", "_closed_requirements": [_code("1001"), {**_code("1002"), "group": "G"}]}, slots[2]]
     assert _combine_cross_branches(grouped, []) is None

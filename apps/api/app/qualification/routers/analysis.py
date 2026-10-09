@@ -3,12 +3,15 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from bidengine.providers.openai import OpenAIStructuredExtractor
 from ...analysis_schemas import QualificationAnalysisRunRead, QualificationAnalysisRunSummary
 from ...database import get_db
 from ...errors import ApiError
+from ...models import BidNoticeVersion
+from ...services.notice_processing import claim_approved_analysis_job, finish_job
 from ..analysis import (
     QualificationAnalysisError,
     analysis_run_response,
@@ -43,17 +46,40 @@ def trigger_qualification_analysis(
             "AI_PROVIDER_NOT_CONFIGURED",
             "OPENAI_API_KEY가 설정되지 않아 자격요건 분석을 실행할 수 없습니다.",
         )
+    version = db.scalar(select(BidNoticeVersion).where(
+        BidNoticeVersion.notice_id == notice_id,
+        BidNoticeVersion.version_number == version_number,
+    ))
+    if version is None:
+        raise ApiError(404, "NOTICE_VERSION_NOT_FOUND", "공고 차수를 찾을 수 없습니다.")
+    job = claim_approved_analysis_job(db, version_id=version.id)
+    if job is None:
+        raise ApiError(409, "ANALYSIS_APPROVAL_REQUIRED", "현재 공고 차수·문서 입력에 대한 관리자 승인 또는 실행 가능한 작업이 없습니다.")
     try:
         run = run_qualification_analysis(
             db,
             notice_id=notice_id,
             version_number=version_number,
             structured_extract=extractor,
+            commit=False,
         )
+        finished = finish_job(db, job.id, attempt_number=job.attempts)
+        if finished.status != "COMPLETED":
+            raise ApiError(409, "ANALYSIS_INPUT_CHANGED", "분석 중 문서 입력이 변경되어 결과를 최신 판정에 사용할 수 없습니다.")
     except QualificationAnalysisError as error:
+        db.rollback()
+        finish_job(db, job.id, attempt_number=job.attempts, error=error.code)
         raise _analysis_error(error) from error
+    except ApiError:
+        raise
     except RuntimeError as error:
-        raise ApiError(502, "AI_ANALYSIS_FAILED", str(error)) from error
+        db.rollback()
+        finish_job(db, job.id, attempt_number=job.attempts, error=type(error).__name__)
+        raise ApiError(502, "AI_ANALYSIS_FAILED", "AI 분석이 실패했습니다. 관리자 작업 이력을 확인해 주세요.") from error
+    except Exception as error:
+        db.rollback()
+        finish_job(db, job.id, attempt_number=job.attempts, error=type(error).__name__)
+        raise ApiError(502, "AI_ANALYSIS_FAILED", "AI 분석이 실패했습니다. 관리자 작업 이력을 확인해 주세요.") from error
     return analysis_run_response(run)
 
 

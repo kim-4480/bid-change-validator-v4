@@ -53,8 +53,8 @@ export async function loadCaseWorkspace(caseId: string): Promise<CaseWorkspace> 
       listQualificationJudgments(caseItem.id),
     ]);
 
-  const currentAnalysis = currentAnalyses[0] ?? null;
-  const baselineAnalysis = baselineAnalyses[0] ?? null;
+  const currentAnalysis = currentAnalyses.find((item) => !item.is_stale) ?? null;
+  const baselineAnalysis = baselineAnalyses.find((item) => !item.is_stale) ?? null;
   const baselineVersionId = versions.find(
     (item) => item.version_number === caseItem.baseline_version_number,
   )?.id;
@@ -126,7 +126,8 @@ export async function loadCurrentJudgment(caseItem: PreflightCase) {
     listQualificationAnalyses(caseItem.notice_id, caseItem.current_version_number),
     listQualificationJudgments(caseItem.id),
   ]);
-  const summary = judgments.find((item) => judgmentMatchesAnalysis(item, analyses[0] ?? null, caseItem.company_id));
+  const currentAnalysis = analyses.find((item) => !item.is_stale) ?? null;
+  const summary = judgments.find((item) => judgmentMatchesAnalysis(item, currentAnalysis, caseItem.company_id));
   if (!summary) return null;
   const run = await getQualificationJudgment(summary.id);
   return run.rule_version === CURRENT_QUALIFICATION_RULE_VERSION ? run : null;

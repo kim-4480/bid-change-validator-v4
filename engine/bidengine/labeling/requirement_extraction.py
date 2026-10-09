@@ -627,9 +627,18 @@ def build_extraction_body(chunks: list[dict[str, Any]], *, max_chars: int | None
     return "\n\n".join(parts)[:max_chars]
 
 
-def extract_legacy_slots(chunks: list[dict[str, Any]], *, structured_extract: StructuredExtractor, max_retry: int = 1) -> dict[str, Any]:
+def extract_legacy_slots(chunks: list[dict[str, Any]], *, structured_extract: StructuredExtractor, max_retry: int = 1, retrieval_mode: str = "section", dense_ranked_ids: list[str] | None = None, hybrid_extra_budget: int = 6) -> dict[str, Any]:
     """Run structured extraction and source-grounding validation."""
-    target, selection_mode = select_eligibility_chunks_with_mode(chunks)
+    if retrieval_mode == "section":
+        target, selection_mode = select_eligibility_chunks_with_mode(chunks)
+    elif retrieval_mode == "hybrid":
+        from bidengine.labeling.hybrid_candidates import compare_eligibility_candidates
+        comparison = compare_eligibility_candidates(
+            chunks, dense_ranked_ids=dense_ranked_ids, extra_budget=hybrid_extra_budget,
+        )
+        target, selection_mode = comparison.candidates, "hybrid_" + comparison.section_mode
+    else:
+        raise ValueError("retrieval_mode must be section or hybrid")
     full_body = build_extraction_body(target, max_chars=None)
     coverage_inputs = {"selection_mode": selection_mode, "input_truncated": len(full_body) > 32_000}
     body = full_body[:32_000]

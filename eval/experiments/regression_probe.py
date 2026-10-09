@@ -53,6 +53,9 @@ _FAR_REGIONS = ("제주특별자치도 서귀포시", "강원특별자치도 삼
 _BREAK_SIZE = {"소상공인": "MEDIUM", "소기업": "MEDIUM", "중기업": "LARGE", "중소기업": "LARGE"}
 
 
+_STATUS_NAME = {"eligible": "core_met", "ineligible": "core_unmet", "insufficient_data": "needs_review"}
+
+
 class FileMemory(dict):
     """조항마다 처음 받은 답을 지키고, 끝나면 파일로 남긴다."""
 
@@ -157,13 +160,14 @@ def run_one(version, label: dict, run: int, model: str, memories: dict[str, dict
     gaps = [g.model_dump(mode="json") for g in result.coverage.gaps]
     score = score_run({"version": version.label, "requirements": reqs, "gaps": gaps}, label)
     overall, status = judge(result, label["ideal_profile"], version.label)
-    expect = label.get("expect", "eligible")
+    # 정답 파일은 예전 이름(eligible·ineligible·insufficient_data)으로 적혀 있다.
+    expect = _STATUS_NAME.get(label.get("expect", "core_met"), label.get("expect", "core_met"))
     broken = {core_id: judge(result, profile, version.label)[0] for core_id, profile in broken_profiles(label)}
     return {
         "label": version.label, "run": run, "seconds": round(time.monotonic() - started),
         "overall": overall, "expect": expect,
-        "false_ineligible": overall == "ineligible" and expect != "ineligible",
-        "false_eligible": sorted(core_id for core_id, verdict in broken.items() if verdict == "eligible"),
+        "false_ineligible": overall == "core_unmet" and expect != "core_unmet",
+        "false_eligible": sorted(core_id for core_id, verdict in broken.items() if verdict == "core_met"),
         "broken": broken, "core": score["core"],
         "wrong": [f"{w['type']} {w['value']}" for w in score["wrong"]],
         "requirements": [{"type": r.type, "value": r.value, "group": r.group_operator, "key": r.requirement_key,

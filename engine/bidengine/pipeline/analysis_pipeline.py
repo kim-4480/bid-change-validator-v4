@@ -134,6 +134,8 @@ def analyze_qualification_documents(
     label_votes: int | None = None,
     gap_summary_memory: MutableMapping[str, Any] | None = None,
     summarize_gaps: bool = True,
+    legacy_retrieval_mode: str = "section",
+    dense_ranked_ids: list[str] | None = None,
     notice_limits: "NoticeLimits | None" = None,
 ) -> RequirementAnalysisResult:
     """Run one qualification Requirement analysis without touching Backend state.
@@ -200,6 +202,8 @@ def analyze_qualification_documents(
             chunks,
             structured_extract=structured_extract,
             max_retry=max_retry,
+            retrieval_mode=legacy_retrieval_mode,
+            dense_ranked_ids=dense_ranked_ids,
         )
 
     normalized_slots = _normalize_extracted_slots(

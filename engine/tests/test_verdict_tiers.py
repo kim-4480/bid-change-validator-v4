@@ -32,14 +32,14 @@ def test_tiers():
 
 def test_checklist_items_do_not_decide_the_verdict():
     reqs = [_req("a", "INDUSTRY", "0040"), _req("b", "REGION", "강릉시"), _req("c", "REGISTRATION_CERTIFICATION", "Solar A Mark 인증서")]
-    assert _overall(reqs) == "eligible"            # 인증서는 확인 항목 — 확인 필요여도 핵심 자격은 충족
-    assert _overall([reqs[0], reqs[2], _req("d", "REGION", "부산광역시")]) == "ineligible"
+    assert _overall(reqs) == "core_met"            # 인증서는 확인 항목 — 확인 필요여도 핵심 자격은 충족
+    assert _overall([reqs[0], reqs[2], _req("d", "REGION", "부산광역시")]) == "core_unmet"
 
 
 def test_any_of_with_a_verdict_member_is_judged_as_a_whole():
     reqs = [_req("a", "INDUSTRY", "1468", group="G", operator="ANY_OF"),
             _req("b", "REGISTRATION_CERTIFICATION", "OO 인증서", group="G", operator="ANY_OF")]
-    assert _overall(reqs) == "insufficient_data"   # 1468 은 없지만 OO 인증을 확인해야 한다
+    assert _overall(reqs) == "needs_review"   # 1468 은 없지만 OO 인증을 확인해야 한다
 
 
 def test_only_closed_value_gaps_block_the_verdict():

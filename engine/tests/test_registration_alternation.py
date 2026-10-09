@@ -112,22 +112,22 @@ def test_any_alternative_held_is_eligible():
     reqs, _ = adapt_legacy_slot(_slot(C04_ENGINEERING), notice_version_id="v", key_prefix="R",
                                 industry_resolver=DictResolver())
     held = [ProfileIndustryFact(code="4969", name="건설엔지니어링업(설계,사업관리-건설사업관리)")]
-    assert _overall(reqs, held).overall_status == "eligible"
+    assert _overall(reqs, held).overall_status == "core_met"
 
 
 def test_no_alternative_held_is_ineligible_when_all_are_codes():
     reqs, _ = adapt_legacy_slot(_slot(C04_ENGINEERING), notice_version_id="v", key_prefix="R",
                                 industry_resolver=DictResolver())
     held = [ProfileIndustryFact(code="0001", name="토목공사업")]
-    assert _overall(reqs, held).overall_status == "ineligible"
+    assert _overall(reqs, held).overall_status == "core_unmet"
 
 
 def test_name_alternatives_are_matched_against_registered_industries():
     """업종으로 등록한 이름도 등록 요건을 충족한다. 이름이 다르면 미달이 아니라 확인 필요다."""
     reqs, _ = adapt_legacy_slot(_slot(C03_BUILDING), notice_version_id="v", key_prefix="R")
-    assert _overall(reqs, [ProfileIndustryFact(code="0003", name="토목건축공사업")]).overall_status == "eligible"
+    assert _overall(reqs, [ProfileIndustryFact(code="0003", name="토목건축공사업")]).overall_status == "core_met"
     unrelated = _overall(reqs, [ProfileIndustryFact(code="0036", name="정보통신공사업")])
-    assert unrelated.overall_status == "insufficient_data"
+    assert unrelated.overall_status == "needs_review"
     assert {j.reason_code for j in unrelated.judgments} == {"NEEDS_REVIEW"}
 
 
@@ -168,9 +168,9 @@ def test_attached_region_alternatives_become_their_own_any_of_group():
 @pytest.mark.parametrize(
     ("region", "industries", "expected"),
     [
-        ("경상남도", [ProfileIndustryFact(code="0003", name="토목건축공사업")], "eligible"),
-        ("부산광역시", [ProfileIndustryFact(code="0003", name="토목건축공사업")], "ineligible"),
-        ("경상남도", [ProfileIndustryFact(code="0001", name="토목공사업")], "ineligible"),
+        ("경상남도", [ProfileIndustryFact(code="0003", name="토목건축공사업")], "core_met"),
+        ("부산광역시", [ProfileIndustryFact(code="0003", name="토목건축공사업")], "core_unmet"),
+        ("경상남도", [ProfileIndustryFact(code="0001", name="토목공사업")], "core_unmet"),
     ],
     ids=["both-held", "wrong-region", "no-alternative"],
 )
@@ -254,5 +254,5 @@ def test_region_any_of_is_satisfied_by_one_region(company_region, expected):
     profile = CompanyProfileSnapshot(company_id="c", region_name=company_region)
     result = judge_requirements(reqs, profile, preflight_case_id="c", reference_date=date(2026, 9, 1),
                                 coverage_complete=True)
-    group = "SATISFIED" if result.overall_status == "eligible" else "UNSATISFIED"
+    group = "SATISFIED" if result.overall_status == "core_met" else "UNSATISFIED"
     assert group == expected

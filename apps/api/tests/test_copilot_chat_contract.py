@@ -708,7 +708,7 @@ def test_next_steps_route_to_checks(local, message):
     assert response["presentation"]["reasons"] and response["presentation"]["next_action"]
 
 
-@pytest.mark.parametrize("status,label", [("eligible", "참가 가능"), ("ineligible", "참가 불가")])
+@pytest.mark.parametrize("status,label", [("core_met", "핵심 요건 충족"), ("core_unmet", "핵심 요건 미충족")])
 def test_presentation_never_replaces_backend_overall_status(local, status, label):
     local.summary.overall_status = status
     response = ask(local, "참여 가능해?")

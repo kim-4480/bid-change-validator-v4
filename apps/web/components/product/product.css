@@ -223,7 +223,7 @@ body {
   }
 
   .app-header {
-    height: 72px;
+    height: auto;
   }
 
   .app-utility-bar {
@@ -231,11 +231,11 @@ body {
   }
 
   .app-gnb {
-    height: 72px;
+    height: auto;
   }
 
   .app-primary-nav {
-    display: none;
+    display: flex;
   }
 
   .app-title-band,
@@ -251,4 +251,9 @@ body {
     width: auto;
     flex-basis: auto;
   }
+}
+
+.app-mobile-auth { display: none; }
+@media (max-width: 767px) {
+  .app-mobile-auth { display: flex; align-items: center; margin-left: auto; font-size: 13px; }
 }

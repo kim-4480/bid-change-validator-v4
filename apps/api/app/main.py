@@ -11,6 +11,7 @@ from .auth import require_authentication_if_enabled
 from .copilot.router import router as copilot_router
 from .database import get_db
 from .errors import ApiError
+from .ml_recommendations.router import router as ml_recommendations_router
 from .qualification.routers.analysis import router as qualification_analysis_router
 from .qualification.routers.ask_back import router as qualification_ask_back_router
 from .qualification.routers.judgment import router as qualification_judgment_router
@@ -18,6 +19,9 @@ from .qualification.routers.matching import router as qualification_matching_rou
 from .qualification.routers.revalidation import router as qualification_revalidation_router
 from .routers.companies import router as companies_router
 from .routers.auth import router as auth_router
+from .routers.admin_jobs import router as admin_jobs_router
+from .routers.admin_relevance_labels import router as admin_relevance_labels_router
+from .routers.admin_processing_jobs import router as admin_processing_jobs_router
 from .routers.clause_reviews import router as clause_reviews_router
 from .routers.master_codes import router as master_codes_router
 from .routers.notices import router as notices_router
@@ -86,5 +90,9 @@ protected_api_router.include_router(qualification_judgment_router)
 protected_api_router.include_router(qualification_ask_back_router)
 protected_api_router.include_router(qualification_revalidation_router)
 protected_api_router.include_router(qualification_matching_router)
+protected_api_router.include_router(ml_recommendations_router)
 protected_api_router.include_router(copilot_router)
+protected_api_router.include_router(admin_jobs_router)
+protected_api_router.include_router(admin_relevance_labels_router)
+protected_api_router.include_router(admin_processing_jobs_router)
 app.include_router(protected_api_router)

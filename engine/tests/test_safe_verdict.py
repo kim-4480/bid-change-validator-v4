@@ -31,37 +31,37 @@ def test_codes_inferred_from_a_family_name_never_make_a_company_ineligible():
     reqs = [_req(f"r{code}", "INDUSTRY", code, group="F", operator="ANY_OF", scope=family) for code in ("1224", "1226")]
     result = _judge(reqs, _profile())
     assert {j.status for j in result.judgments} == {"UNKNOWN"}
-    assert result.overall_status == "insufficient_data"
+    assert result.overall_status == "needs_review"
 
 
 def test_a_written_code_still_decides():
     result = _judge([_req("a", "INDUSTRY", "1224", scope={"industry_name": "업종코드 1224"})], _profile())
-    assert result.overall_status == "ineligible"
+    assert result.overall_status == "core_unmet"
 
 
 def test_two_disagreeing_sizes_do_not_make_a_company_ineligible():
     # 본문 '중소기업 또는 소상공인' 과 주석의 '소기업·소상공인 확인서' (740842).
     reqs = [_req("a", "COMPANY_SIZE", "중소기업"), _req("b", "COMPANY_SIZE", "소기업")]
     result = _judge(reqs, _profile(size="MEDIUM"))
-    assert result.overall_status == "insufficient_data"
+    assert result.overall_status == "needs_review"
     # 둘 다 어긋나면 부적합이다.
-    assert _judge(reqs, _profile(size="LARGE")).overall_status == "ineligible"
+    assert _judge(reqs, _profile(size="LARGE")).overall_status == "core_unmet"
 
 
 def test_two_disjoint_regions_do_not_make_a_company_ineligible():
     reqs = [_req("a", "REGION", "경상남도"), _req("b", "REGION", "울산광역시")]
-    assert _judge(reqs, _profile()).overall_status == "insufficient_data"
-    assert _judge(reqs, _profile(region="부산광역시 중구")).overall_status == "ineligible"
+    assert _judge(reqs, _profile()).overall_status == "needs_review"
+    assert _judge(reqs, _profile(region="부산광역시 중구")).overall_status == "core_unmet"
 
 
 def test_nested_regions_are_both_required():
     reqs = [_req("a", "REGION", "경기도"), _req("b", "REGION", "경기도 시흥시")]
-    assert _judge(reqs, _profile(region="경기도 수원시")).overall_status == "ineligible"
+    assert _judge(reqs, _profile(region="경기도 수원시")).overall_status == "core_unmet"
 
 
 def test_exclusions_are_not_softened():
     reqs = [_req("a", "COMPANY_SIZE", "중소기업"), _req("b", "COMPANY_SIZE", "대기업", scope={"restriction": "EXCLUDE"})]
-    assert _judge(reqs, _profile(size="LARGE")).overall_status == "ineligible"
+    assert _judge(reqs, _profile(size="LARGE")).overall_status == "core_unmet"
 
 
 def test_a_code_in_brackets_after_any_name_blocks_the_verdict():
@@ -77,6 +77,6 @@ def test_a_narrower_certificate_in_the_same_clause_keeps_a_medium_company_from_p
     assert certificate_size("중소기업 또는 소상공인으로서 발급된 ‘중소기업․소상공인 확인서’를 소지한 자") == "중소기업"
     assert certificate_size("중소기업자 직접생산확인서") is None
     reqs = [_req("a", "COMPANY_SIZE", "중소기업", scope={"certificate_size": "소기업"})]
-    assert _judge(reqs, _profile(size="MEDIUM")).overall_status == "insufficient_data"   # 748933, 748942
-    assert _judge(reqs, _profile(size="SMALL")).overall_status == "eligible"
-    assert _judge(reqs, _profile(size="LARGE")).overall_status == "ineligible"
+    assert _judge(reqs, _profile(size="MEDIUM")).overall_status == "needs_review"   # 748933, 748942
+    assert _judge(reqs, _profile(size="SMALL")).overall_status == "core_met"
+    assert _judge(reqs, _profile(size="LARGE")).overall_status == "core_unmet"

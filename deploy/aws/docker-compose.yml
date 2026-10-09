@@ -1,0 +1,147 @@
+name: bidcheck-v4-aws
+
+# No database or Alembic migration service exists in this stack.
+x-db: &db
+  DATABASE_URL: ${RDS_DATABASE_URL:?RDS_DATABASE_URL is required}
+  PGPASSWORD: ${RDS_APP_PASSWORD:?RDS_APP_PASSWORD is required}
+  DATABASE_POOL_MODE: queue
+  DATABASE_POOL_SIZE: "2"
+  DATABASE_MAX_OVERFLOW: "0"
+  DATABASE_POOL_TIMEOUT_SECONDS: "30"
+  DATABASE_POOL_RECYCLE_SECONDS: "900"
+
+x-documents: &documents
+  DOCUMENT_STORAGE_BACKEND: S3
+  DOCUMENT_S3_BUCKET: ${DOCUMENT_S3_BUCKET:?DOCUMENT_S3_BUCKET is required}
+  DOCUMENT_S3_PREFIX: notice-documents
+  AWS_REGION: ap-northeast-2
+
+x-ca: &ca
+  type: bind
+  source: /opt/bidcheck/rds-global-bundle.pem
+  target: /etc/ssl/certs/rds-global-bundle.pem
+  read_only: true
+
+services:
+  schema-check:
+    image: ${API_IMAGE:?API_IMAGE is required}
+    restart: "no"
+    environment: *db
+    volumes:
+      - *ca
+    command: ["python", "-m", "app.aws_schema_check"]
+
+  api:
+    image: ${API_IMAGE:?API_IMAGE is required}
+    restart: unless-stopped
+    stop_grace_period: 60s
+    depends_on:
+      schema-check:
+        condition: service_completed_successfully
+    environment:
+      <<: [*db, *documents]
+      G2B_SERVICE_KEY: ${G2B_SERVICE_KEY:?G2B_SERVICE_KEY is required}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY is required}
+      OPENAI_MODEL_DEFAULT: ${OPENAI_MODEL_DEFAULT:-gpt-5.6-luna}
+      BIDENGINE_EXTRACTION_MODE: ${BIDENGINE_EXTRACTION_MODE:-legacy}
+      BIDENGINE_POLARITY_GUARD: ${BIDENGINE_POLARITY_GUARD:-off}
+      BIDENGINE_CLAUSE_SELECTION: ${BIDENGINE_CLAUSE_SELECTION:-code}
+      OPENAI_REASONING_EFFORT: ${OPENAI_REASONING_EFFORT:-}
+      BIDENGINE_LABEL_VOTES: ${BIDENGINE_LABEL_VOTES:-1}
+      CORS_ORIGINS: https://${SITE_DOMAIN:?SITE_DOMAIN is required}
+      APP_ENVIRONMENT: development
+      AUTH_REQUIRED: "true"
+      AUTH_COOKIE_SECURE: "true"
+      AUTH_BOOTSTRAP_ADMIN_USERNAME: ${AUTH_BOOTSTRAP_ADMIN_USERNAME:?Admin username is required}
+      AUTH_BOOTSTRAP_ADMIN_PASSWORD: ${AUTH_BOOTSTRAP_ADMIN_PASSWORD:?Admin password is required}
+      DOCUMENT_RAG_INDEX_ROOT: /data/document-rag
+    volumes:
+      - *ca
+      - document_rag_index_data:/data/document-rag
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  notice-poller:
+    profiles: ["collector"]
+    image: ${API_IMAGE:?API_IMAGE is required}
+    restart: unless-stopped
+    stop_grace_period: 90s
+    depends_on:
+      schema-check:
+        condition: service_completed_successfully
+    environment:
+      <<: [*db, *documents]
+      G2B_SERVICE_KEY: ${G2B_SERVICE_KEY:?G2B_SERVICE_KEY is required}
+      NOTICE_POLL_INTERVAL_SECONDS: ${NOTICE_POLL_INTERVAL_SECONDS:-300}
+      NOTICE_POLL_LOOKBACK_MINUTES: ${NOTICE_POLL_LOOKBACK_MINUTES:-60}
+      NOTICE_POLL_OVERLAP_MINUTES: ${NOTICE_POLL_OVERLAP_MINUTES:-5}
+      NOTICE_POLL_PAGE_SIZE: ${NOTICE_POLL_PAGE_SIZE:-100}
+      NOTICE_POLL_MAX_PAGES: ${NOTICE_POLL_MAX_PAGES:-10}
+      NOTICE_POLL_BUSINESS_TYPES: ${NOTICE_POLL_BUSINESS_TYPES:-SERVICE,GOODS,CONSTRUCTION,FOREIGN}
+      NOTICE_HISTORY_BACKFILL_BATCH_SIZE: ${NOTICE_HISTORY_BACKFILL_BATCH_SIZE:-10}
+      NOTICE_HISTORY_BACKFILL_RETRY_MINUTES: ${NOTICE_HISTORY_BACKFILL_RETRY_MINUTES:-15}
+    volumes:
+      - *ca
+    command: ["python", "-m", "app.workers.notice_polling"]
+
+  processing-worker:
+    profiles: ["processing"]
+    image: ${API_IMAGE:?API_IMAGE is required}
+    restart: unless-stopped
+    depends_on:
+      schema-check:
+        condition: service_completed_successfully
+    environment:
+      <<: [*db, *documents]
+      DATABASE_POOL_SIZE: "1"
+      PROCESSING_ENABLE_EXTERNAL: ${PROCESSING_ENABLE_EXTERNAL:-false}
+      PROCESSING_BATCH_SIZE: ${PROCESSING_BATCH_SIZE:-10}
+      PROCESSING_POLL_INTERVAL_SECONDS: ${PROCESSING_POLL_INTERVAL_SECONDS:-30}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      DOCUMENT_RAG_INDEX_ROOT: /data/document-rag
+    volumes:
+      - *ca
+      - document_rag_index_data:/data/document-rag
+    command: ["python", "-m", "app.workers.notice_processing"]
+
+  web:
+    image: ${WEB_IMAGE:?WEB_IMAGE is required}
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: https://${SITE_DOMAIN:?SITE_DOMAIN is required}
+      PORT: "3000"
+      HOST: 0.0.0.0
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/login').then(r => {if (!r.ok) process.exit(1)}).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  caddy:
+    image: caddy:2.10
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?SITE_DOMAIN is required}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
+  document_rag_index_data:

@@ -94,22 +94,17 @@ export const GAP_CATEGORY_LABEL: Record<string, string> = {
 
 /** 공고 전체 결론 */
 export const OVERALL_STATUS_COPY: Record<OverallStatus, { label: string; description: string }> = {
-  /*
-    2026-10-07부터 종합 판정은 업종코드·소재지·기업 규모·품명번호 같은 핵심 자격으로만 낸다.
-    이름으로만 적힌 인증·실적·인력 등은 '확인할 항목'으로 따로 보여 주고 사용자가 확인한다.
-    그래서 '참가 가능'이 아니라 '핵심 자격 충족'이라고 말한다 — 확인할 항목까지 보장하지 않는다.
-  */
-  eligible: {
-    label: '핵심 자격 충족',
-    description: '업종·소재지·기업 규모·품명번호 같은 핵심 자격에서 미달이 없습니다. 아래 확인할 항목은 직접 확인해 주세요.',
+  core_met: {
+    label: '핵심 요건 충족',
+    description: '검증된 공고 근거와 회사 정보에서 핵심 요건을 충족했습니다. 법적 입찰 참가 가능을 보증하지 않으며 확인 항목은 직접 검토해야 합니다.',
   },
-  ineligible: {
-    label: '참가 불가',
-    description: '핵심 자격(업종·소재지·기업 규모·품명번호) 중 미달이 있어 현재 상태로는 참가할 수 없습니다.',
+  core_unmet: {
+    label: '핵심 요건 미충족',
+    description: '근거가 확인된 핵심 요건 중 미충족 항목이 있습니다. 법적 입찰 참가 불가능을 확정하는 판정은 아닙니다.',
   },
-  insufficient_data: {
+  needs_review: {
     label: '확인 필요',
-    description: '핵심 자격 중 회사 정보가 부족하거나 공고에서 값을 확정하지 못한 항목이 있습니다.',
+    description: '회사 정보·공고 근거·문서 또는 분석 커버리지가 부족해 핵심 요건을 확정할 수 없습니다.',
   },
 };
 
@@ -120,9 +115,9 @@ export const OVERALL_STATUS_COPY: Record<OverallStatus, { label: string; descrip
  * 목록에는 아직 판정이 없는 행이 있어 'unreviewed'를 하나 더 둔다.
  */
 export const OVERALL_STATUS_BADGE: Record<OverallStatus | 'unreviewed', { label: string; className: string }> = {
-  eligible: { label: '핵심 자격 충족', className: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
-  insufficient_data: { label: '확인 필요', className: 'border-amber-200 bg-amber-50 text-amber-700' },
-  ineligible: { label: '참가 불가', className: 'border-rose-200 bg-rose-50 text-rose-700' },
+  core_met: { label: '핵심 요건 충족', className: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
+  needs_review: { label: '확인 필요', className: 'border-amber-200 bg-amber-50 text-amber-700' },
+  core_unmet: { label: '핵심 요건 미충족', className: 'border-rose-200 bg-rose-50 text-rose-700' },
   unreviewed: { label: '미검토', className: 'border-slate-200 bg-slate-50 text-slate-600' },
 };
 
@@ -191,6 +186,7 @@ export const BUSINESS_TYPE_LABEL: Record<string, string> = {
   GOODS: '물품',
   CONSTRUCTION: '공사',
   FOREIGN: '외자',
+  OTHER: '\uAE30\uD0C0',
 };
 
 /** 첨부 뷰어 타입. PDF · RHWP만 실제로 확인된 값. */
