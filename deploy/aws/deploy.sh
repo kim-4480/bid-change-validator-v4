@@ -13,6 +13,10 @@ if [ -f collector.enabled ]; then
   PROFILE_ARGS=(--profile collector)
   SERVICES+=(notice-poller)
 fi
+if [ -f processing.enabled ]; then
+  PROFILE_ARGS+=(--profile processing)
+  SERVICES+=(processing-worker)
+fi
 
 rollback() {
   trap - ERR
