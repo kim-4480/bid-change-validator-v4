@@ -183,6 +183,7 @@ def closed_values_covered(gap, requirements: list) -> bool:
     if not any(found.values()):
         return False
     values = {str(r.value) for r in requirements}
+    values |= {str(code) for r in requirements for code in ((getattr(r, "scope", None) or {}).get("with_codes") or [])}
     regions = [str(r.value) for r in requirements if r.type == "REGION"]
     if not found["codes"] <= values:
         return False

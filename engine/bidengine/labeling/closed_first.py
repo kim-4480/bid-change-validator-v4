@@ -362,7 +362,8 @@ def _check_closed_values(text: str, candidates: list["Candidate"], roles: dict[s
                   if not any(_compact(name) in open_name for open_name in open_names if open_name)]
     unused = [c for c in candidates if c.kind in {"INDUSTRY", "PRODUCT"}
               and roles.get(c.id, ("NOT_RELATED", ""))[0] == "NOT_RELATED"
-              and not any(str(r.get("value")) == c.value for r in reqs)]
+              and not any(str(r.get("value")) == c.value or c.value in ((r.get("scope") or {}).get("with_codes") or [])
+                          for r in reqs)]
     if unresolved and _ALTERNATIVE_MARKER_RE.search(text) and any(r["type"] == "INDUSTRY" for r in reqs):
         reqs = [r for r in reqs if r["type"] != "INDUSTRY"]
         diags = [*diags, {"code": "UNMAPPED_INDUSTRY", "raw": text, "reason": "ALTERNATIVE_UNRESOLVED",
@@ -454,6 +455,75 @@ def _entry_body(clause_id: str, section: str, clause: Clause, candidates: list[C
     return f"[{clause_id}] 위치: {section or '알 수 없음'} | 후보: {listed or '없음'}\n{clause.text}"
 
 
+# 요건을 덜어 주는 단서: "장비 기준을 충족한 경우에는 A 만으로 입찰이 가능합니다", "B 는 등록하지 않아도".
+_RELAXING_RE = re.compile(r"않아도|아니하여도|가능\s*(?:합니다|함|하다|하며)|갈음|면제|생략")
+_BRANCH_SPLIT_RE = re.compile(r"또는|혹은")
+
+
+def written_code_branches(text: str, candidates: list["Candidate"]) -> list[list["Candidate"]] | None:
+    """한 조항에 코드로 적힌 업종을 '또는' 으로 가른 갈래. 갈래 안의 업종은 모두 필요하고 갈래끼리는 대안이다.
+
+    "중간처분업[1253]과 수집·운반업[6728] 또는 중간처분업[1253]을 등록한 업체" → [[1253, 6728], [1253]].
+    복합 조건으로 볼 근거가 있을 때만 돌려준다: 같은 코드가 두 갈래에 나오거나, 한 갈래에 코드가 둘 이상 있다.
+    코드가 원문에 숫자로 적힌 후보만 본다(이름에서 추론한 코드는 위치를 믿을 수 없다). 아니면 None.
+    """
+    written = [c for c in candidates if c.kind == "INDUSTRY" and not c.family and not c.evidence]
+    if len(written) < 1:
+        return None
+    cuts = [0, *[m.start() for m in _BRANCH_SPLIT_RE.finditer(text)], len(text)]
+    if len(cuts) < 3:
+        return None
+    branches: list[list[Candidate]] = [[] for _ in range(len(cuts) - 1)]
+    for c in written:
+        positions = [m.start() for m in re.finditer(rf"(?<![0-9]){re.escape(c.value)}(?![0-9])", text)]
+        if not positions:
+            return None
+        for position in positions:
+            index = max(i for i, cut in enumerate(cuts[:-1]) if cut <= position)
+            if c not in branches[index]:
+                branches[index].append(c)
+    branches = [branch for branch in branches if branch]
+    if len(branches) < 2:
+        return None
+    repeated = any(sum(c in branch for branch in branches) >= 2 for c in written)
+    if not repeated and not any(len(branch) >= 2 for branch in branches):
+        return None
+    return branches
+
+
+def combine_branches(branches: list[list[dict]]) -> list[dict]:
+    """대안 갈래(갈래 안의 업종은 모두 필요)를 요건으로 푼다(2026-10-10).
+
+      - 모든 갈래에 있는 업종은 필수다.
+      - 공통 업종만으로 된 갈래가 있으면 나머지 업종은 없어도 된다 — 선택(role=optional)으로 남겨 조항이 담겼음을 알린다.
+      - 아니면 갈래마다 남은 업종을 한 요건으로 묶어(scope.with_codes: 모두 보유) 서로 대안으로 둔다.
+    조항별로 읽으면 "A 와 B / 또는 A" 의 B 가 필수가 되어, A 만 가진 자격 있는 회사가 부적합이 된다.
+    """
+    by_code: dict[str, dict] = {}
+    for branch in branches:
+        for item in branch:
+            by_code.setdefault(str(item["value"]), item)
+    sets = [{str(item["value"]) for item in branch} for branch in branches]
+    common = set.intersection(*sets)
+    out = [dict(by_code[code]) for code in sorted(common)]
+    rest = [group - common for group in sets]
+    if not all(rest):
+        out += [{**by_code[code], "role": "optional"} for code in sorted(set().union(*rest))]
+        return out
+    group = "X-" + "|".join("+".join(sorted(part)) for part in sorted(rest, key=sorted))
+    seen: set[frozenset[str]] = set()
+    for part in rest:
+        if frozenset(part) in seen:
+            continue
+        seen.add(frozenset(part))
+        first, *others = sorted(part)
+        item = dict(by_code[first])
+        # 갈래 구조는 코드가 문장을 갈라 읽은 것이다. 틀렸을 수 있으니 안 맞아도 부적합의 근거로 쓰지 않는다.
+        item["scope"] = {**(item.get("scope") or {}), "with_codes": others, "evidence": "compound"}
+        out.append({**item, "group": group})
+    return out
+
+
 def _family_roles(text: str, candidates: list[Candidate], roles: dict[str, tuple[str, str]]) -> dict[str, tuple[str, str]]:
     """묶음 업종 후보는 서로 대안이다. 조항에 대안 표지('또는')가 있으면 그 조항의 다른 업종 후보도 같은 묶음에 넣는다.
 
@@ -494,6 +564,16 @@ def _closed_requirements(polarity: str, text: str, candidates: list[Candidate], 
         else:
             diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": "MODEL_POLARITY_EXCLUSION"})
         return reqs, diags
+    compound = written_code_branches(text, candidates) if polarity in {"POSITIVE", "EXCEPTION", "UNSURE"} else None
+    if compound and polarity != "POSITIVE" and not _RELAXING_RE.search(text):
+        compound = None   # 요건을 덜어 주는 단서가 아니면(조건을 더하는 예외일 수 있다) 코드가 갈라 읽지 않는다
+    if compound:
+        # "(A 와 B) 또는 A" — 코드가 원문에 숫자로 적혀 있으므로 모델의 역할 표시 대신 갈래로 푼다.
+        handled = {c.id for branch in compound for c in branch}
+        reqs.extend(combine_branches([[{"type": "INDUSTRY", "value": c.value, "scope": {"industry_name": c.surface}} for c in branch]
+                                      for branch in compound]))
+        candidates = [c for c in candidates if c.id not in handled]
+        by_role = {role: [c for c in members if c.id not in handled] for role, members in by_role.items()}
     if polarity != "POSITIVE":
         if not candidates and len(_compact(text)) <= 20 and not re.search(r"[.。]|이어야|하여야|한다|합니다", text):
             # 값도 서술도 없는 절 제목("3. 입찰참가 자격") — 요건이 아니다.
@@ -556,6 +636,39 @@ def _closed_requirements(polarity: str, text: str, candidates: list[Candidate], 
     return reqs, diags
 
 
+def _alternative_requirements(slot: dict[str, Any]) -> list[dict]:
+    return [r for r in slot.get("_closed_requirements") or []
+            if not (r.get("scope") or {}).get("restriction") and r.get("type") in _ALTERNATIVE_TYPES]
+
+
+def _combine_cross_branches(branches: list[dict | None], following: list[str]) -> list[dict] | None:
+    """하위 조항(①, ②)마다 코드로 적힌 업종이 여럿일 때 갈래로 푼다. 풀 수 없는 모양이면 None(확인 필요로 둔다).
+
+    하위 조항 바로 뒤에 요건을 덜어 주는 단서(※ … 충족한 경우에는 A 또는 B 와 A 로 입찰이 가능)가 있으면 그 갈래도 더한다 —
+    빼면 단서로 면제되는 업종이 필수로 남는다.
+    """
+    sets: list[list[dict]] = []
+    for slot in branches:
+        reqs = _alternative_requirements(slot) if slot else []
+        if not reqs:
+            continue
+        plain = all(r.get("type") == "INDUSTRY" and not r.get("group") and re.fullmatch(r"[0-9]{4}", str(r.get("value")))
+                    and not (r.get("scope") or {}).get("evidence") for r in reqs)
+        if not plain:
+            return None
+        sets.append([{"type": "INDUSTRY", "value": r["value"], "scope": {"industry_name": (r.get("scope") or {}).get("industry_name", "")}}
+                     for r in reqs])
+    if len(sets) < 2:
+        return None
+    for text in following[:1]:
+        if not (_RELAXING_RE.search(text) and re.match(r"\s*(?:※|단\s*,|다만)", text)):
+            break
+        written = [c for c in scan_candidates(text, None) if c.kind == "INDUSTRY"]
+        parts = written_code_branches(text, written) or ([written] if written else [])
+        sets += [[{"type": "INDUSTRY", "value": c.value, "scope": {"industry_name": c.surface}} for c in part] for part in parts]
+    return combine_branches(sets)
+
+
 def _merge_cross_clause_alternatives(kept: list[Clause], slots: list[dict[str, Any]]) -> None:
     """'다음 각 호 어느 하나에 해당하는 경우' 아래 하위 조항(㉮ ㉯ …)이 따로 떨어진 조항이면, 그 조항들은 서로 대안이다.
 
@@ -605,6 +718,16 @@ def _merge_cross_clause_alternatives(kept: list[Clause], slots: list[dict[str, A
                     {**r, "group": group} if not (r.get("scope") or {}).get("restriction") and r.get("type") in _ALTERNATIVE_TYPES else r
                     for r in slot.get("_closed_requirements") or []
                 ]
+        elif (combined := _combine_cross_branches(branches, texts[index + len(branch_texts):])) is not None:
+            # 갈래마다 업종이 여럿이다("① A 와 B 와 C  ② B 와 C") — 공통 업종은 필수, 나머지는 선택이나 갈래 대안으로 푼다.
+            first = next(_compact(slot["raw"]) for slot in branches if slot and _alternative_requirements(slot))
+            placed: set[int] = set()
+            for slot in targets:
+                slot["_closed_requirements"] = [r for r in slot.get("_closed_requirements") or []
+                                                if r not in _alternative_requirements(slot)]
+                if _compact(slot.get("raw") or "") == first and id(slot) not in placed:
+                    placed.add(id(slot))
+                    slot["_closed_requirements"] = [*slot["_closed_requirements"], *[dict(r) for r in combined]]
         else:
             for slot in targets:
                 kept_reqs = [r for r in slot.get("_closed_requirements") or []

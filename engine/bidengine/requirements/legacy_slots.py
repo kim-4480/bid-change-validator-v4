@@ -217,6 +217,11 @@ _SIZE_STATUTE_RE = re.compile(
     r"(?:\s*시행령)?"
     r"|중소기업\s*제품\s*구매\s*촉진[^,.。]*?법률(?:\s*시행령)?"
     r"|중소기업\s*(?:공공\s*구매|제품\s*공공\s*구매)\s*종합\s*정보망"
+    # "중소기업자 우선조달계약에 대한 예외가 적용되는 용역" — 규모 제한이 없다는 말이다. 예외가 붙지 않은
+    # "중소기업자 우선조달계약 대상" 은 실제 규모 제한이므로 건드리지 않는다(2026-10-10 회귀 측정 748837, 748965).
+    r"|중소기업자(?:와의)?\s*우선\s*조달\s*계약(?:\s*에\s*대한)?\s*예외"
+    # "중소기업제품 공공구매제도 운영요령" — '중소기업제품' 은 물품을 가리키는 말이지 참가자의 규모가 아니다.
+    r"|중소기업\s*제품"
 )
 
 
@@ -718,6 +723,8 @@ def adapt_legacy_slot(
                 value=item["value"],
                 scope={**(item.get("scope") or {}), "guard": GUARD_ASSESSED, "guard_basis": "closed_first"},
                 condition_complexity="simple",
+                # 대안 갈래 가운데 그것 없이도 되는 갈래가 있는 업종(closed_first.combine_branches) — 판정에 넣지 않는다.
+                requirement_role="preferred" if item.get("role") == "optional" else "mandatory",
                 raw=raw,
             ))
         return built, [dict(d) for d in slot.get("_closed_diagnostics") or []]
