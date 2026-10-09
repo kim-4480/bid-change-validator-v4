@@ -36,7 +36,9 @@ def _safe_exact_fallback(bundle, plan, supported):
             source = sources.get(source_id)
             if source is None or source.kind != 'PRODUCT' or source.scope != fact.scope:
                 continue
-            if fact.scope.case_id != bundle.scope.case_id or fact.scope.company_id != bundle.scope.company_id:
+            if (fact.scope.case_id != bundle.scope.case_id or fact.scope.company_id != bundle.scope.company_id
+                    or fact.scope.notice_id != bundle.scope.notice_id
+                    or (fact.target_kind != 'CHANGE' and fact.scope.notice_version_id != bundle.scope.notice_version_id)):
                 continue
             text = source.quote.strip()
             if not text or len(text) > 700 or text in seen_text:
@@ -81,7 +83,9 @@ def mechanical(claim, bundle):
     for f in claim.fact_ids:
         if not set(facts[f].source_ids) & set(claim.source_ids):
             return 'UNCITED_FACT'
-        if facts[f].scope.case_id != bundle.scope.case_id or facts[f].scope.company_id != bundle.scope.company_id:
+        if (facts[f].scope.case_id != bundle.scope.case_id or facts[f].scope.company_id != bundle.scope.company_id
+                or facts[f].scope.notice_id != bundle.scope.notice_id
+                or (facts[f].target_kind != 'CHANGE' and facts[f].scope.notice_version_id != bundle.scope.notice_version_id)):
             return 'CROSS_SCOPE'
         for sid in set(facts[f].source_ids) & set(claim.source_ids):
             if sources[sid].scope != facts[f].scope:

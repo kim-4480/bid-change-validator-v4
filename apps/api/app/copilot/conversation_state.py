@@ -30,7 +30,8 @@ class ConversationRepository:
             if record is None:
                 raise ApiError(409, 'CONVERSATION_EXPIRED', '대화가 만료되었습니다. 새 대화를 시작해 주세요.')
             state = record[0]
-            if state.owner != owner or state.scope.case_id != scope.case_id or state.scope.company_id != scope.company_id:
+            if (state.owner != owner or state.scope.case_id != scope.case_id
+                    or state.scope.company_id != scope.company_id or state.scope.notice_id != scope.notice_id):
                 raise ApiError(403, 'CONVERSATION_ACCESS_DENIED', '이 대화에 접근할 수 없습니다.')
             if revision != state.context_revision:
                 raise ApiError(409, 'CONVERSATION_STALE', '다른 질문이 먼저 처리되었습니다. 최신 대화에서 다시 질문해 주세요.')

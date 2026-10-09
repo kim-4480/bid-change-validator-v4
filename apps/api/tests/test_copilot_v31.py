@@ -635,3 +635,47 @@ def test_change_adapter_keeps_version_scopes_and_detects_baseline_change(monkeyp
     result.changes[0].baseline.raw = '새로 수정된 이전 버전 요건'
     with pytest.raises(ValueError, match='CHANGE_SCOPE_CHANGED'):
         tools.assert_fresh()
+
+
+def test_cross_notice_fact_with_matching_source_is_rejected():
+    b = bundle()
+    foreign_scope = scope().model_copy(update={"notice_id": uuid4()})
+    b.facts[0].scope = foreign_scope
+    b.sources[0].scope = foreign_scope
+    claim = Claim(claim_id="foreign", text=b.facts[0].text,
+                  fact_ids=[b.facts[0].fact_id], source_ids=[b.sources[0].source_id])
+    assert mechanical(claim, b) == "CROSS_SCOPE"
+
+
+def test_historical_non_change_fact_is_rejected_but_change_comparison_is_allowed():
+    b = bundle()
+    historical = scope().model_copy(update={"notice_version_id": uuid4()})
+    b.facts[0].scope = historical
+    b.sources[0].scope = historical
+    claim = Claim(claim_id="historical", text=b.facts[0].text,
+                  fact_ids=[b.facts[0].fact_id], source_ids=[b.sources[0].source_id])
+    assert mechanical(claim, b) == "CROSS_SCOPE"
+    b.facts[0].target_kind = "CHANGE"
+    assert mechanical(claim, b) is None
+
+
+def test_conversation_cannot_be_reused_across_notice_identity():
+    repo = ConversationRepository()
+    current = scope()
+    original = repo.load("owner", current)
+    changed = current.model_copy(update={"notice_id": uuid4()})
+    with pytest.raises(ApiError):
+        repo.load("owner", changed, original.conversation_id, original.context_revision)
+
+
+def test_exact_fallback_does_not_expose_foreign_notice_product_fact():
+    from apps.api.app.copilot.answer_validation import _safe_exact_fallback
+    b = bundle()
+    b.facts[0].kind = "SERVER_RESULT"
+    b.sources[0].kind = "PRODUCT"
+    foreign_scope = scope().model_copy(update={"notice_id": uuid4()})
+    b.facts[0].scope = foreign_scope
+    b.sources[0].scope = foreign_scope
+    plan = TaskPlan(goal="show checks", tasks=[Task(kind="READ_CHECKS", question="show checks")])
+    safe = _safe_exact_fallback(b, plan, [])
+    assert all(b.facts[0].fact_id not in claim.fact_ids for claim in safe)
