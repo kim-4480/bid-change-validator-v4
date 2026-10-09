@@ -52,8 +52,32 @@ def test_notice_matching_loads_runs_in_batch_without_per_notice_scalar_queries()
     assert result.returned_count == 1
     assert result.items[0].analysis_run_id == run_id
     db.execute.assert_called_once()
+    candidate_sql = str(db.execute.call_args.args[0])
+    assert "EXISTS" in candidate_sql
+    assert "input_fingerprint IS NOT NULL" in candidate_sql
     db.scalars.assert_called_once()
     db.scalar.assert_not_called()
+
+
+def test_notice_matching_does_not_fingerprint_versions_with_only_legacy_runs() -> None:
+    """Versions without lineage cannot match, so their documents need not be loaded."""
+    db = MagicMock()
+    db.execute.return_value.all.return_value = []
+    db.get.return_value = None
+
+    with (
+        patch("apps.api.app.qualification.matching._load_company", return_value=object()),
+        patch("apps.api.app.qualification.matching._record_to_completeness", return_value=None),
+        patch("apps.api.app.qualification.matching.build_company_profile_snapshot", return_value=object()),
+        patch("apps.api.app.qualification.matching.qualification_analysis_version_fingerprint") as fingerprint,
+    ):
+        result = match_cached_notices(db, company_id=uuid4())
+
+    assert result.analyzed_notice_count == 0
+    assert result.items == []
+    assert "input_fingerprint IS NOT NULL" in str(db.execute.call_args.args[0])
+    fingerprint.assert_not_called()
+    db.scalars.assert_not_called()
 
 
 def test_latest_valid_run_query_handles_multiple_notices_and_histories() -> None:
