@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 import hashlib
+import re
 from typing import Literal
 from uuid import UUID
 
@@ -176,13 +177,21 @@ def candidates(db: Session, *, now: datetime | None = None) -> list[dict]:
     return output
 
 
-def make_item(row: dict, state: dict, rank: int, source: str) -> MLNoticeRecommendation:
+def make_item(row: dict, state: dict, rank: int, source: str,
+              query: str | None = None) -> MLNoticeRecommendation:
     qstate = state.get("state", "stale" if row["is_stale"] else "UNKNOWN")
-    reason = (
-        "Business profile and notice text relevance; requires independent eligibility judgment"
-        if source != "lexical_fallback" else
-        "Keyword overlap fallback; does not establish eligibility"
-    )
+    # Deterministic, auditable feature explanation (not a legal verdict).
+    query_terms = set(re.findall(r"[\\uac00-\\ud7a3A-Za-z0-9]+", (query or "").lower()))
+    notice_terms = set(re.findall(r"[\\uac00-\\ud7a3A-Za-z0-9]+",
+                                  (row.get("notice_text") or row["title"]).lower()))
+    matched = sorted(t for t in query_terms & notice_terms if len(t) >= 2)
+    if matched:
+        reason = "Shared company/notice terms: " + ", ".join(matched[:5])
+    elif source == "lexical_fallback":
+        reason = "No strong shared keywords; lexical fallback only"
+    else:
+        reason = "Model-generated text similarity; no directly matching keyword identified"
+    reason += "; independent eligibility judgment required"
     return MLNoticeRecommendation(
         notice_id=row["notice_id"], title=row["title"], rank=rank,
         relevance_score=row["score"], reason=reason,
@@ -197,7 +206,8 @@ def make_item(row: dict, state: dict, rank: int, source: str) -> MLNoticeRecomme
     )
 
 
-def partition_ranked(db, company_id, ranked: list[dict], limit: int, source: str):
+def partition_ranked(db, company_id, ranked: list[dict], limit: int,
+                     source: str, query: str | None = None):
     eligible: list[MLNoticeRecommendation] = []
     needs_review: list[MLNoticeRecommendation] = []
     for start in range(0, len(ranked), QUALIFICATION_BATCH_SIZE):
@@ -210,9 +220,9 @@ def partition_ranked(db, company_id, ranked: list[dict], limit: int, source: str
                 continue
             if q == "eligible" and company_id is not None:
                 if len(eligible) < limit:
-                    eligible.append(make_item(row, state, len(eligible) + 1, source))
+                    eligible.append(make_item(row, state, len(eligible) + 1, source, query))
             elif len(needs_review) < limit:
-                needs_review.append(make_item(row, state, len(needs_review) + 1, source))
+                needs_review.append(make_item(row, state, len(needs_review) + 1, source, query))
         if len(eligible) >= limit and len(needs_review) >= limit:
             break
     return eligible, needs_review
@@ -238,7 +248,7 @@ def recommend_ml(
 
     rows = candidates(db)
     ranked, model, dataset, source, fallback_reason = score_notices(query, rows)
-    primary, needs_review = partition_ranked(db, request.company_id, ranked, request.limit, source)
+    primary, needs_review = partition_ranked(db, request.company_id, ranked, request.limit, source, query)
     return MLRecommendationResponse(
         model_version=model, dataset_version=dataset,
         scoring_source=source, fallback_reason=fallback_reason,

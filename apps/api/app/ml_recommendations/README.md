@@ -36,9 +36,14 @@ Run the following from apps/api using an isolated Python 3.12 environment.
 
 MLflow is LOCAL ONLY and records the dataset hash, human label hash, seed, hyperparameters, git SHA, metrics and immutable artifacts. MLflow experimentation does not automatically select Champion.
 
+Manual Champion transition for approved LightGBM or Bi/Cross-Encoder.
+For a local approved LightGBM registry, runtime reads BIDCHECK_ML_REGISTRY_DIR.
+For an independently approved PyTorch remote worker, configure BIDCHECK_DL_REGISTRY_DIR and BIDCHECK_DL_KIND; the worker checks approval/checksums on every request and advertises champion_approved only when valid. A registry may hold one active model type; use separate registry directories for LightGBM and Encoder.
+
 Manual LightGBM Champion transition:
 
 python -m app.ml_recommendations.registry --registry LOCAL_REGISTRY --model-dir LOCAL_MODELS --approved-by REVIEWER
+For approved Encoder candidates, append --kind bi_encoder or --kind cross_encoder.
 
 Requires independently reviewed and leak-free company/family/temporal holdout, >=20 test queries, >=20 reviewed labels, nDCG improvement >0.01 over keyword baseline, non-regressing MRR, and p95 <=200 ms. Uses content-addressed artifacts, checksum verification, atomic champion.json. Runtime reads BIDCHECK_ML_REGISTRY_DIR and safely falls back to lexical on missing/corrupt/unapproved model.
 

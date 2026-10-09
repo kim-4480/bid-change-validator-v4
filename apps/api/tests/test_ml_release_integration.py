@@ -182,6 +182,24 @@ def test_synthetic_model_is_never_claimed_real(tmp_path, monkeypatch):
     assert len(scored) == 4
     assert source == "local_lightgbm" and version.startswith("lightgbm-")
     assert dataset == "test-synthetic" and failure is None
+    # The optional API route actually invokes the learned LightGBM scorer.
+    # This is a synthetic inference smoke test, NEVER a real-ranking claim.
+    from app.ml_recommendations.router import recommend_ml, MLRecommendationRequest
+    monkeypatch.setenv("BIDCHECK_ML_MODEL_DIR", str(tmp_path))
+    monkeypatch.delenv("BIDCHECK_ML_REGISTRY_DIR", raising=False)
+    api_rows = [
+        dict(row, version_number=1, analysis_run_id=None, analysis_version=None,
+             analysis_status="UNKNOWN", is_stale=False, deadline_source="explicit",
+             effective_deadline=NOW + timedelta(days=1))
+        for row in notices
+    ]
+    monkeypatch.setattr(ml_router, "candidates", lambda db: api_rows)
+    response = recommend_ml(MLRecommendationRequest(query="network service"),
+                            db=object(), user=None)
+    assert response.scoring_source == "local_lightgbm" and not response.fallback_used
+    assert response.model_version.startswith("lightgbm-")
+    assert response.items == []  # Synthetic relevance is not an eligible verdict.
+    assert len(response.needs_review_items) == 4
     (tmp_path/"lightgbm.txt").write_text("corrupted",encoding="utf-8")
     _, _, _, source, failure = score_notices(
         "network service", notices, local_dir=str(tmp_path), remote_url=""
@@ -238,3 +256,63 @@ def test_unapproved_remote_response_is_rejected(monkeypatch):
         local_dir="", remote_url="https://worker.example/v1/score"
     )
     assert source == "lexical_fallback" and model is None and why == "ValueError"
+
+
+def test_manual_approval_and_deep_worker_registry_contract(tmp_path, monkeypatch):
+    """Mock holdout/weights: tests only the approval protocol, not model accuracy."""
+    from app.ml_recommendations import remote_worker
+    from app.ml_recommendations.registry import register_and_promote, active_model_dir
+    from fastapi.testclient import TestClient
+    import hashlib
+
+    source = tmp_path/"candidate"
+    source.mkdir()
+    (source/"cross_encoder.pt").write_bytes(b"mock-only-pytorch-weights")
+    digest = hashlib.sha256((source/"cross_encoder.pt").read_bytes()).hexdigest()
+    reviewed = hashlib.sha256(b"test-only-reviewed-provenance").hexdigest()
+    baseline = {"nDCG@K":0.1,"MRR":0.2,"queries":21,"latency_p95_ms":10.0}
+    cross = {"nDCG@K":0.8,"MRR":0.3,"queries":21,"latency_p95_ms":19.0}
+    report = {
+        "evaluation_scope":"HUMAN_REVIEWED_HOLDOUT",
+        "leakage":{"passed":True}, "dataset_version":"unit-fixture",
+        "reviewed_labels_sha256":reviewed,
+        "metrics":{"baseline_rule":baseline,"cross_encoder":cross},
+        "model_sha256":{"cross_encoder.pt":digest}
+    }
+    (source/"evaluation.json").write_text(json.dumps(report))
+    (source/"reviewed_manifest.json").write_text(json.dumps({
+        "valid_company_family_holdout":True,
+        "label_counts":{"human_reviewed":21},
+        "reviewed_labels_sha256":reviewed
+    }))
+    registry = tmp_path/"registry"
+    entry = register_and_promote(registry, source, approved_by="human-test-approver",
+                                 model_kind="cross_encoder")
+    assert entry["model_kind"] == "cross_encoder"
+    assert active_model_dir(registry, expected_kind="cross_encoder").is_dir()
+    with pytest.raises(ValueError, match="model type"):
+        active_model_dir(registry, expected_kind="lightgbm")
+    monkeypatch.setenv("BIDCHECK_DL_REGISTRY_DIR", str(registry))
+    monkeypatch.setenv("BIDCHECK_DL_KIND", "cross_encoder")
+    monkeypatch.setenv("BIDCHECK_ML_REMOTE_TOKEN", "isolated-worker-test")
+    monkeypatch.setattr(remote_worker, "_load_scoring",
+        lambda folder, kind, sha, device: (lambda row: 0.25, "mock-deep-version"))
+    response = TestClient(remote_worker.app).post(
+        "/v1/score",
+        headers={"Authorization":"Bearer isolated-worker-test"},
+        json={"query":"software procurement", "notices":[{"notice_id":"1",
+            "title":"supply","notice_text":"software procurement supply"}]}
+    )
+    assert response.status_code == 200
+    assert response.json()["champion_approved"] is True
+    assert response.json()["evaluation_scope"] == "HUMAN_REVIEWED_HOLDOUT"
+    assert response.json()["dataset_version"] == "unit-fixture"
+    path = active_model_dir(registry, expected_kind="cross_encoder") / "cross_encoder.pt"
+    path.write_bytes(b"tampered")
+    with pytest.raises(ValueError, match="integrity"):
+        active_model_dir(registry, expected_kind="cross_encoder")
+    denied = TestClient(remote_worker.app).post(
+        "/v1/score", headers={"Authorization":"Bearer isolated-worker-test"},
+        json={"query":"software procurement", "notices":[{"notice_id":"1","title":"supply"}]}
+    )
+    assert denied.status_code == 503
