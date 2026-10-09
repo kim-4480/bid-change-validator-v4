@@ -24,7 +24,13 @@ from ..analysis_models import QualificationAnalysisRun
 from ..judgment_models import CompanyQualificationProfileCompleteness, QualificationJudgmentRecord, QualificationJudgmentRun
 from ..judgment_schemas import QualificationJudgmentRunRead, QualificationJudgmentRunSummary, QualificationProfileCompletenessRead, QualificationProfileCompletenessUpdate
 from ..models import Company, CompanyIndustry, CompanyPerformance, PreflightCase
-from .analysis import QualificationAnalysisError, analysis_run_response, load_qualification_analysis_run
+from .analysis import (
+    QualificationAnalysisError,
+    analysis_run_response,
+    is_qualification_analysis_run_stale,
+    load_latest_current_qualification_analysis_run,
+    load_qualification_analysis_run,
+)
 
 
 class QualificationJudgmentError(ValueError):
@@ -166,14 +172,20 @@ def _select_analysis_run(db: Session, case: PreflightCase, analysis_run_id: UUID
     if analysis_run_id is not None:
         run = load_judgment_analysis(db, analysis_run_id)
     else:
-        latest_id = db.scalar(select(QualificationAnalysisRun.id).where(QualificationAnalysisRun.notice_version_id == case.current_version_id).order_by(QualificationAnalysisRun.created_at.desc()).limit(1))
-        if latest_id is None:
+        run = load_latest_current_qualification_analysis_run(
+            db, notice_version_id=case.current_version_id, include_failed=True
+        )
+        if run is None:
             raise QualificationJudgmentError("QUALIFICATION_ANALYSIS_REQUIRED", "현재 공고 버전의 자격요건 분석 결과가 필요합니다.")
-        run = load_judgment_analysis(db, latest_id)
     if run.notice_version_id != case.current_version_id:
         raise QualificationJudgmentError("ANALYSIS_VERSION_MISMATCH", "선택한 분석 결과가 사전검토 건의 현재 공고 버전과 일치하지 않습니다.", status_code=422)
     if run.status == "FAILED":
         raise QualificationJudgmentError("QUALIFICATION_ANALYSIS_FAILED", "실패한 자격요건 분석 결과로는 판정할 수 없습니다.")
+    if is_qualification_analysis_run_stale(run):
+        raise QualificationJudgmentError(
+            "QUALIFICATION_ANALYSIS_STALE",
+            "문서가 재추출되어 자격요건을 다시 분석해야 합니다.",
+        )
     return run
 
 

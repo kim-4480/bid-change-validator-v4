@@ -102,6 +102,8 @@ export type QualificationAnalysisSummary = {
   version_number: number;
   contract_version: string;
   status: 'SUCCEEDED' | 'PARTIAL' | 'FAILED';
+  input_fingerprint: string | null;
+  is_stale: boolean;
   requirement_count: number;
   evidence_count: number;
   created_at: string;

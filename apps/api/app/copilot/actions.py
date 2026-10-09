@@ -6,10 +6,12 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..analysis_models import QualificationAnalysisRun
 from ..ask_back_schemas import QualificationAnswerCreate, QualificationAnswerRead
 from ..models import PreflightCase
-from ..qualification.analysis import analysis_run_response, load_qualification_analysis_run
+from ..qualification.analysis import (
+    analysis_run_response,
+    load_latest_current_qualification_analysis_run,
+)
 from ..qualification.ask_back import answer_and_rejudge
 from ..qualification.judgment import (
     QualificationJudgmentError, list_qualification_judgment_runs,
@@ -51,12 +53,11 @@ def get_changed_notice(db: Session, case_id: UUID) -> ChangedNoticeResult:
         runs = list_qualification_judgment_runs(db, case_id=case_id)
         states, analyses = [], []
         for version_id in (case.baseline_version_id, case.current_version_id):
-            analysis_id = db.scalar(select(QualificationAnalysisRun.id).where(
-                QualificationAnalysisRun.notice_version_id == version_id,
-            ).order_by(QualificationAnalysisRun.created_at.desc(), QualificationAnalysisRun.id.desc()).limit(1))
-            if analysis_id is None:
+            record = load_latest_current_qualification_analysis_run(
+                db, notice_version_id=version_id, include_failed=True
+            )
+            if record is None:
                 raise QualificationJudgmentError("QUALIFICATION_ANALYSIS_REQUIRED", "두 버전의 분석이 필요합니다.")
-            record = load_qualification_analysis_run(db, analysis_id)
             if record.notice_version_id != version_id or record.notice_version.notice_id != case.notice_id:
                 raise QualificationJudgmentError("ANALYSIS_VERSION_MISMATCH", "분석의 공고 버전이 다릅니다.")
             if record.status not in ("SUCCEEDED", "PARTIAL"):

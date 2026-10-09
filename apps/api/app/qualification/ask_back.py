@@ -7,12 +7,15 @@ from sqlalchemy.orm import Session
 from bidengine.judgment.askability import build_semantic_question, classify_askability
 from bidengine.contracts import Judgment
 from bidengine.judgment.rules import RULE_VERSION, derive_overall_status
-from ..analysis_models import QualificationAnalysisRun
 from ..models import PreflightCase
 from ..ask_back_models import QualificationAnswer
 from ..ask_back_schemas import QualificationAnswerCreate, QualificationAnswerRead, QualificationQuestionRead
 from ..judgment_models import CompanyQualificationProfileCompleteness, QualificationJudgmentRecord, QualificationJudgmentRun
-from .analysis import analysis_run_response
+from .analysis import (
+    analysis_run_response,
+    is_qualification_analysis_run_stale,
+    load_latest_current_qualification_analysis_run,
+)
 from .judgment import load_judgment_analysis, QualificationJudgmentError, judgment_run_response, load_qualification_judgment_run, _load_company, _record_to_completeness, build_company_profile_snapshot
 
 
@@ -42,7 +45,13 @@ def list_questions(
             status_code=422,
         )
 
-    analysis = analysis_run_response(load_judgment_analysis(db, run.analysis_run_id))
+    analysis_record = load_judgment_analysis(db, run.analysis_run_id)
+    if is_qualification_analysis_run_stale(analysis_record):
+        raise QualificationJudgmentError(
+            "STALE_JUDGMENT",
+            "문서가 재추출되어 새 분석과 판정이 필요합니다.",
+        )
+    analysis = analysis_run_response(analysis_record)
     req_by_key = {requirement.requirement_key: requirement for requirement in analysis.requirements}
     questions: list[QualificationQuestionRead] = []
 
@@ -98,7 +107,10 @@ def answer_and_rejudge(
         )
 
     latest_id = db.scalar(select(QualificationJudgmentRun.id).where(QualificationJudgmentRun.preflight_case_id == case_id, QualificationJudgmentRun.notice_version_id == source.notice_version_id).order_by(QualificationJudgmentRun.created_at.desc()).limit(1))
-    latest_analysis_id = db.scalar(select(QualificationAnalysisRun.id).where(QualificationAnalysisRun.notice_version_id == source.notice_version_id).order_by(QualificationAnalysisRun.created_at.desc()).limit(1))
+    latest_analysis = load_latest_current_qualification_analysis_run(
+        db, notice_version_id=source.notice_version_id, include_failed=True
+    )
+    latest_analysis_id = latest_analysis.id if latest_analysis is not None else None
     if source.id != latest_id or source.analysis_run_id != latest_analysis_id or source.rule_version != RULE_VERSION:
         raise QualificationJudgmentError("STALE_JUDGMENT", "분석 또는 판정이 갱신되었습니다. 새로 검토한 뒤 답변해 주세요.", status_code=409)
     if source.company_id != case.company_id or source.notice_version_id not in {case.baseline_version_id, case.current_version_id}:
