@@ -1,5 +1,7 @@
 # Local Run / Operations Runbook
 
+> 2026-10-08 현재 로컬 DB는 PostgreSQL 17 복원본을 사용합니다. 아래의 PG16/Supabase 공유 DB 절차는 이전 운영 기록이며, 현재 Compose 전환·재배포는 [PG17 운영 절차](pg17-compose-persistence.md)를 따릅니다.
+
 > **상태: Local + Shared DB Current / Production TBD**  
 > 기준: `develop` + 2026-09-10 팀 운영 상태
 
@@ -9,7 +11,7 @@
 
 `docker-compose.yml` 기준 로컬 서비스:
 
-- `db`: PostgreSQL 16
+- `db`: PostgreSQL 17 (기존 복원 볼륨 필수)
 - `migrate`: Alembic migration
 - `api`: FastAPI
 - `notice-poller`: 나라장터 변경공고 수집 Worker
@@ -33,14 +35,14 @@ Frontend는 `apps/web`에서 별도로 실행합니다.
 
 ```powershell
 Copy-Item .env.example .env
-docker compose up -d --build api notice-poller
+docker compose up -d --build api
 docker compose ps
 ```
 
 확인:
 
-- API health: `http://localhost:8000/health`
-- Swagger: `http://localhost:8000/docs`
+- API health: `http://localhost:18000/health`
+- Swagger: `http://localhost:18000/docs`
 
 Backend 컨테이너는 build image 방식이므로 Backend 코드를 변경하면 다시 build 합니다.
 
