@@ -140,3 +140,9 @@ class ConfirmAction(BaseModel):
         if value is not True:
             raise ValueError("confirmed must be the boolean true")
         return value
+
+
+class FreeChatTurn(BaseModel):
+    """자유 대화의 앞선 한 턴. 문맥으로만 쓰고 사실의 출처로 쓰지 않는다(free_chat.py)."""
+    question: str = Field(min_length=1, max_length=4000)
+    answer: str = Field(max_length=8000)
