@@ -249,6 +249,7 @@ def test_postgres_open_notices_precede_assumed_and_expired_without_hiding_histor
     now = datetime.now(timezone.utc)
     versions[10].bid_closed_at = now + timedelta(days=5)
     versions[20].posted_at = now - timedelta(days=2)
+    versions[25].posted_at = now - timedelta(days=3)
     versions[30].bid_closed_at = now + timedelta(days=6)
     versions[30].notice_kind = "취소공고"
     versions[40].bid_closed_at = now - timedelta(days=1)
@@ -257,6 +258,7 @@ def test_postgres_open_notices_precede_assumed_and_expired_without_hiding_histor
     for company_id in (None, company.id):
         page = _page(db, q=token, company=company_id, limit=3)
         assert page.total == 1010
-        assert [row.id for row in page.items[:2]] == [notices[10].id, notices[20].id]
+        assert page.items[0].id == notices[10].id
+        assert {row.id for row in page.items[1:]} == {notices[20].id, notices[25].id}
         assert notices[30].id not in [row.id for row in page.items]
         assert _page(db, q=f"{token}-0040", company=company_id).items[0].id == notices[40].id
