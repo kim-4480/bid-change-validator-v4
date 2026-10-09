@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import date
 from uuid import UUID
 
-from sqlalchemy import func, select, tuple_
+from sqlalchemy import exists, func, select, tuple_
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from bidengine.judgment.rules import judge_requirements
@@ -87,7 +87,15 @@ def match_cached_notices(
     current_versions = db.execute(
         select(BidNotice, BidNoticeVersion)
         .join(BidNoticeVersion, BidNoticeVersion.notice_id == BidNotice.id)
-        .where(BidNoticeVersion.is_current.is_(True))
+        .where(
+            BidNoticeVersion.is_current.is_(True),
+            exists(
+                select(QualificationAnalysisRun.id).where(
+                    QualificationAnalysisRun.notice_version_id == BidNoticeVersion.id,
+                    QualificationAnalysisRun.input_fingerprint.is_not(None),
+                )
+            ),
+        )
         .options(selectinload(BidNoticeVersion.documents))
         .order_by(BidNotice.last_seen_at.desc())
     ).all()
