@@ -8,9 +8,9 @@ Request (without verified eligibility): {"query":"사업 적합도 검색어","l
 
 Response fields: model_version, dataset_version, scoring_source, fallback_used, fallback_reason, input_sha256, total_valid_candidates, items, needs_review_items.
 
-- items: ONLY deterministically confirmed eligible notices for the authorized company.
-- needs_review_items: UNKNOWN / insufficient_data / stale, separately. Query-only requests have no eligible items.
-- Ineligible notices never appear in either list.
+- items: ONLY notices with verified `core_met` for the authorized company; this is not a legal participation guarantee.
+- needs_review_items: `UNKNOWN` / `needs_review` / stale, separately. Query-only requests have no verified core-met items.
+- `core_unmet` notices never appear in either list.
 - Each item includes notice id, current notice version, analysis status/id, rule version, deadline_source and effective_deadline, and reason.
 - Relevance score is business relevance, NOT qualification, win probability, or financial advice.
 - All current notices are scanned, with bounded SQL batches and qualification batches. Cancelled/expired notices excluded.
@@ -26,13 +26,14 @@ Run the following from apps/api using an isolated Python 3.12 environment.
 1. python -m app.ml_recommendations.real_dataset --help
    Prepare real unlabelled company/notice candidates from read-only LOCAL PostgreSQL.
 2. People annotate review_template.csv with grades 0..3, reviewer ID, time with timezone and rationale. No generated/oracle labels.
-3. python -m app.ml_recommendations.review --dataset LOCAL_DATASET --reviewed-csv LOCAL_CSV --out LOCAL_REVIEWED.jsonl
-   Outputs a verified .validation.json provenance report.
-4. python -m app.ml_recommendations.human_training --reviewed LOCAL_REVIEWED.jsonl --source-manifest LOCAL_DATASET/manifest.json --validation-report LOCAL_REVIEWED.jsonl.validation.json --out LOCAL_MODELS --seed 42 --mlflow-local
+3. A different system administrator independently approves each real-company review in the admin UI and exports the approved labels. Reopened or changed-input labels are excluded.
+4. python -m app.ml_recommendations.review --dataset LOCAL_DATASET --reviewed-csv LOCAL_CSV --approved-export APPROVED.json --out LOCAL_REVIEWED.jsonl
+   Verifies frozen dataset hashes, company/notice input fingerprints and independent approval; outputs a .validation.json provenance report.
+5. python -m app.ml_recommendations.human_training --reviewed LOCAL_REVIEWED.jsonl --source-manifest LOCAL_DATASET/manifest.json --validation-report LOCAL_REVIEWED.jsonl.validation.json --out LOCAL_MODELS --seed 42 --mlflow-local
    Optional: --train-encoders --device cuda, using LOCAL GPU.
-5. python -m app.ml_recommendations.search_compare --reviewed LOCAL_REVIEWED.jsonl --source-manifest LOCAL_DATASET/manifest.json --validation-report LOCAL_REVIEWED.jsonl.validation.json --out LOCAL_SEARCH.json
+6. python -m app.ml_recommendations.search_compare --reviewed LOCAL_REVIEWED.jsonl --source-manifest LOCAL_DATASET/manifest.json --validation-report LOCAL_REVIEWED.jsonl.validation.json --out LOCAL_SEARCH.json
    Optional --dense-model-dir LOCAL_PRE_DOWNLOADED_SENTENCE_TRANSFORMER and --nori-local-url http://127.0.0.1:9200. Nori uses read-only _analyze on LOCALHOST only, no new AWS resources.
-6. Inspect human-only nDCG@K, Recall@K, MRR and p50/p95 latency, baseline, LightGBM, optional Bi/Cross Encoder.
+7. Inspect human-only nDCG@K, Recall@K, MRR and p50/p95 latency, baseline, LightGBM, optional Bi/Cross Encoder.
 
 MLflow is LOCAL ONLY and records the dataset hash, human label hash, seed, hyperparameters, git SHA, metrics and immutable artifacts. MLflow experimentation does not automatically select Champion.
 

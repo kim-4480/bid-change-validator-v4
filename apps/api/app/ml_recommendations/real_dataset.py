@@ -13,6 +13,7 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlsplit
+from uuid import UUID
 from .cost_guard import require_isolated_data_url
 
 def _digest(path):
@@ -99,6 +100,21 @@ def local_snapshot(db_url, max_notices=500, max_companies=30):
                 for r in cur.fetchall():
                     reqs.setdefault(r["version_id"],[]).append(dict(r))
     fam=family_map(notices,edges)
+    # Match the approval API's exact snapshots. Merely matching pair IDs after
+    # a company edit or document re-extraction would make stale labels trainable.
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+    from ..routers.admin_relevance_labels import _company_input_hash, _notice_input_hash
+    sqlalchemy_url=db_url.replace("postgresql://","postgresql+psycopg://",1)
+    read_engine=create_engine(sqlalchemy_url,connect_args={"options":"-c default_transaction_read_only=on"})
+    try:
+        with Session(read_engine) as session:
+            for company in companies:
+                company["company_fingerprint"]=_company_input_hash(session,UUID(company["company_id"]))
+            for notice in notices:
+                notice["notice_fingerprint"]=_notice_input_hash(session,UUID(notice["notice_version_id"]))
+    finally:
+        read_engine.dispose()
     for n in notices:
         n["family_id"]=fam[n["notice_id"]]
         n["requirements"]=reqs.get(n["notice_version_id"],[])
@@ -175,6 +191,8 @@ def create_review_dataset(notices,companies,out,seed=42,max_pairs=2000):
                  "query_text":profile,"profile":company,
                  "notice_id":notice["notice_id"],"candidate_family_id":notice["family_id"],
                  "notice_version_id":notice["notice_version_id"],
+                 "company_fingerprint":company.get("company_fingerprint"),
+                 "notice_fingerprint":notice.get("notice_fingerprint"),
                  "version_number":notice["version_number"],"notice_text":notice["title"],
                  "business_type":notice["business_type"],"posted_at":notice["posted_at"],
                  "institution":notice["institution"],"contract_method":notice["contract_method"],

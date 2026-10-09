@@ -14,7 +14,7 @@ LABEL_RUBRIC={
     3:"Strong, explicit company capability/domain relevance; NOT qualification or award probability",
 }
 
-def validated_reviews(dataset_dir,completed_csv,output):
+def validated_reviews(dataset_dir,completed_csv,output,approved_export=None):
     dataset_dir=Path(dataset_dir)
     manifest=json.loads((dataset_dir/"manifest.json").read_text(encoding="utf-8"))
     origin=dataset_dir/"company_notice_pairs.jsonl"
@@ -22,6 +22,31 @@ def validated_reviews(dataset_dir,completed_csv,output):
         raise ValueError("Dataset hash mismatch")
     candidates={x["pair_id"]:x for line in origin.read_text(encoding="utf-8").splitlines()
                 if line.strip() for x in [json.loads(line)]}
+    approvals={}
+    approval_sha=None
+    if approved_export is not None:
+        export_path=Path(approved_export)
+        export=json.loads(export_path.read_text(encoding="utf-8"))
+        if export.get("label_source")!="human_reviewed_approved":
+            raise ValueError("Approved label export has an invalid provenance")
+        if export.get("approved_count")!=len(export.get("items",[])):
+            raise ValueError("Approved label export count mismatch")
+        approval_sha=hashlib.sha256(export_path.read_bytes()).hexdigest()
+        for item in export.get("items",[]):
+            key=(item.get("company_id"),item.get("notice_version_id"))
+            if key in approvals:raise ValueError("Duplicate approved label pair")
+            if not item.get("approved_by_id") or item.get("approved_by_id")==item.get("reviewer_id"):
+                raise ValueError("Independent approval is required")
+            if item.get("subject_origin") != "REAL":
+                raise ValueError("Only independently approved real-company labels may train")
+            try:
+                approved_at=datetime.fromisoformat(str(item.get("approved_at")).replace("Z","+00:00"))
+                if approved_at.tzinfo is None:raise ValueError()
+            except (ValueError,TypeError):
+                raise ValueError("Approved timestamp requires a timezone")
+            if any(len(str(item.get(field) or ""))!=64 for field in ("company_fingerprint","notice_fingerprint")):
+                raise ValueError("Approved label is missing input fingerprints")
+            approvals[key]=item
     reviewed=[]
     seen=set()
     with Path(completed_csv).open(encoding="utf-8-sig",newline="") as file:
@@ -51,6 +76,17 @@ def validated_reviews(dataset_dir,completed_csv,output):
                             else "negative" if grade=="0" else "ambiguous"))
             # Qualification is independent of relevance; do NOT infer eligibility.
             item["qualification_status"]="UNKNOWN"
+            approved=approvals.get((item["company_id"],item["notice_version_id"]))
+            if approved and (not item.get("company_fingerprint") or not item.get("notice_fingerprint") or
+                             approved.get("company_fingerprint") != item["company_fingerprint"] or
+                             approved.get("notice_fingerprint") != item["notice_fingerprint"]):
+                raise ValueError(f"Approved label input fingerprint differs from frozen dataset at {line}")
+            if approved and (approved.get("label")!=item["label"] or
+                             approved.get("reviewer_id")!=reviewer or approved.get("rationale")!=why):
+                raise ValueError(f"Approved label and review CSV disagree at {line}")
+            item["approval_status"]="APPROVED" if approved else "DRAFT"
+            item["approved_by_id"]=approved.get("approved_by_id") if approved else None
+            item["approved_at"]=approved.get("approved_at") if approved else None
             seen.add(pid);reviewed.append(item)
     if not reviewed:raise ValueError("No human reviewed labels: real performance cannot be computed")
     groups=defaultdict(list)
@@ -76,8 +112,11 @@ def validated_reviews(dataset_dir,completed_csv,output):
               "label_counts":dict((i,sum(x["label"]==i for x in reviewed)) for i in range(4)),
               "sha256":hashlib.sha256(destination.read_bytes()).hexdigest(),
               "source_dataset_sha256":manifest["sha256"]["company_notice_pairs.jsonl"],
-              "valid_holdout":valid,"evaluation_permitted":valid,
-              "limitation":None if valid else "Review labels archived, but holdout cannot be used for model accuracy"}
+              "approved_export_sha256":approval_sha,
+              "approved_count":sum(x["approval_status"]=="APPROVED" for x in reviewed),
+              "valid_holdout":valid,"evaluation_permitted":valid and all(x["approval_status"]=="APPROVED" for x in reviewed),
+              "limitation":None if valid and all(x["approval_status"]=="APPROVED" for x in reviewed)
+              else "Review labels archived; independent approval and leak-free holdout are required for model accuracy"}
     destination.with_name(destination.name + ".validation.json").write_text(
         json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2),encoding="utf-8")
     return report
@@ -85,6 +124,7 @@ def validated_reviews(dataset_dir,completed_csv,output):
 def main():
     p=argparse.ArgumentParser(description="Human relevance grades 0..3; qualification status is separate")
     p.add_argument("--dataset",required=True);p.add_argument("--reviewed-csv",required=True);p.add_argument("--out",required=True)
+    p.add_argument("--approved-export",help="System-admin approved label export JSON; otherwise evaluation remains blocked")
     args=p.parse_args()
-    print(json.dumps(validated_reviews(args.dataset,args.reviewed_csv,args.out),ensure_ascii=False,indent=2))
+    print(json.dumps(validated_reviews(args.dataset,args.reviewed_csv,args.out,args.approved_export),ensure_ascii=False,indent=2))
 if __name__=="__main__":main()

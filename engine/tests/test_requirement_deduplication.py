@@ -372,7 +372,7 @@ def test_any_of_members_are_not_collapsed_as_exact_duplicates() -> None:
         },
     })
     result = judge_requirements(
-        kept, profile, preflight_case_id="X", reference_date=date(2026, 9, 15)
+        kept, profile, preflight_case_id="X", reference_date=date(2026, 9, 15), coverage_complete=True
     )
 
-    assert result.overall_status == "eligible"
+    assert result.overall_status == "core_met"

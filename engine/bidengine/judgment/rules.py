@@ -24,8 +24,17 @@ from bidengine.normalization.region_vocab import SIGUNGU_PARENTS
 from bidengine.normalization.regions import SIDO_CANONICAL, SIDO_MERGED_INTO, find_regions, region_name_relation
 
 
-RULE_VERSION = "qualification-rules-v0.3"
-OverallQualificationStatus = Literal["eligible", "ineligible", "insufficient_data"]
+RULE_VERSION = "qualification-rules-v0.4-core-requirements"
+OverallQualificationStatus = Literal["core_met", "core_unmet", "needs_review"]
+
+
+def normalize_overall_status(status: str) -> OverallQualificationStatus:
+    """Never promote a verdict created under the old participation policy."""
+    if status in {"core_met", "core_unmet", "needs_review"}:
+        return status  # type: ignore[return-value]
+    if status in {"eligible", "ineligible", "insufficient_data"}:
+        return "needs_review"
+    raise ValueError(f"Unsupported qualification status: {status}")
 
 
 class ProfileCompleteness(BaseModel):
@@ -1095,17 +1104,16 @@ def derive_overall_status(
     analysis_status: str = "SUCCEEDED",
     coverage_complete: bool | None = None,
 ) -> OverallQualificationStatus:
-    """적합은 (1) 판정 대상 필수 요건이 모두 충족이고 (2) 판정 대상 값을 놓친 조항이 없을 때만 준다.
+    """핵심 요건 충족은 모든 핵심 요건과 분석 커버리지가 검증됐을 때만 준다.
 
     판정 대상은 닫힌 값 요건이다(requirement_tier). 확인 항목(이름만 있는 인증, 실적 등)은 종합 판정에
     넣지 않고 사용자가 확인한다. 택일(ANY_OF) 묶음은 판정 대상이 하나라도 섞여 있으면 묶음째 판정 대상이다
     ("1468 또는 OO 인증" 에서 1468 이 미달이면 OO 인증을 확인할 때까지 확인 필요).
 
-    (2)는 커버리지가 있으면 coverage.verdict_complete 로, 없으면(예전 분석) 분석 상태로 판단한다. 분석 상태
-    PARTIAL 은 "후보 하나가 검증에서 떨어졌다" 같은 파이프라인 사정을 섞어 쓰므로, 커버리지가
-    있으면 그쪽이 우선이다. 부적합은 (2)와 무관하다 — 본 요건 중 하나가 확정 미달이면 된다.
+    과거 분석에 커버리지 값이 없으면 충족으로 승격하지 않는다. 미충족은 확인된 핵심 요건의
+    명시적 불일치에 한정한다. 세 상태는 법적 입찰 참가 가능/불가능을 확정하지 않는다.
     """
-    seen_everything = coverage_complete if coverage_complete is not None else analysis_status == "SUCCEEDED"
+    seen_everything = coverage_complete is True and analysis_status == "SUCCEEDED"
     status_by_key = {item.requirement_key: item.status for item in judgments}
     grouped: dict[str, tuple[str, list[str]]] = {}
     mandatory = [r for r in requirements if r.requirement_role == "mandatory"]
@@ -1143,7 +1151,7 @@ def derive_overall_status(
                 group_statuses.append("SATISFIED")
 
     if "UNSATISFIED" in group_statuses:
-        return "ineligible"
+        return "core_unmet"
     # 확인 항목이 미달로 확정되면(실적 금액 기준 미달 등) '적합' 이라고 하지 않는다. 그렇다고 이름 맞추기에 기댄
     # 판정으로 '부적합' 을 확정하지도 않는다 — 확인 필요다.
     checklist_unsatisfied = any(
@@ -1153,10 +1161,10 @@ def derive_overall_status(
     if not group_statuses:
         # 판정 대상 요건이 없다. 요건이 아예 없으면 추출 실패일 수 있어 확인 필요, 확인 항목만 있으면
         # (그리고 놓친 닫힌 값이 없으면) 닫힌 값 기준으로는 제한이 없는 공고다.
-        return "eligible" if mandatory and seen_everything and not checklist_unsatisfied else "insufficient_data"
+        return "needs_review"
     if "UNKNOWN" in group_statuses or not seen_everything or checklist_unsatisfied:
-        return "insufficient_data"
-    return "eligible"
+        return "needs_review"
+    return "core_met"
 
 
 def judge_requirements(
@@ -1167,6 +1175,7 @@ def judge_requirements(
     reference_date: date,
     analysis_status: str = "SUCCEEDED",
     coverage_complete: bool | None = None,
+    grounded_requirement_keys: set[str] | None = None,
 ) -> JudgmentEvaluation:
     judgments = [
         judge_requirement(
@@ -1178,6 +1187,15 @@ def judge_requirements(
         for requirement in requirements
     ]
     judgments = _soften_conflicting_misses(requirements, judgments)
+    if grounded_requirement_keys is not None:
+        judgments = [
+            judgment if requirement.requirement_key in grounded_requirement_keys else judgment.model_copy(update={
+                "status": "UNKNOWN", "basis_type": "NONE", "reason_code": "NEEDS_REVIEW",
+                "unknown_reason": "requirement_uncertain", "requires_evidence": True,
+                "profile_refs": [], "value_source": "none", "evidence_status": "none",
+            })
+            for requirement, judgment in zip(requirements, judgments, strict=True)
+        ]
     return JudgmentEvaluation(
         judgments=judgments,
         overall_status=derive_overall_status(

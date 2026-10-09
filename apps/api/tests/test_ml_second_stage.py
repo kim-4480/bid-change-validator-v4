@@ -20,11 +20,13 @@ def input_data(count=8):
         "business_type":"GOODS","posted_at":f"2026-10-{i+1:02}",
         "institution":"agency","contract_method":"open",
         "budget":None,"requirements":[]} for i in range(count)]
+    for notice in notices: notice["notice_fingerprint"]="b"*64
     for n in notices:n["family_id"]=n["notice_id"]
     c={"company_id":str(uuid4()),"name":"Company A","region_code":"11","region_name":"Seoul",
        "company_size":"SME","industries":[{"industry_name":"Software","industry_code":"123"}],
        "certifications":[{"name":"License test"}],"performances":[{"name":"software supply"}],
        "staff_roles":[{"role_name":"engineer"}],"staff_count":3}
+    c["company_fingerprint"]="a"*64
     return notices,[c]
 
 def test_confirmed_related_notices_share_family():
@@ -80,7 +82,39 @@ def test_reviewed_can_be_archived_but_no_false_holdout(tmp_path):
     assert result["valid_holdout"] is False and result["evaluation_permitted"] is False
     row=json.loads((tmp_path/"reviewed.jsonl").read_text(encoding="utf-8").splitlines()[0])
     assert row["label_source"]=="human_reviewed" and row["qualification_status"]=="UNKNOWN"
+    assert row["approval_status"]=="DRAFT" and result["approved_count"]==0
     assert row["negative_type"]=="positive"
+
+def test_only_matching_independently_approved_real_label_is_training_eligible(tmp_path):
+    notices,companies=input_data()
+    create_review_dataset(notices,companies,tmp_path)
+    _save_review(tmp_path/"review_template.csv")
+    candidate=json.loads((tmp_path/"company_notice_pairs.jsonl").read_text(encoding="utf-8").splitlines()[0])
+    approval={"label_source":"human_reviewed_approved","approved_count":1,"items":[{
+        "company_id":candidate["company_id"],"notice_version_id":candidate["notice_version_id"],
+        "label":3,"rationale":"Relevant software integration evidence",
+        "reviewer_id":"reviewer-testing","approved_by_id":"independent-admin",
+        "approved_at":"2026-10-10T00:00:00+09:00",
+        "subject_origin":"REAL",
+        "company_fingerprint":"a"*64,"notice_fingerprint":"b"*64,
+    }]}
+    approval_path=tmp_path/"approved.json"
+    approval_path.write_text(json.dumps(approval),encoding="utf-8")
+    result=validated_reviews(tmp_path,tmp_path/"review_template.csv",tmp_path/"reviewed.jsonl",approval_path)
+    row=json.loads((tmp_path/"reviewed.jsonl").read_text(encoding="utf-8").splitlines()[0])
+    assert row["approval_status"]=="APPROVED" and row["approved_by_id"]=="independent-admin"
+    assert result["approved_count"]==1
+    assert result["evaluation_permitted"] is False  # No independent holdout in this tiny fixture.
+
+    approval["items"][0]["label"]=0
+    approval_path.write_text(json.dumps(approval),encoding="utf-8")
+    with pytest.raises(ValueError,match="disagree"):
+        validated_reviews(tmp_path,tmp_path/"review_template.csv",tmp_path/"bad.jsonl",approval_path)
+    approval["items"][0]["label"]=3
+    approval["items"][0]["notice_fingerprint"]="c"*64
+    approval_path.write_text(json.dumps(approval),encoding="utf-8")
+    with pytest.raises(ValueError,match="fingerprint"):
+        validated_reviews(tmp_path,tmp_path/"review_template.csv",tmp_path/"stale.jsonl",approval_path)
 
 def test_review_rejects_missing_reviewer(tmp_path):
     notices,companies=input_data()
@@ -122,13 +156,13 @@ def test_qualification_uses_deterministic_engine_for_complete_analysis(monkeypat
     called=[]
     def judge(req,profile,**kwargs):
         called.append(kwargs)
-        return SimpleNamespace(overall_status="eligible",rule_version="rule-v")
+        return SimpleNamespace(overall_status="core_met",rule_version="rule-v")
     monkeypatch.setattr(qa,"judge_requirements",judge)
     class FakeDB:
         def get(self,*args):return None
         def scalars(self,*args):return SimpleNamespace(all=lambda:[run])
     result=qa.evaluate(FakeDB(),company_id,[{"notice_id":"n1","analysis_run_id":str(runid),"is_stale":False}])
-    assert result["n1"]["state"]=="eligible" and called
+    assert result["n1"]["state"]=="core_met" and called
     assert called[0]["coverage_complete"] is True
 
 def test_synthetic_weights_are_not_enabled_by_default(monkeypatch,tmp_path):

@@ -154,6 +154,7 @@ def _persist_result(
     version: BidNoticeVersion,
     result: RequirementAnalysisResult,
     input_fingerprint: str,
+    commit: bool = True,
 ) -> QualificationAnalysisRun:
     run = QualificationAnalysisRun(
         notice_version_id=version.id,
@@ -218,7 +219,10 @@ def _persist_result(
             )
         )
 
-    db.commit()
+    if commit:
+        db.commit()
+    else:
+        db.flush()
     return load_qualification_analysis_run(db, run.id)
 
 
@@ -228,6 +232,7 @@ def run_qualification_analysis(
     notice_id: UUID,
     version_number: int,
     structured_extract: StructuredExtractor,
+    commit: bool = True,
 ) -> QualificationAnalysisRun:
     version = _load_notice_version(
         db, notice_id=notice_id, version_number=version_number
@@ -253,6 +258,7 @@ def run_qualification_analysis(
         version=version,
         result=result,
         input_fingerprint=input_fingerprint,
+        commit=commit,
     )
 
 

@@ -29,7 +29,7 @@ if (process.argv.includes('--fixtures')) {
   const vm = load(resolve(root, 'lib/copilot-view-model.ts'));
   const { ApiError } = load(resolve(root, 'lib/api.ts'));
   const before = JSON.stringify(copilotMocks);
-  assert.equal(vm.getCopilotStatusLabel('insufficient_data'), '확인 필요');
+  assert.equal(vm.getCopilotStatusLabel('needs_review'), '확인 필요');
   assert.equal(vm.getSourceLocationLabel(copilotMocks.productEvidence.sources[0]), '조항 2 · 섹션 1 문단 3');
   assert.equal(vm.getSourceLocationLabel(copilotMocks.documentRag.sources[0]), '조항 2 · p.2, p.3');
   assert.equal(vm.getSourceLocationLabel({ ...copilotMocks.documentRag.sources[0], clause_label: null, source_locations: [], page: null }), '위치 정보 없음');

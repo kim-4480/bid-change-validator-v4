@@ -42,6 +42,10 @@ def load_verified_reviews(reviewed_path, source_manifest, validation_report):
         or isinstance(row.get("label"), bool)
         or not (0 <= row["label"] <= 3)
         or not row.get("reviewer_id")
+        or row.get("approval_status") != "APPROVED"
+        or not row.get("approved_by_id")
+        or row.get("approved_by_id") == row.get("reviewer_id")
+        or not row.get("approved_at")
         or len(row.get("rationale", "")) < 10
         for row in rows
     ):

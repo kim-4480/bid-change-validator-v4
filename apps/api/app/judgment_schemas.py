@@ -4,10 +4,10 @@ from datetime import date, datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from bidengine.contracts import Judgment
-from bidengine.judgment.rules import OverallQualificationStatus, ProfileCompleteness
+from bidengine.judgment.rules import OverallQualificationStatus, ProfileCompleteness, normalize_overall_status
 
 
 class QualificationProfileCompletenessRead(BaseModel):
@@ -55,6 +55,11 @@ class QualificationJudgmentRunRead(BaseModel):
     judgments: list[Judgment] = Field(default_factory=list)
     created_at: datetime
 
+    @field_validator("overall_status", mode="before")
+    @classmethod
+    def legacy_verdict_needs_review(cls, value: str) -> OverallQualificationStatus:
+        return normalize_overall_status(value)
+
 
 class QualificationJudgmentRunSummary(BaseModel):
     id: UUID
@@ -69,3 +74,8 @@ class QualificationJudgmentRunSummary(BaseModel):
     unknown_count: int
     unsatisfied_count: int
     created_at: datetime
+
+    @field_validator("overall_status", mode="before")
+    @classmethod
+    def legacy_verdict_needs_review(cls, value: str) -> OverallQualificationStatus:
+        return normalize_overall_status(value)

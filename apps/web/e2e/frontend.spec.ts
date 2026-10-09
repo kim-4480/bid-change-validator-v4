@@ -50,7 +50,7 @@ async function mockApi(page: Page, options: MockOptions = {}) {
       return route.fulfill({ status: 200, json: {
         total: all.length,
         items: all.slice(offset, offset + limit),
-        status_counts: { eligible: 0, insufficient_data: 0, ineligible: 0, unreviewed: 101, needs_review: 0 },
+        status_counts: { core_met: 0, core_unmet: 0, unreviewed: 101, needs_review: 0 },
       } });
     }
     // No request can escape to a real backend or an AWS endpoint during local E2E.
@@ -146,13 +146,13 @@ test('ML POST contract distinguishes learned rank from qualification (MOCK)', as
       note: 'Ranking is not a probability', items: [{
         notice_id: 'notice-a', title: '로컬 E2E 공고', rank: 1, relevance_score: 0.88,
         reason: 'Text relevance', version_number: 1, analysis_run_id: null,
-        analysis_version: null, analysis_status: 'SUCCEEDED', qualification_state: 'eligible',
+        analysis_version: null, analysis_status: 'SUCCEEDED', qualification_state: 'core_met',
         qualification_reason: 'Verified', rule_version: 'test', is_stale: false,
         deadline_source: 'explicit', effective_deadline: '2026-10-10T00:00:00Z',
       }], needs_review_items: [{
         notice_id: 'notice-b', title: '추가 확인 공고', rank: 1, relevance_score: 0.76,
         reason: 'Text relevance', version_number: 1, analysis_run_id: null,
-        analysis_version: null, analysis_status: 'UNKNOWN', qualification_state: 'insufficient_data',
+        analysis_version: null, analysis_status: 'UNKNOWN', qualification_state: 'needs_review',
         qualification_reason: 'Insufficient evidence', rule_version: null, is_stale: false,
         deadline_source: 'assumed_40_days', effective_deadline: '2026-10-20T00:00:00Z',
       }],
@@ -162,7 +162,7 @@ test('ML POST contract distinguishes learned rank from qualification (MOCK)', as
   await expect(page.getByText('MOCK · 실제 모델 결과 아님')).toBeVisible();
   await expect(page.getByText('학습 모델 기반 연관성 순위')).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText('0.880')).toBeVisible();
-  await expect(page.getByText('기존 규칙판정: 충족')).toBeVisible();
+  await expect(page.getByText('핵심 요건 충족')).toBeVisible();
   await expect(page.getByRole('heading', { name: '확인 필요 공고' })).toBeVisible();
   await expect(page.getByText('추가 확인 공고')).toBeVisible();
   await expect(page.getByRole('link', { name: /공고 상세·첨부 원문/ }))
@@ -185,7 +185,7 @@ test('lexical fallback never claims a trained model (MOCK)', async ({ page }) =>
   }));
   await page.goto('/recommendations');
   await expect(page.getByText('학습 모델 미적용 — 키워드 기반 대체 순위')).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByText('검증된 적격 추천 결과가 없습니다. 확인 필요 공고는 아래에 별도로 표시합니다.')).toBeVisible();
+  await expect(page.getByText('검증된 핵심 요건 충족 추천 결과가 없습니다. 확인 필요 공고는 아래에 별도로 표시합니다.')).toBeVisible();
 });
 
 test('admin view denies non-admin and does not invoke mutations (MOCK)', async ({ page }) => {
@@ -195,14 +195,18 @@ test('admin view denies non-admin and does not invoke mutations (MOCK)', async (
   await page.route('**/api/v1/auth/me', route => route.fulfill({
     status: 200, json: { ...mockUser, role: 'SYSTEM_ADMIN' },
   }));
+  await page.route('**/api/v1/admin/history-jobs?*', route => route.fulfill({ status: 200, json: [] }));
+  await page.route('**/api/v1/admin/processing-jobs?*', route => route.fulfill({ status: 200, json: [] }));
+  await page.route('**/api/v1/admin/relevance-labels?*', route => route.fulfill({ status: 200, json: [] }));
   const writes: string[] = [];
   page.on('request', request => {
     if (!['GET', 'HEAD'].includes(request.method())) writes.push(request.method());
   });
   await page.goto('/admin');
-  await expect(page.getByText('실패 작업 조회')).toBeVisible();
-  await expect(page.getByRole('heading', { name: '라벨 검수' })).toBeVisible();
-  await expect(page.getByRole('status')).toContainText('API 계약이 아직 통합되지 않았습니다.');
+  await expect(page.getByRole('heading', { name: '공고 이력 수집 작업' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '공고 차수별 처리 작업' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '기업–공고 연관성 사람 검수' })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('임베딩·LLM 워커는 기본 비활성');
   expect(writes).toEqual([]);
 });
 

@@ -105,7 +105,7 @@ function PanelBody({ caseId, page }: { caseId: string; page: typeof pages[keyof 
         <label className="copilot-semantic-toggle" htmlFor="copilot-semantic-processing" aria-label="AI 상세 설명 사용">
           <input id="copilot-semantic-processing" type="checkbox" checked={semanticProcessing} disabled={state.busy}
             onChange={event => setSemanticProcessing(event.target.checked)} />
-          <span><strong>AI 상세 설명 사용</strong><small>켜면 질문·관련 대화·현재 판정 결과·요건 상태와 판정에 필요한 회사 프로필 정보를 AI 처리에 사용합니다. AI는 참가 가능 여부를 새로 판정하거나 저장하지 않습니다. 대화는 서버 재시작 시 초기화됩니다.</small></span>
+          <span><strong>AI 상세 설명 사용</strong><small>켜면 질문·관련 대화·현재 판정 결과·요건 상태와 판정에 필요한 회사 프로필 정보를 AI 처리에 사용합니다. AI는 핵심 요건 판정을 새로 만들거나 법적 참가 가능 여부를 보증하지 않습니다. 대화는 서버 재시작 시 초기화됩니다.</small></span>
         </label>
         <label className="copilot-semantic-toggle" htmlFor="copilot-document-processing" aria-label="공고문 근거 답변 사용">
           <input id="copilot-document-processing" type="checkbox" checked={documentProcessing} disabled={state.busy}

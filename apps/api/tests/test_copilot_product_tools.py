@@ -17,7 +17,7 @@ from apps.api.app.models import Company, PreflightCase
 from apps.api.app.qualification.ask_back import list_questions
 from apps.api.app.qualification.judgment import QualificationJudgmentError, run_qualification_judgment
 from bidengine.judgment.rules import RULE_VERSION
-from apps.api.tests.test_mvp_golden_e2e import _cleanup, _seed_golden_case
+from apps.api.tests.test_mvp_golden_e2e import _cleanup, _ground_analysis_documents, _seed_golden_case
 
 
 @pytest.fixture
@@ -25,8 +25,14 @@ def state(seed_required_master_codes):
     seed = _seed_golden_case()
     try:
         with SessionLocal() as db:
+            _ground_analysis_documents(db, seed)
             case = db.get(PreflightCase, seed['case_id'])
             analysis = db.get(QualificationAnalysisRun, seed['current_analysis_id'])
+            document = analysis.notice_version.documents[0]
+            document.extracted_blocks = [
+                {**block, "page": 2} if "정보통신공사업" in block["text"] else block
+                for block in document.extracted_blocks
+            ]
             requirement = db.scalar(select(QualificationRequirementRecord).where(
                 QualificationRequirementRecord.analysis_run_id == analysis.id,
                 QualificationRequirementRecord.requirement_key == 'REQ-REGISTRATION',
@@ -35,10 +41,10 @@ def state(seed_required_master_codes):
             for key in ['E1', 'E2', 'UNRELATED']:
                 db.add(QualificationEvidenceRecord(
                     analysis_run_id=analysis.id, evidence_key=key, source_type='NOTICE_DOCUMENT',
-                    document_id=str(uuid4()), notice_version_id=str(case.current_version_id),
+                    document_id=str(document.id), notice_version_id=str(case.current_version_id),
                     chunk_id=f'CHUNK-{key}', location={'page': 2, 'clause_label': '3', 'display': 'p.2'},
-                    quote=f'정보통신공사업 등록업체이어야 한다. {key}',
-                    source_sha256='a' * 64, extracted_text_sha256='b' * 64,
+                    quote=requirement.raw,
+                    source_sha256=document.file_sha256, extracted_text_sha256=document.extracted_text_sha256,
                 ))
             # Same key in another analysis must never be used as a fallback.
             db.add(QualificationEvidenceRecord(
@@ -211,8 +217,9 @@ def test_canonical_evidence_order_and_metadata(state):
         assert item.notice_version_id == str(case.current_version_id)
         assert item.location.display == original.location['display']
         assert item.location.page == 2 and item.location.clause_label == '3'
-        assert item.source_sha256 == 'a' * 64
-        assert item.extracted_text_sha256 == 'b' * 64
+        document = analysis.notice_version.documents[0]
+        assert item.source_sha256 == document.file_sha256
+        assert item.extracted_text_sha256 == document.extracted_text_sha256
 
 
 def test_cross_version_evidence_fails_closed(state):

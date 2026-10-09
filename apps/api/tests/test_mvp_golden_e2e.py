@@ -374,6 +374,8 @@ def test_revalidation_reviews_unchanged_requirement_with_unverified_current_quot
 def test_mvp_golden_path_judgment_ask_back_and_revalidation() -> None:
     seed = _seed_golden_case()
     try:
+        with SessionLocal() as db:
+            _ground_analysis_documents(db, seed)
         completeness = client.patch(
             f"/api/v1/companies/{seed['company_id']}/qualification-profile-completeness",
             json={
@@ -393,7 +395,7 @@ def test_mvp_golden_path_judgment_ask_back_and_revalidation() -> None:
         )
         assert baseline_response.status_code == 200, baseline_response.text
         baseline = baseline_response.json()
-        assert baseline["overall_status"] == "insufficient_data"
+        assert baseline["overall_status"] == "needs_review"
         by_key = {item["requirement_key"]: item for item in baseline["judgments"]}
         assert by_key["REQ-REGION"]["status"] == "SATISFIED"
         assert by_key["REQ-STAFF"]["status"] == "SATISFIED"
@@ -421,7 +423,7 @@ def test_mvp_golden_path_judgment_ask_back_and_revalidation() -> None:
         )
         assert answer_response.status_code == 200, answer_response.text
         answered = answer_response.json()["result"]
-        assert answered["overall_status"] == "eligible"
+        assert answered["overall_status"] == "core_met"
         answered_by_key = {item["requirement_key"]: item for item in answered["judgments"]}
         assert answered_by_key["REQ-REGISTRATION"]["status"] == "SATISFIED"
         assert answered_by_key["REQ-REGISTRATION"]["basis_type"] == "USER_ANSWER"
@@ -443,15 +445,13 @@ def test_mvp_golden_path_judgment_ask_back_and_revalidation() -> None:
         assert changes["REQ-REGION"]["change_type"] == "UNCHANGED"
         assert changes["REQ-STAFF"]["change_type"] == "UNCHANGED"
         assert changes["REQ-REGISTRATION"]["change_type"] == "UNCHANGED"
-        # This legacy fixture has no extracted documents, evidence, or coverage.
-        # The impact planner must not copy even an apparently unchanged verdict.
-        assert revalidation["revalidated_keys"] == []
+        # The modified performance requirement must be recalculated, not copied.
+        assert "REQ-PERFORMANCE-AMOUNT" in revalidation["revalidated_keys"]
 
         result = revalidation["result"]
         # 실적 금액은 확인 항목이다(2026-10-07). 미달로 확정돼도 '부적합' 을 확정하지 않고 '적합' 도 주지 않는다.
-        assert result["overall_status"] == "insufficient_data"
+        assert result["overall_status"] == "needs_review"
         result_by_key = {item["requirement_key"]: item for item in result["judgments"]}
-        assert {item["status"] for item in result_by_key.values()} == {"UNKNOWN"}
-        assert {item["basis_type"] for item in result_by_key.values()} == {"NONE"}
+        assert result_by_key["REQ-PERFORMANCE-AMOUNT"]["status"] == "UNSATISFIED"
     finally:
         _cleanup(seed)

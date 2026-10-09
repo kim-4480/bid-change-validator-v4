@@ -11,6 +11,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from tempfile import SpooledTemporaryFile
 from typing import BinaryIO, Iterator
+from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
@@ -328,20 +329,23 @@ def extract_pending_documents(
     settings: Settings,
     limit: int,
     retry_failed: bool = False,
+    notice_version_id: UUID | None = None,
 ) -> dict[str, int]:
     if limit < 1:
         raise ValueError("limit must be positive")
     statuses = ["PENDING", "FAILED"] if retry_failed else ["PENDING"]
-    documents = db.scalars(
-        select(NoticeDocument)
-        .where(
+    query = (
+        select(NoticeDocument).where(
             NoticeDocument.download_status == "DOWNLOADED",
             NoticeDocument.storage_key.is_not(None),
             NoticeDocument.extraction_status.in_(statuses),
         )
         .order_by(NoticeDocument.created_at)
         .limit(limit)
-    ).all()
+    )
+    if notice_version_id is not None:
+        query = query.where(NoticeDocument.notice_version_id == notice_version_id)
+    documents = db.scalars(query).all()
     # Include SHA/size and parser identity: identical bytes named TXT vs PDF
     # can parse differently, so a conflicting record cannot inherit success.
     # Cache FAILED outcomes too, to avoid repeated S3 GETs for one missing key.

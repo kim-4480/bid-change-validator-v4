@@ -2,7 +2,7 @@
  * Recommendation score is a rank signal, NOT a calibrated probability.
  */
 export type MlScoringSource = 'local_lightgbm' | 'local_hf' | 'remote_inference' | 'lexical_fallback';
-export type MlQualificationState = 'eligible' | 'ineligible' | 'insufficient_data' | 'UNKNOWN' | 'stale';
+export type MlQualificationState = 'core_met' | 'core_unmet' | 'needs_review' | 'UNKNOWN' | 'stale';
 
 export type MlRecommendation = {
   notice_id: string;
@@ -36,7 +36,7 @@ export type MlRecommendationResponse = {
 };
 
 const SOURCES = new Set<MlScoringSource>(['local_lightgbm', 'local_hf', 'remote_inference', 'lexical_fallback']);
-const STATES = new Set<MlQualificationState>(['eligible', 'ineligible', 'insufficient_data', 'UNKNOWN', 'stale']);
+const STATES = new Set<MlQualificationState>(['core_met', 'core_unmet', 'needs_review', 'UNKNOWN', 'stale']);
 const DEADLINE_SOURCES = new Set(['explicit', 'assumed_40_days']);
 const nullableString = (value: unknown) => value === null || typeof value === 'string';
 
@@ -71,9 +71,9 @@ export function isRecommendationResponse(value: unknown): value is MlRecommendat
     || !Array.isArray(result.needs_review_items)) return false;
   return result.items.every(isRecommendationItem)
     && result.needs_review_items.every(isRecommendationItem)
-    && result.items.every((item: MlRecommendation) => item.qualification_state === 'eligible')
+    && result.items.every((item: MlRecommendation) => item.qualification_state === 'core_met')
     && result.needs_review_items.every((item: MlRecommendation) =>
-      item.qualification_state !== 'eligible' && item.qualification_state !== 'ineligible');
+      item.qualification_state !== 'core_met' && item.qualification_state !== 'core_unmet');
 }
 
 /** Fallback or missing model metadata must never be labeled as trained ML. */

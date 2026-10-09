@@ -216,7 +216,7 @@ export type QualificationJudgmentRun = {
   analysis_run_id: string;
   company_id: string;
   notice_version_id: string;
-  overall_status: 'eligible' | 'ineligible' | 'insufficient_data';
+  overall_status: 'core_met' | 'core_unmet' | 'needs_review';
   rule_version: string;
   reference_date: string;
   analysis_status: string;
@@ -230,7 +230,7 @@ export type QualificationJudgmentSummary = {
   analysis_run_id: string;
   company_id: string;
   notice_version_id: string;
-  overall_status: 'eligible' | 'ineligible' | 'insufficient_data';
+  overall_status: 'core_met' | 'core_unmet' | 'needs_review';
   rule_version: string;
   reference_date: string;
   analysis_status: string;

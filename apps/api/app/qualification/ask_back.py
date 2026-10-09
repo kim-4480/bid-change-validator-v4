@@ -16,7 +16,7 @@ from .analysis import (
     is_qualification_analysis_run_stale,
     load_latest_current_qualification_analysis_run,
 )
-from .judgment import load_judgment_analysis, QualificationJudgmentError, judgment_run_response, load_qualification_judgment_run, _load_company, _record_to_completeness, build_company_profile_snapshot
+from .judgment import load_judgment_analysis, QualificationJudgmentError, judgment_run_response, load_qualification_judgment_run, _load_company, _record_to_completeness, build_company_profile_snapshot, grounded_keys_for_analysis
 
 
 def list_questions(
@@ -44,6 +44,8 @@ def list_questions(
             "판정 실행과 사전검토 건이 일치하지 않습니다.",
             status_code=422,
         )
+    if run.rule_version != RULE_VERSION:
+        raise QualificationJudgmentError("STALE_JUDGMENT", "새 핵심 요건 기준으로 다시 판정한 뒤 답변해 주세요.", status_code=409)
 
     analysis_record = load_judgment_analysis(db, run.analysis_run_id)
     if is_qualification_analysis_run_stale(analysis_record):
@@ -52,6 +54,7 @@ def list_questions(
             "문서가 재추출되어 새 분석과 판정이 필요합니다.",
         )
     analysis = analysis_run_response(analysis_record)
+    grounded = grounded_keys_for_analysis(analysis_record, analysis)
     req_by_key = {requirement.requirement_key: requirement for requirement in analysis.requirements}
     questions: list[QualificationQuestionRead] = []
 
@@ -62,19 +65,20 @@ def list_questions(
         if requirement is None:
             continue
         decision = classify_askability(requirement)
+        verified = requirement.requirement_key in grounded
         questions.append(
             QualificationQuestionRead(
                 requirement_key=requirement.requirement_key,
                 requirement_type=requirement.type,
                 question=(
                     build_semantic_question(requirement)
-                    if decision.askable
+                    if decision.askable and verified
                     else "사용자 답변만으로 판정할 수 없는 조건입니다. 근거 원문을 직접 확인해 주세요."
                 ),
                 raw_requirement=requirement.raw,
-                askable=decision.askable,
-                askability_reason_code=decision.reason_code,
-                askability_reason=decision.reason,
+                askable=decision.askable and verified,
+                askability_reason_code=decision.reason_code if verified else "SOURCE_EVIDENCE_UNVERIFIED",
+                askability_reason=decision.reason if verified else "공고 원문 근거가 확인되지 않아 답변으로 확정할 수 없습니다.",
             )
         )
 
@@ -135,7 +139,8 @@ def answer_and_rejudge(
             status_code=422,
         )
 
-    analysis = analysis_run_response(load_judgment_analysis(db, source.analysis_run_id))
+    analysis_record = load_judgment_analysis(db, source.analysis_run_id)
+    analysis = analysis_run_response(analysis_record)
     requirement = next(
         (item for item in analysis.requirements if item.requirement_key == payload.requirement_key),
         None,
@@ -145,6 +150,10 @@ def answer_and_rejudge(
             "REQUIREMENT_NOT_FOUND",
             "분석 결과에서 Requirement를 찾을 수 없습니다.",
             status_code=404,
+        )
+    if requirement.requirement_key not in grounded_keys_for_analysis(analysis_record, analysis):
+        raise QualificationJudgmentError(
+            "SOURCE_EVIDENCE_UNVERIFIED", "공고 원문 근거가 확인되지 않아 답변으로 확정할 수 없습니다.", status_code=422,
         )
 
     decision = classify_askability(requirement)

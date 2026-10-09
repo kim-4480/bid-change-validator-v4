@@ -32,7 +32,7 @@ def _fixture(*, with_question: bool = False):
     )
     summary = QualificationSummary(
         provenance=provenance,
-        overall_status="ineligible",
+        overall_status="core_unmet",
         analysis_status="SUCCEEDED",
         judgment_counts={"SATISFIED": 1, "UNSATISFIED": 1, "UNKNOWN": 0},
         judgments=[
@@ -75,7 +75,7 @@ def _fixture(*, with_question: bool = False):
         answer="legacy long answer",
         product_state=checks,
         presentation=Presentation(
-            conclusion="현재 저장된 판정은 참가 불가입니다. 현재 추가로 답변할 확인 항목은 없습니다.",
+            conclusion="현재 저장된 판정은 핵심 요건 미충족입니다. 현재 추가로 답변할 확인 항목은 없습니다.",
             reasons=[Reason(text=f"판정 대상이 아닌 확인사항 {i}") for i in range(9)],
             limitations=["이 판정에 포함되지 않은 확인사항이 9건 있습니다."],
         ),
@@ -121,7 +121,7 @@ def test_required_checks_narrator_receives_actual_manual_review_evidence(monkeyp
     def extractor(_system, body, _schema):
         sent["body"] = body
         return {
-            "status": "ineligible",
+            "status": "core_unmet",
             "conclusion": "추가로 입력할 회사정보는 없지만 공고에서 직접 확인할 항목이 있습니다.",
             "points": [
                 {"requirement_key": None, "text": "국가계약법상 기본 참가자격을 원문에서 확인해 주세요."}

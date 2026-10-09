@@ -24,6 +24,7 @@ from .judgment import (
     _load_company,
     _record_to_completeness,
     build_company_profile_snapshot,
+    grounded_keys_for_analysis,
     load_qualification_judgment_run,
     run_qualification_judgment,
 )
@@ -85,6 +86,7 @@ def run_targeted_qualification_judgment(
         reference_date=actual_reference_date,
         analysis_status=analysis_run.status,
         coverage_complete=analysis.verdict_complete,
+        grounded_requirement_keys=grounded_keys_for_analysis(analysis_run, analysis),
     )
     overall_status = evaluation.overall_status
 

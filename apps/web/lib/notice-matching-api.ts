@@ -8,7 +8,7 @@ export type NoticeMatch = {
   version_number: number;
   analysis_run_id: string;
   analysis_status: string;
-  overall_status: 'eligible' | 'ineligible' | 'insufficient_data';
+  overall_status: 'core_met' | 'core_unmet' | 'needs_review';
   satisfied_count: number;
   unknown_count: number;
   unsatisfied_count: number;

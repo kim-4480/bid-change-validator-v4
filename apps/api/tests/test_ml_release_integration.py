@@ -17,8 +17,9 @@ from app.ml_recommendations.runtime import score_notices
 from app.ml_recommendations.search_compare import bm25_map, rrf_map
 from app.analysis_models import QualificationAnalysisRun
 from app.database import SessionLocal
-from app.models import BidNotice, BidNoticeVersion, NoticeDocument
+from app.models import BidNotice, BidNoticeVersion, NoticeDocument, NoticeRecommendationFeature
 from app.qualification.analysis import qualification_analysis_version_fingerprint
+from app.services.notice_processing import input_fingerprint
 
 
 NOW = datetime(2026, 10, 9, 8, tzinfo=timezone.utc)
@@ -59,24 +60,24 @@ def _row(state, index):
     }
 
 
-def test_strict_eligible_unknown_and_ineligible_separation(monkeypatch):
+def test_core_met_review_and_core_unmet_separation(monkeypatch):
     rows = [_row(name, i) for i, name in enumerate(
-        ["ineligible", "UNKNOWN", "eligible", "stale", "eligible", "insufficient_data"]
+        ["core_unmet", "UNKNOWN", "core_met", "stale", "core_met", "needs_review"]
     )]
     def judge(db, company, batch):
         return {r["notice_id"]: {"state": r["_state"], "reason": "test"} for r in batch}
     monkeypatch.setattr(ml_router, "evaluate", judge)
     primary, review = ml_router.partition_ranked(None, uuid4(), rows, 10, "local_lightgbm")
-    assert [r.qualification_state for r in primary] == ["eligible", "eligible"]
+    assert [r.qualification_state for r in primary] == ["core_met", "core_met"]
     assert [r.qualification_state for r in review] == [
-        "UNKNOWN", "stale", "insufficient_data"
+        "UNKNOWN", "stale", "needs_review"
     ]
     assert primary[0].rank == 1 and primary[1].rank == 2
     assert all(r.title != rows[0]["title"] for r in primary + review)
 
 
-def test_query_only_can_never_be_eligible():
-    rows = [_row("eligible", 1), _row("UNKNOWN", 2)]
+def test_query_only_can_never_be_core_met():
+    rows = [_row("core_met", 1), _row("UNKNOWN", 2)]
     primary, review = ml_router.partition_ranked(None, None, rows, 10, "lexical_fallback")
     assert primary == [] and len(review) == 2
     assert all(r.qualification_state == "UNKNOWN" for r in review)
@@ -156,6 +157,21 @@ def test_ml_candidate_lineage_uses_latest_valid_run_on_postgresql():
                          if row["notice_id"] == str(notice_id))
         assert candidate["analysis_run_id"] == str(older_valid.id)
         assert candidate["is_stale"] is False
+        db.add(NoticeRecommendationFeature(
+            notice_version_id=version_id,
+            input_fingerprint=input_fingerprint(version, "FEATURES", notice=notice),
+            search_text="cached lexical features",
+        ))
+        db.flush()
+        candidate = next(row for row in ml_router.candidates(db, now=NOW)
+                         if row["notice_id"] == str(notice_id))
+        assert candidate["notice_text"] == "cached lexical features"
+        notice.title = "changed lexical source"
+        db.flush()
+        candidate = next(row for row in ml_router.candidates(db, now=NOW)
+                         if row["notice_id"] == str(notice_id))
+        assert "changed lexical source" in candidate["notice_text"]
+        assert "cached lexical features" not in candidate["notice_text"]
 
         document.extracted_text_sha256 = "b" * 64
         db.flush()

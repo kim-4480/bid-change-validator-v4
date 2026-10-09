@@ -1,7 +1,7 @@
 """Non-persisting, bounded deterministic qualification judgment for ML results.
 
-Only a current successful and coverage-complete analysis may yield eligible.
-No run, partial, failed, stale or uncertain coverage are never eligible.
+Only a current successful and coverage-complete analysis may yield core_met.
+No run, partial, failed, stale or uncertain coverage is ever core_met.
 """
 from __future__ import annotations
 from datetime import date
@@ -12,7 +12,7 @@ from bidengine.judgment.rules import judge_requirements
 from ..models import Company
 from ..analysis_models import QualificationAnalysisRun
 from ..judgment_models import CompanyQualificationProfileCompleteness
-from ..qualification.judgment import _load_company,_record_to_completeness,build_company_profile_snapshot
+from ..qualification.judgment import _load_company,_record_to_completeness,build_company_profile_snapshot,grounded_keys_for_analysis
 from ..qualification.analysis import analysis_run_response
 
 def company_query(company):
@@ -56,9 +56,10 @@ def evaluate(db,company_id,items,reference_date=None):
             evaluation=judge_requirements(analysis.requirements,snapshot,
                 preflight_case_id="ML:"+str(company_id)+":"+str(key),
                 reference_date=reference_date or date.today(),analysis_status=run.status,
-                coverage_complete=analysis.verdict_complete)
+                coverage_complete=analysis.verdict_complete,
+                grounded_requirement_keys=grounded_keys_for_analysis(run, analysis))
             state=evaluation.overall_status
-            if state not in ("eligible","ineligible","insufficient_data"):
+            if state not in ("core_met", "core_unmet", "needs_review"):
                 state="UNKNOWN"
             result[key]={"state":state,
                          "rule_version":getattr(evaluation,"rule_version",None),

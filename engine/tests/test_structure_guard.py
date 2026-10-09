@@ -76,10 +76,10 @@ def test_an_assessed_any_of_group_is_judged_not_reblocked() -> None:
     )
 
     result = judge_requirements(
-        requirements, _profile_with("1257"), preflight_case_id="X", reference_date=date(2026, 9, 15)
+        requirements, _profile_with("1257"), preflight_case_id="X", reference_date=date(2026, 9, 15), coverage_complete=True
     )
 
-    assert result.overall_status == "eligible"
+    assert result.overall_status == "core_met"
     value_of = {i.requirement_key: i.value for i in requirements}
     by_value = {value_of[j.requirement_key]: j.status for j in result.judgments}
     assert by_value["1257"] == "SATISFIED"
@@ -90,7 +90,7 @@ def test_an_assessed_any_of_group_is_judged_not_reblocked() -> None:
     none = judge_requirements(
         requirements, _profile_with("1450"), preflight_case_id="X", reference_date=date(2026, 9, 15)
     )
-    assert none.overall_status == "ineligible"
+    assert none.overall_status == "core_unmet"
 
 
 def test_an_unassessed_requirement_still_gets_the_raw_guard() -> None:
@@ -150,6 +150,6 @@ def test_demo_j13_is_eligible_on_the_namwon_notice() -> None:
                          "performances": True, "region": True, "staff_roles": True, "staff_total": True},
     })
 
-    result = judge_requirements(requirements, j13, preflight_case_id="X", reference_date=date(2026, 9, 17))
+    result = judge_requirements(requirements, j13, preflight_case_id="X", reference_date=date(2026, 9, 17), coverage_complete=True)
 
-    assert result.overall_status == "eligible"
+    assert result.overall_status == "core_met"

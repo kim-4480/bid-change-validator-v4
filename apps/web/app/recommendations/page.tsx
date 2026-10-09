@@ -28,15 +28,15 @@ const INITIAL: RecommendationState = {
 };
 
 const QUALIFICATION_LABEL: Record<NoticeMatch['overall_status'], string> = {
-  eligible: '기존 자격판정: 충족',
-  ineligible: '기존 자격판정: 미충족',
-  insufficient_data: '기존 자격판정: 확인 필요',
+  core_met: '핵심 요건: 충족',
+  core_unmet: '핵심 요건: 미충족',
+  needs_review: '핵심 요건: 확인 필요',
 };
 
 const ML_QUALIFICATION_LABEL = {
-  eligible: '기존 규칙판정: 충족',
-  ineligible: '기존 규칙판정: 미충족',
-  insufficient_data: '기존 규칙판정: 확인 필요',
+  core_met: '핵심 요건: 충족',
+  core_unmet: '핵심 요건: 미충족',
+  needs_review: '핵심 요건: 확인 필요',
   UNKNOWN: '규칙판정: 미검증',
   stale: '규칙판정: 이전 버전 (재검토 필요)',
 } as const;
@@ -159,7 +159,7 @@ export default function RecommendationsPage() {
                   마감일이 없는 공고는 게시 후 40일을 임시 유효기간으로 표시합니다.
                 </p>
                 {ranked.length === 0 ? (
-                  <p className="mt-5 rounded-xl border bg-slate-50 p-5 text-sm">검증된 적격 추천 결과가 없습니다. 확인 필요 공고는 아래에 별도로 표시합니다.</p>
+                  <p className="mt-5 rounded-xl border bg-slate-50 p-5 text-sm">검증된 핵심 요건 충족 추천 결과가 없습니다. 확인 필요 공고는 아래에 별도로 표시합니다.</p>
                 ) : (
                   <ol className="mt-5 space-y-4">
                     {ranked.map((item) => {
@@ -207,7 +207,7 @@ export default function RecommendationsPage() {
             <section aria-labelledby="ml-review-heading" className="mt-8 rounded-2xl border bg-white p-5 shadow-sm sm:p-7">
               <h2 id="ml-review-heading" className="text-lg font-bold">확인 필요 공고</h2>
               <p className="mt-2 text-sm text-[var(--product-muted)]">
-                자격요건이 아직 검증되지 않았거나 기업정보가 부족한 공고입니다. 적격 추천에 포함하지 않습니다.
+                자격요건이 아직 검증되지 않았거나 기업정보가 부족한 공고입니다. 핵심 요건 충족 추천에 포함하지 않습니다.
               </p>
               {needsReview.length === 0 ? (
                 <p className="mt-4 text-sm text-slate-600">확인 필요 공고가 없습니다.</p>

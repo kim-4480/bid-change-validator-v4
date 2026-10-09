@@ -384,7 +384,7 @@ export default function CompanyPage() {
               <h2 className="mt-6 text-[28px] font-extrabold">프로필 값이 판정 근거가 됩니다</h2>
               <div className="mt-7 space-y-4 text-sm text-white/78">
                 <p>업종 → 공고의 업종 제한과 대조합니다</p>
-                <p>지역 → 참가 가능 지역과 대조합니다</p>
+                <p>지역 → 공고의 핵심 지역 요건과 대조합니다</p>
                 <p>기업 규모 → 기업 구분 제한과 대조합니다</p>
                 <p>인력 → 상시 인력·전담 인력 요건과 대조합니다</p>
                 <p>수행 실적 → 실적 건수·금액 요건과 대조합니다</p>

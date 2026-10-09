@@ -19,10 +19,10 @@ from ..judgment_models import CompanyQualificationProfileCompleteness
 from ..matching_schemas import NoticeMatchRead, NoticeMatchSearchResponse
 from ..models import BidNotice, BidNoticeVersion
 from .analysis import analysis_run_response, qualification_analysis_version_fingerprint
-from .judgment import _load_company, _record_to_completeness, build_company_profile_snapshot
+from .judgment import _load_company, _record_to_completeness, build_company_profile_snapshot, grounded_keys_for_analysis
 
 
-_STATUS_ORDER = {"eligible": 0, "insufficient_data": 1, "ineligible": 2}
+_STATUS_ORDER = {"core_met": 0, "needs_review": 1, "core_unmet": 2}
 
 
 def _load_latest_valid_analysis_runs(
@@ -111,6 +111,7 @@ def match_cached_notices(
             reference_date=ref_date,
             analysis_status=run.status,
             coverage_complete=analysis.verdict_complete,
+            grounded_requirement_keys=grounded_keys_for_analysis(run, analysis),
         )
         overall = evaluation.overall_status
 

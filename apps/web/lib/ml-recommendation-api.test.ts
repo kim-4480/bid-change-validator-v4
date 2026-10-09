@@ -11,7 +11,7 @@ const valid: MlRecommendationResponse = {
     notice_id: 'notice-1', title: '샘플 공고', rank: 1, relevance_score: 0.88,
     reason: 'Text relevance', version_number: 1,
     analysis_run_id: null, analysis_version: null, analysis_status: 'UNKNOWN',
-    qualification_state: 'eligible', qualification_reason: null, rule_version: null, is_stale: false,
+    qualification_state: 'core_met', qualification_reason: null, rule_version: null, is_stale: false,
     deadline_source: 'explicit', effective_deadline: '2026-10-10T00:00:00Z',
   }],
   needs_review_items: [],
@@ -27,7 +27,7 @@ void test('POST recommendation contract matches account 4 schema', () => {
   assert.equal(isRecommendationResponse({ ...valid, items: [{ ...valid.items[0], relevance_score: 1.25 }] }), true);
   assert.equal(isRecommendationResponse({ ...valid, needs_review_items: [{ ...valid.items[0], qualification_state: 'UNKNOWN' }] }), true);
   assert.equal(isRecommendationResponse({ ...valid, items: [{ ...valid.items[0], qualification_state: 'UNKNOWN' }] }), false);
-  assert.equal(isRecommendationResponse({ ...valid, needs_review_items: [{ ...valid.items[0], qualification_state: 'eligible' }] }), false);
+  assert.equal(isRecommendationResponse({ ...valid, needs_review_items: [{ ...valid.items[0], qualification_state: 'core_met' }] }), false);
   assert.equal(isRecommendationResponse({ ...valid, needs_review_items: undefined }), false);
 });
 

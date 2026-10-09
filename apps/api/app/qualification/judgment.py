@@ -27,10 +27,12 @@ from ..models import Company, CompanyIndustry, CompanyPerformance, PreflightCase
 from .analysis import (
     QualificationAnalysisError,
     analysis_run_response,
+    build_qualification_analysis_input,
     is_qualification_analysis_run_stale,
     load_latest_current_qualification_analysis_run,
     load_qualification_analysis_run,
 )
+from .impact_adapter import current_grounded_requirement_keys
 
 
 class QualificationJudgmentError(ValueError):
@@ -39,6 +41,19 @@ class QualificationJudgmentError(ValueError):
         self.message = message
         self.status_code = status_code
         super().__init__(message)
+
+
+def grounded_keys_for_analysis(run: QualificationAnalysisRun, analysis) -> set[str]:
+    # An incomplete run cannot prove any requirement is grounded. Keep test
+    # doubles and partially loaded historical rows fail-closed as well.
+    notice_version = getattr(run, "notice_version", None)
+    if notice_version is None:
+        return set()
+    return current_grounded_requirement_keys(
+        analysis.requirements, analysis.evidence,
+        build_qualification_analysis_input(notice_version).documents,
+        notice_version_id=str(run.notice_version_id),
+    )
 
 
 def load_judgment_analysis(db: Session, run_id: UUID) -> QualificationAnalysisRun:
@@ -198,7 +213,7 @@ def run_qualification_judgment(db: Session, *, case_id: UUID, analysis_run_id: U
     profile = build_company_profile_snapshot(company, completeness)
     analysis_run = _select_analysis_run(db, case, analysis_run_id)
     analysis = analysis_run_response(analysis_run)
-    evaluation = judge_requirements(analysis.requirements, profile, preflight_case_id=str(case.id), reference_date=reference_date or date.today(), analysis_status=analysis_run.status, coverage_complete=analysis.verdict_complete)
+    evaluation = judge_requirements(analysis.requirements, profile, preflight_case_id=str(case.id), reference_date=reference_date or date.today(), analysis_status=analysis_run.status, coverage_complete=analysis.verdict_complete, grounded_requirement_keys=grounded_keys_for_analysis(analysis_run, analysis))
     overall_status = evaluation.overall_status
 
     run = QualificationJudgmentRun(

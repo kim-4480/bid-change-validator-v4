@@ -40,7 +40,7 @@ class QualificationJudgmentRun(Base):
     __tablename__ = "qualification_judgment_runs"
     __table_args__ = (
         CheckConstraint(
-            "overall_status IN ('eligible', 'ineligible', 'insufficient_data')",
+            "overall_status IN ('eligible', 'ineligible', 'insufficient_data', 'core_met', 'core_unmet', 'needs_review')",
             name="qualification_judgment_runs_overall_status_valid",
         ),
     )

@@ -20,8 +20,9 @@ from ..auth import authorize_company_access, get_optional_current_user
 from ..auth_models import AppUser
 from ..database import get_db
 from ..analysis_models import QualificationAnalysisRun
-from ..models import BidNotice, BidNoticeVersion, NoticeDocument
+from ..models import BidNotice, BidNoticeVersion, NoticeDocument, NoticeRecommendationFeature
 from ..qualification.analysis import qualification_analysis_document_fingerprint
+from ..services.notice_processing import feature_text, input_fingerprint
 from .qualification_adapter import _load_company, company_query, evaluate
 from .runtime import score_notices
 
@@ -48,7 +49,7 @@ class MLNoticeRecommendation(BaseModel):
     analysis_run_id: UUID | None = None
     analysis_version: str | None = None
     analysis_status: str = "UNKNOWN"
-    qualification_state: Literal["eligible", "ineligible", "insufficient_data", "UNKNOWN", "stale"] = "UNKNOWN"
+    qualification_state: Literal["core_met", "core_unmet", "needs_review", "UNKNOWN", "stale"] = "UNKNOWN"
     qualification_reason: str | None = None
     rule_version: str | None = None
     is_stale: bool = False
@@ -64,10 +65,10 @@ class MLRecommendationResponse(BaseModel):
     fallback_reason: str | None = None
     fallback_used: bool = True
     total_valid_candidates: int = 0
-    note: str = "Relevance is not eligibility or award probability; missing deadlines use a 40-day proxy."
-    # Only verified eligible notices. Query-only requests have no verified eligibility.
+    note: str = "Relevance is separate from verified core requirements and is not a participation guarantee or award probability; missing deadlines use a 40-day proxy."
+    # Only verified core_met notices. Query-only requests have no verified qualification.
     items: list[MLNoticeRecommendation]
-    # UNKNOWN, insufficient_data and stale remain visible but are never certified eligible.
+    # UNKNOWN, needs_review and stale remain separate from the main recommendations.
     needs_review_items: list[MLNoticeRecommendation] = Field(default_factory=list)
 
 
@@ -174,7 +175,7 @@ def candidates(db: Session, *, now: datetime | None = None) -> list[dict]:
         .options(
             load_only(n.id, n.title, n.notice_kind, n.business_type, n.announcing_institution_name,
                       n.demanding_institution_name, n.last_seen_at),
-            load_only(v.id, v.notice_id, v.version_number, v.is_current, v.notice_kind,
+            load_only(v.id, v.notice_id, v.version_number, v.is_current, v.notice_kind, v.payload_hash,
                       v.posted_at, v.bid_closed_at, v.contract_method, v.allocated_budget),
         )
         .order_by(n.last_seen_at.desc(), n.id)
@@ -195,15 +196,18 @@ def candidates(db: Session, *, now: datetime | None = None) -> list[dict]:
                    BidNoticeVersion.is_current.is_(False))
         ).all())
         latest, current_history = _current_analysis_runs(db, version_ids)
+        cached_features = {row.notice_version_id: row for row in db.scalars(
+            select(NoticeRecommendationFeature).where(NoticeRecommendationFeature.notice_version_id.in_(version_ids))
+        ).all()}
         for notice, version in batch:
             window = eligible_window(version, now=now)
             if not window or not _not_cancelled(notice.notice_kind):
                 continue
             run = latest.get(version.id)
-            search_text = " ".join(str(field) for field in (
-                notice.title, notice.business_type, notice.announcing_institution_name,
-                notice.demanding_institution_name, version.contract_method
-            ) if field)
+            cached = cached_features.get(version.id)
+            search_text = (cached.search_text if cached and
+                           cached.input_fingerprint == input_fingerprint(version, "FEATURES", notice=notice)
+                           else feature_text(version, notice=notice))
             output.append({
                 "notice_id": str(notice.id), "title": notice.title,
                 "notice_text": search_text, "version_number": version.version_number,
@@ -237,7 +241,7 @@ def make_item(row: dict, state: dict, rank: int, source: str,
         reason = "No strong shared keywords; lexical fallback only"
     else:
         reason = "Model-generated text similarity; no directly matching keyword identified"
-    reason += "; independent eligibility judgment required"
+    reason += "; independent core-requirement review required"
     return MLNoticeRecommendation(
         notice_id=row["notice_id"], title=row["title"], rank=rank,
         relevance_score=row["score"], reason=reason,
@@ -262,9 +266,9 @@ def partition_ranked(db, company_id, ranked: list[dict], limit: int,
         for row in batch:
             state = qualifications.get(row["notice_id"], {})
             q = state.get("state", "UNKNOWN")
-            if q == "ineligible":
+            if q == "core_unmet":
                 continue
-            if q == "eligible" and company_id is not None:
+            if q == "core_met" and company_id is not None:
                 if len(eligible) < limit:
                     eligible.append(make_item(row, state, len(eligible) + 1, source, query))
             elif len(needs_review) < limit:

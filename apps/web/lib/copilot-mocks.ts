@@ -16,7 +16,7 @@ const requirement = {
   raw: '정보통신공사업 등록업체이어야 한다.', confidence: 1, evidence_keys: ['E1'],
 } satisfies QualificationRequirement;
 const summary = {
-  provenance, overall_status: 'insufficient_data', analysis_status: 'SUCCEEDED',
+  provenance, overall_status: 'needs_review', analysis_status: 'SUCCEEDED',
   judgment_counts: { SATISFIED: 0, UNSATISFIED: 0, UNKNOWN: 1 },
   judgments: [{ judgment_key: 'J1', preflight_case_id: provenance.case_id, notice_version_id: provenance.notice_version_id,
     requirement_key: requirement.requirement_key, status: 'UNKNOWN', basis_type: 'NONE', evidence_held: false,
@@ -55,11 +55,11 @@ const question = {
 };
 
 export const copilotMocks = {
-  eligible: { ...empty, intent: 'QUALIFICATION_SUMMARY', answer: '저장된 판정: 참가 가능 (분석 상태: SUCCEEDED).',
-    product_state: { ...summary, overall_status: 'eligible', judgment_counts: { SATISFIED: 1, UNSATISFIED: 0, UNKNOWN: 0 },
+  eligible: { ...empty, intent: 'QUALIFICATION_SUMMARY', answer: '저장된 판정: 핵심 요건 충족 (분석 상태: SUCCEEDED). 법적 참가 가능 보증은 아닙니다.',
+    product_state: { ...summary, overall_status: 'core_met', judgment_counts: { SATISFIED: 1, UNSATISFIED: 0, UNKNOWN: 0 },
       judgments: [{ ...summary.judgments[0], status: 'SATISFIED', basis_type: 'PROFILE', reason_code: 'RULE_MATCH' }] } },
-  ineligible: { ...empty, intent: 'QUALIFICATION_SUMMARY', answer: '저장된 판정: 참가 불가 (분석 상태: SUCCEEDED).',
-    product_state: { ...summary, overall_status: 'ineligible', judgment_counts: { SATISFIED: 0, UNSATISFIED: 1, UNKNOWN: 0 },
+  ineligible: { ...empty, intent: 'QUALIFICATION_SUMMARY', answer: '저장된 판정: 핵심 요건 미충족 (분석 상태: SUCCEEDED). 법적 참가 불가 확정은 아닙니다.',
+    product_state: { ...summary, overall_status: 'core_unmet', judgment_counts: { SATISFIED: 0, UNSATISFIED: 1, UNKNOWN: 0 },
       judgments: [{ ...summary.judgments[0], status: 'UNSATISFIED', basis_type: 'PROFILE', reason_code: 'RULE_MISMATCH' }] } },
   insufficientData: { ...empty, intent: 'QUALIFICATION_SUMMARY', answer: '저장된 판정: 확인 필요 (분석 상태: SUCCEEDED).', product_state: summary },
   askableUnknown: { ...empty, intent: 'REQUIRED_CHECKS', answer: question.question,

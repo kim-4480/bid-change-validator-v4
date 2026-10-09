@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import date
 
 from bidengine.contracts import QualificationRequirement
-from bidengine.judgment.rules import CompanyProfileSnapshot, judge_requirements
+from bidengine.judgment.rules import CompanyProfileSnapshot, judge_requirements, normalize_overall_status
 from bidengine.labeling.requirement_extraction import select_eligibility_chunks_with_mode
 from bidengine.pipeline.analysis_result import build_requirement_analysis_result
 
@@ -65,22 +65,37 @@ def test_eligible_requires_complete_coverage():
             analysis_status=result.status, coverage_complete=result.coverage.complete,
         ).overall_status
 
-    assert overall(complete) == "eligible"
-    assert overall(incomplete) == "insufficient_data"
+    assert overall(complete) == "core_met"
+    assert overall(incomplete) == "needs_review"
 
 
-def test_coverage_overrides_partial_status_but_absence_keeps_old_behaviour():
-    """PARTIAL 은 파이프라인 사정을 섞어 쓴다. 커버리지가 있으면 그것이 우선이다."""
+def test_partial_analysis_never_confirms_core_requirements():
+    """커버리지가 완전해 보여도 부분 완료 분석은 충족을 확정하지 않는다."""
     kwargs = dict(preflight_case_id="c", reference_date=date(2026, 9, 1), analysis_status="PARTIAL")
-    assert judge_requirements([REQ], SEOUL, **kwargs).overall_status == "insufficient_data"
-    assert judge_requirements([REQ], SEOUL, coverage_complete=True, **kwargs).overall_status == "eligible"
+    assert judge_requirements([REQ], SEOUL, **kwargs).overall_status == "needs_review"
+    assert judge_requirements([REQ], SEOUL, coverage_complete=True, **kwargs).overall_status == "needs_review"
 
 
 def test_ineligible_does_not_depend_on_coverage():
     busan = CompanyProfileSnapshot(company_id="c", region_name="부산광역시")
     result = judge_requirements([REQ], busan, preflight_case_id="c", reference_date=date(2026, 9, 1),
                                 coverage_complete=False)
-    assert result.overall_status == "ineligible"
+    assert result.overall_status == "core_unmet"
+
+
+def test_unverified_source_cannot_create_a_determinate_core_verdict():
+    for profile in (SEOUL, CompanyProfileSnapshot(company_id="c", region_name="부산광역시")):
+        result = judge_requirements(
+            [REQ], profile, preflight_case_id="c", reference_date=date(2026, 9, 1),
+            coverage_complete=True, grounded_requirement_keys=set(),
+        )
+        assert result.overall_status == "needs_review"
+        assert result.judgments[0].status == "UNKNOWN"
+
+
+def test_historical_participation_status_is_not_promoted_to_core_status():
+    assert {normalize_overall_status(status) for status in
+            ("eligible", "ineligible", "insufficient_data")} == {"needs_review"}
 
 
 def test_selection_mode_reports_how_the_section_was_found():
