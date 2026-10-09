@@ -40,6 +40,8 @@ def find_snippets(
     max_per_category: int = 2,
     radius: int = 180,
 ) -> list[Snippet]:
+    if document.extraction_status != "EXTRACTED":
+        return []
     text = document.extracted_text or ""
     if not text:
         return []

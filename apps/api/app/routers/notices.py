@@ -376,11 +376,12 @@ def get_notice_document_text(
         document_id=document.id,
         name=document.name,
         extraction_status=document.extraction_status,
-        extractor=document.text_extractor,
-        char_count=document.extracted_char_count,
-        text_sha256=document.extracted_text_sha256,
-        text=document.extracted_text,
-        blocks=document.extracted_blocks,
+        # Preserved historical extraction bytes are not current evidence.
+        extractor=document.text_extractor if document.extraction_status == "EXTRACTED" else None,
+        char_count=document.extracted_char_count if document.extraction_status == "EXTRACTED" else None,
+        text_sha256=document.extracted_text_sha256 if document.extraction_status == "EXTRACTED" else None,
+        text=document.extracted_text if document.extraction_status == "EXTRACTED" else None,
+        blocks=document.extracted_blocks if document.extraction_status == "EXTRACTED" else None,
     )
 
 
