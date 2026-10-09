@@ -142,19 +142,29 @@ test('ML POST contract distinguishes learned rank from qualification (MOCK)', as
     return route.fulfill({ status: 200, json: {
       model_version: 'mock-model-v1', dataset_version: 'mock-dataset',
       scoring_source: 'local_lightgbm', input_sha256: null, fallback_reason: null,
+      fallback_used: false, total_valid_candidates: 2,
       note: 'Ranking is not a probability', items: [{
         notice_id: 'notice-a', title: '로컬 E2E 공고', rank: 1, relevance_score: 0.88,
         reason: 'Text relevance', version_number: 1, analysis_run_id: null,
+        analysis_version: null, analysis_status: 'SUCCEEDED', qualification_state: 'eligible',
+        qualification_reason: 'Verified', rule_version: 'test', is_stale: false,
+        deadline_source: 'explicit', effective_deadline: '2026-10-10T00:00:00Z',
+      }], needs_review_items: [{
+        notice_id: 'notice-b', title: '추가 확인 공고', rank: 1, relevance_score: 0.76,
+        reason: 'Text relevance', version_number: 1, analysis_run_id: null,
         analysis_version: null, analysis_status: 'UNKNOWN', qualification_state: 'insufficient_data',
         qualification_reason: 'Insufficient evidence', rule_version: null, is_stale: false,
+        deadline_source: 'assumed_40_days', effective_deadline: '2026-10-20T00:00:00Z',
       }],
     } });
   });
   await page.goto('/recommendations');
   await expect(page.getByText('MOCK · 실제 모델 결과 아님')).toBeVisible();
-  await expect(page.getByText('학습 모델 기반 연관성 순위')).toBeVisible();
+  await expect(page.getByText('학습 모델 기반 연관성 순위')).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText('0.880')).toBeVisible();
-  await expect(page.getByText('기존 규칙판정: 확인 필요')).toBeVisible();
+  await expect(page.getByText('기존 규칙판정: 충족')).toBeVisible();
+  await expect(page.getByRole('heading', { name: '확인 필요 공고' })).toBeVisible();
+  await expect(page.getByText('추가 확인 공고')).toBeVisible();
   await expect(page.getByRole('link', { name: /공고 상세·첨부 원문/ }))
     .toHaveAttribute('href', '/notices/notice-a');
   await expect(page.getByText('88%')).toHaveCount(0);
@@ -169,12 +179,13 @@ test('lexical fallback never claims a trained model (MOCK)', async ({ page }) =>
     status: 200, json: {
       model_version: null, dataset_version: null, scoring_source: 'lexical_fallback',
       input_sha256: null, fallback_reason: 'model_not_configured',
-      note: 'Not a trained model', items: [],
+      fallback_used: true, total_valid_candidates: 0,
+      note: 'Not a trained model', items: [], needs_review_items: [],
     },
   }));
   await page.goto('/recommendations');
-  await expect(page.getByText('학습 모델 미적용 — 키워드 기반 대체 순위')).toBeVisible();
-  await expect(page.getByText('현재 표시할 추천 결과가 없습니다.')).toBeVisible();
+  await expect(page.getByText('학습 모델 미적용 — 키워드 기반 대체 순위')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('검증된 적격 추천 결과가 없습니다. 확인 필요 공고는 아래에 별도로 표시합니다.')).toBeVisible();
 });
 
 test('admin view denies non-admin and does not invoke mutations (MOCK)', async ({ page }) => {

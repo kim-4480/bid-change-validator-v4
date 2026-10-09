@@ -18,7 +18,6 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       NEXT_PUBLIC_API_BASE_URL: 'http://[::1]:3200',
-      NEXT_PUBLIC_ML_RECOMMENDATIONS_PATH: '/api/v1/recommendations/ml',
       NEXT_PUBLIC_ML_E2E_MOCK: 'true',
     },
   },

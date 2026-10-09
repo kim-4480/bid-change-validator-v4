@@ -11,6 +11,7 @@ from .auth import require_authentication_if_enabled
 from .copilot.router import router as copilot_router
 from .database import get_db
 from .errors import ApiError
+from .ml_recommendations.router import router as ml_recommendations_router
 from .qualification.routers.analysis import router as qualification_analysis_router
 from .qualification.routers.ask_back import router as qualification_ask_back_router
 from .qualification.routers.judgment import router as qualification_judgment_router
@@ -86,5 +87,6 @@ protected_api_router.include_router(qualification_judgment_router)
 protected_api_router.include_router(qualification_ask_back_router)
 protected_api_router.include_router(qualification_revalidation_router)
 protected_api_router.include_router(qualification_matching_router)
+protected_api_router.include_router(ml_recommendations_router)
 protected_api_router.include_router(copilot_router)
 app.include_router(protected_api_router)

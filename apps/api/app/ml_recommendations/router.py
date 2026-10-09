@@ -119,7 +119,7 @@ def candidates(db: Session, *, now: datetime | None = None) -> list[dict]:
             ~func.lower(func.coalesce(v.notice_kind, n.notice_kind, "")).like("%무효%"),
         )
         .options(
-            load_only(n.id, n.title, n.business_type, n.announcing_institution_name,
+            load_only(n.id, n.title, n.notice_kind, n.business_type, n.announcing_institution_name,
                       n.demanding_institution_name, n.last_seen_at),
             load_only(v.id, v.notice_id, v.version_number, v.is_current, v.notice_kind,
                       v.posted_at, v.bid_closed_at, v.contract_method, v.allocated_budget),

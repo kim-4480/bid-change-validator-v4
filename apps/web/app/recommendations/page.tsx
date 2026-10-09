@@ -8,7 +8,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { listCompanies } from '@/lib/qualification-api';
 import { listNoticeMatches, type NoticeMatch } from '@/lib/notice-matching-api';
 import {
-  listMlRecommendations, mlEndpointConfigured, usesTrainedModel,
+  listMlRecommendations, usesTrainedModel,
   type MlRecommendationResponse,
 } from '@/lib/ml-recommendation-api';
 
@@ -96,8 +96,8 @@ export default function RecommendationsPage() {
   }
 
   const trained = state.ml ? usesTrainedModel(state.ml) : false;
-  const matchesById = new Map(state.matches.map((match) => [match.notice_id, match]));
   const ranked = [...(state.ml?.items ?? [])].sort((a, b) => a.rank - b.rank);
+  const needsReview = [...(state.ml?.needs_review_items ?? [])].sort((a, b) => a.rank - b.rank);
 
   return (
     <main className="app-shell-container min-w-0 py-8 pb-20 sm:py-12">
@@ -138,12 +138,7 @@ export default function RecommendationsPage() {
               )}
             </div>
             <p className="mt-1 text-sm text-[var(--product-muted)]">조회 회사: {state.companyName}</p>
-            {!mlEndpointConfigured() ? (
-              <output className="mt-5 block rounded-xl border border-dashed bg-slate-50 p-5 text-sm leading-6">
-                학습 모델 추천 API가 아직 연결되지 않았습니다. 모델 추천 결과를 임의로 표시하지 않습니다.
-                아래 기존 자격판정 목록은 별도로 조회됩니다.
-              </output>
-            ) : state.mlError ? (
+            {state.mlError ? (
               <div role="alert" className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                 추천 조회에 실패했습니다: {state.mlError}
                 <Button type="button" variant="outline" size="sm" className="ml-3" onClick={retry}>다시 시도</Button>
@@ -160,14 +155,14 @@ export default function RecommendationsPage() {
                   {state.ml.fallback_reason ? ' · 대체 사유 ' + state.ml.fallback_reason : ''}
                 </p>
                 <p className="mt-2 text-xs text-slate-600">
-                  Backend는 최근 공고 최대 150건에서 후보를 선정합니다. 전체 공고의 마감일·유효성을 검사한 추천 결과가 아닙니다.
+                  마감·취소 여부를 확인한 현재 유효 후보 {state.ml.total_valid_candidates}건을 선별했습니다.
+                  마감일이 없는 공고는 게시 후 40일을 임시 유효기간으로 표시합니다.
                 </p>
                 {ranked.length === 0 ? (
-                  <p className="mt-5 rounded-xl border bg-slate-50 p-5 text-sm">현재 표시할 추천 결과가 없습니다.</p>
+                  <p className="mt-5 rounded-xl border bg-slate-50 p-5 text-sm">검증된 적격 추천 결과가 없습니다. 확인 필요 공고는 아래에 별도로 표시합니다.</p>
                 ) : (
                   <ol className="mt-5 space-y-4">
                     {ranked.map((item) => {
-                      const match = matchesById.get(item.notice_id);
                       return (
                         <li key={item.notice_id} className="min-w-0 rounded-xl border border-slate-200 p-4 sm:p-5">
                           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -184,9 +179,7 @@ export default function RecommendationsPage() {
                           <div className="mt-4 flex flex-wrap items-center gap-3 border-t pt-4 text-xs">
                             <span className="flex items-center gap-1 font-semibold text-slate-700">
                               <ShieldCheck size={15} aria-hidden="true" />
-                              {item.is_stale ? ML_QUALIFICATION_LABEL.stale
-                                : match ? QUALIFICATION_LABEL[match.overall_status]
-                                  : ML_QUALIFICATION_LABEL[item.qualification_state]}
+                              {ML_QUALIFICATION_LABEL[item.qualification_state]}
                             </span>
                             <NavigationLink href={'/notices/' + encodeURIComponent(item.notice_id)}
                               className="inline-flex items-center gap-1 font-semibold text-blue-700 underline">
@@ -199,6 +192,9 @@ export default function RecommendationsPage() {
                           {item.qualification_reason && (
                             <p className="mt-2 text-xs text-slate-600">판정 근거 상태: {item.qualification_reason}</p>
                           )}
+                          {item.deadline_source === 'assumed_40_days' && (
+                            <p className="mt-2 text-xs text-amber-700">마감일 미상 · 게시 후 40일을 임시 기준으로 사용</p>
+                          )}
                         </li>
                       );
                     })}
@@ -207,6 +203,33 @@ export default function RecommendationsPage() {
               </>
             ) : null}
           </section>
+          {state.ml && (
+            <section aria-labelledby="ml-review-heading" className="mt-8 rounded-2xl border bg-white p-5 shadow-sm sm:p-7">
+              <h2 id="ml-review-heading" className="text-lg font-bold">확인 필요 공고</h2>
+              <p className="mt-2 text-sm text-[var(--product-muted)]">
+                자격요건이 아직 검증되지 않았거나 기업정보가 부족한 공고입니다. 적격 추천에 포함하지 않습니다.
+              </p>
+              {needsReview.length === 0 ? (
+                <p className="mt-4 text-sm text-slate-600">확인 필요 공고가 없습니다.</p>
+              ) : (
+                <ul className="mt-4 divide-y">
+                  {needsReview.map((item) => (
+                    <li key={item.notice_id} className="flex flex-wrap justify-between gap-3 py-4 text-sm">
+                      <div className="min-w-0">
+                        <NavigationLink href={'/notices/' + encodeURIComponent(item.notice_id)}
+                          className="break-words font-medium text-blue-700 underline">{item.title}</NavigationLink>
+                        <p className="mt-1 text-xs text-slate-600">{ML_QUALIFICATION_LABEL[item.qualification_state]}</p>
+                        {item.deadline_source === 'assumed_40_days' && (
+                          <p className="mt-1 text-xs text-amber-700">마감일 미상 · 임시 유효기간</p>
+                        )}
+                      </div>
+                      <span className="text-xs text-slate-600">연관성 점수 {item.relevance_score.toFixed(3)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
           <section aria-labelledby="qualification-matches-heading" className="mt-8 rounded-2xl border bg-white p-5 shadow-sm sm:p-7">
             <h2 id="qualification-matches-heading" className="text-lg font-bold">기존 규칙 기반 자격판정</h2>
             <p className="mt-2 text-sm leading-6 text-[var(--product-muted)]">

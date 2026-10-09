@@ -5,22 +5,12 @@ export type { MlRecommendation, MlRecommendationResponse } from './ml-recommenda
 
 const EXPECTED_PATH = '/api/v1/recommendations/ml';
 
-/** Explicit opt-in until the ML router is mounted and deployed by the backend owner. */
-export function mlEndpointConfigured(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_ML_RECOMMENDATIONS_PATH);
+export function mlRecommendationEndpoint(): string {
+  return EXPECTED_PATH;
 }
 
-export function mlRecommendationEndpoint(): string | null {
-  const configured = process.env.NEXT_PUBLIC_ML_RECOMMENDATIONS_PATH;
-  if (!configured) return null;
-  // Do not allow redirects to external servers or ad-hoc API paths.
-  if (configured !== EXPECTED_PATH) throw new Error('추천 API 경로 계약이 올바르지 않습니다.');
-  return configured;
-}
-
-export async function listMlRecommendations(companyId: string): Promise<MlRecommendationResponse | null> {
+export async function listMlRecommendations(companyId: string): Promise<MlRecommendationResponse> {
   const endpoint = mlRecommendationEndpoint();
-  if (!endpoint) return null;
   const response = await apiFetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

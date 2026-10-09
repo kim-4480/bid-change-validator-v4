@@ -18,6 +18,8 @@ export type MlRecommendation = {
   qualification_reason: string | null;
   rule_version: string | null;
   is_stale: boolean;
+  deadline_source: 'explicit' | 'assumed_40_days';
+  effective_deadline: string | null;
 };
 
 export type MlRecommendationResponse = {
@@ -26,13 +28,34 @@ export type MlRecommendationResponse = {
   scoring_source: MlScoringSource;
   input_sha256: string | null;
   fallback_reason: string | null;
+  fallback_used: boolean;
+  total_valid_candidates: number;
   note: string;
   items: MlRecommendation[];
+  needs_review_items: MlRecommendation[];
 };
 
 const SOURCES = new Set<MlScoringSource>(['local_lightgbm', 'local_hf', 'remote_inference', 'lexical_fallback']);
 const STATES = new Set<MlQualificationState>(['eligible', 'ineligible', 'insufficient_data', 'UNKNOWN', 'stale']);
+const DEADLINE_SOURCES = new Set(['explicit', 'assumed_40_days']);
 const nullableString = (value: unknown) => value === null || typeof value === 'string';
+
+function isRecommendationItem(item: unknown): item is MlRecommendation {
+  if (!item || typeof item !== 'object') return false;
+  const row = item as Record<string, unknown>;
+  return typeof row.notice_id === 'string' && row.notice_id.length > 0
+    && typeof row.title === 'string' && typeof row.reason === 'string'
+    && Number.isInteger(row.rank) && (row.rank as number) > 0
+    && typeof row.relevance_score === 'number' && Number.isFinite(row.relevance_score)
+    && Number.isInteger(row.version_number) && (row.version_number as number) > 0
+    && nullableString(row.analysis_run_id) && nullableString(row.analysis_version)
+    && typeof row.analysis_status === 'string'
+    && STATES.has(row.qualification_state as MlQualificationState)
+    && nullableString(row.qualification_reason) && nullableString(row.rule_version)
+    && typeof row.is_stale === 'boolean'
+    && DEADLINE_SOURCES.has(row.deadline_source as string)
+    && nullableString(row.effective_deadline);
+}
 
 export function isRecommendationResponse(value: unknown): value is MlRecommendationResponse {
   if (!value || typeof value !== 'object') return false;
@@ -40,21 +63,17 @@ export function isRecommendationResponse(value: unknown): value is MlRecommendat
   if (!SOURCES.has(result.scoring_source as MlScoringSource)
     || !nullableString(result.model_version) || !nullableString(result.dataset_version)
     || !nullableString(result.input_sha256) || !nullableString(result.fallback_reason)
-    || typeof result.note !== 'string' || !Array.isArray(result.items)) return false;
-  return result.items.every((item: unknown) => {
-    if (!item || typeof item !== 'object') return false;
-    const row = item as Record<string, unknown>;
-    return typeof row.notice_id === 'string' && row.notice_id.length > 0
-      && typeof row.title === 'string' && typeof row.reason === 'string'
-      && Number.isInteger(row.rank) && (row.rank as number) > 0
-      && typeof row.relevance_score === 'number' && Number.isFinite(row.relevance_score)
-      && Number.isInteger(row.version_number) && (row.version_number as number) > 0
-      && nullableString(row.analysis_run_id) && nullableString(row.analysis_version)
-      && typeof row.analysis_status === 'string'
-      && STATES.has(row.qualification_state as MlQualificationState)
-      && nullableString(row.qualification_reason) && nullableString(row.rule_version)
-      && typeof row.is_stale === 'boolean';
-  });
+    || typeof result.fallback_used !== 'boolean'
+    || !Number.isInteger(result.total_valid_candidates)
+    || (result.total_valid_candidates as number) < 0
+    || typeof result.note !== 'string'
+    || !Array.isArray(result.items)
+    || !Array.isArray(result.needs_review_items)) return false;
+  return result.items.every(isRecommendationItem)
+    && result.needs_review_items.every(isRecommendationItem)
+    && result.items.every((item: MlRecommendation) => item.qualification_state === 'eligible')
+    && result.needs_review_items.every((item: MlRecommendation) =>
+      item.qualification_state !== 'eligible' && item.qualification_state !== 'ineligible');
 }
 
 /** Fallback or missing model metadata must never be labeled as trained ML. */
