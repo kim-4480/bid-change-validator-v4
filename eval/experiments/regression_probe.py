@@ -36,6 +36,8 @@ from bidengine.pipeline.analysis_pipeline import (
     QualificationDocumentInput,
     analyze_qualification_documents,
 )
+from bidengine.normalization.regions import sidos_of
+from bidengine.pipeline.notice_limits import NoticeLimits, license_groups
 from bideval.master_vocabulary import CsvIndustryNameResolver
 from bideval.notice_sample import load_sample
 
@@ -101,6 +103,32 @@ def broken_profiles(label: dict) -> list[tuple[str, dict]]:
     return out
 
 
+def load_limits(label_id: str) -> NoticeLimits | None:
+    """collect_notice_limits.py 가 받아 둔 나라장터 면허제한·참가가능지역. 없으면 None."""
+    path = SAMPLE / label_id / "notice_api.json"
+    return NoticeLimits.from_collected(json.loads(path.read_text(encoding="utf-8"))) if path.exists() else None
+
+
+def with_notice_limits(label: dict, limits: NoticeLimits | None) -> dict:
+    """가상 회사는 공고의 자격을 모두 갖춘 회사다 — 나라장터에 입력된 면허·지역도 갖춘 것으로 맞춘다.
+
+    정답은 문서만 보고 썼다. 면허제한의 첫 묶음 면허를 더하고, 참가가능지역과 시·도가 어긋나면 첫 지역으로 옮긴다.
+    핵심 요건을 하나씩 빼는 검사(broken_profiles)는 이렇게 맞춘 회사에서 뺀다.
+    """
+    if limits is None:
+        return label
+    profile = json.loads(json.dumps(label["ideal_profile"]))
+    groups = license_groups(limits)
+    held = {item["code"] for item in profile["industries"]}
+    if groups and not any(group <= held for group in groups):
+        names = {item.code: item.name for item in limits.licenses}
+        profile["industries"] += [{"code": code, "name": names.get(code, code), "verified": True} for code in sorted(groups[0] - held)]
+    api_sidos = set().union(set(), *(sidos_of(region) for region in limits.regions))
+    if api_sidos and not (api_sidos & sidos_of(profile.get("region_name"))):
+        profile["region_name"] = limits.regions[0]
+    return {**label, "ideal_profile": profile}
+
+
 def judge(result, profile: dict, label_id: str) -> tuple[str, dict[str, str]]:
     judged = judge_requirements(
         result.requirements, CompanyProfileSnapshot.model_validate(profile), preflight_case_id=label_id,
@@ -109,9 +137,11 @@ def judge(result, profile: dict, label_id: str) -> tuple[str, dict[str, str]]:
     return judged.overall_status, {j.requirement_key: j.status for j in judged.judgments}
 
 
-def run_one(version, label: dict, run: int, model: str, memories: dict[str, dict] | None) -> dict:
+def run_one(version, label: dict, run: int, model: str, memories: dict[str, dict] | None, use_limits: bool = True) -> dict:
     started = time.monotonic()
     memories = memories or {}
+    limits = load_limits(version.label) if use_limits else None
+    label = with_notice_limits(label, limits)
     result = analyze_qualification_documents(
         QualificationAnalysisInput(
             notice_id=version.label, notice_version_id=f"{version.label}-r{run}",
@@ -121,7 +151,7 @@ def run_one(version, label: dict, run: int, model: str, memories: dict[str, dict
         extraction_mode="closed_first", clause_selection="hybrid",
         labeling_memory=memories.get("labeling", {}), selection_memory=memories.get("selection", {}),
         polarity_memory=memories.get("polarity", {}), gap_summary_memory=memories.get("gap_summary", {}),
-        memory_namespace=model,
+        memory_namespace=model, notice_limits=limits,
     )
     reqs = [r.model_dump(mode="json") for r in result.requirements]
     gaps = [g.model_dump(mode="json") for g in result.coverage.gaps]
@@ -171,6 +201,7 @@ def main() -> None:
     parser.add_argument("--memory", type=Path, help="조항 답 기억 파일(이어 쓴다)")
     parser.add_argument("--baseline", type=Path, help="비교할 이전 결과(jsonl)")
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--no-limits", action="store_true", help="나라장터 면허제한·참가가능지역 없이(문서만으로) 잰다")
     args = parser.parse_args()
 
     label_paths = args.labels or sorted(SAMPLE.glob("labels*.json"))
@@ -193,7 +224,7 @@ def main() -> None:
     def work(key: str) -> None:
         for run in range(1, args.runs + 1):
             try:
-                row = run_one(versions[key], labels[key], run, args.model, memories)
+                row = run_one(versions[key], labels[key], run, args.model, memories, not args.no_limits)
             except Exception as error:  # noqa: BLE001 - 한 공고의 실패가 전체 측정을 멈추지 않게
                 row = {"label": key, "run": run, "error": repr(error)[:300]}
             with lock:

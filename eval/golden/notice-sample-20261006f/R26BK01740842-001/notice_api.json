@@ -1,0 +1,13 @@
+{
+ "notice_no": "R26BK01740842",
+ "order": "001",
+ "licenses": [],
+ "regions": [],
+ "flags": {
+  "prdctClsfcLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(전자)공동이행",
+  "cntrctCnclsMthdNm": "제한경쟁"
+ },
+ "errors": []
+}

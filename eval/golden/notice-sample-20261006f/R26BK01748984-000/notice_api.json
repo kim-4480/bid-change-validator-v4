@@ -1,0 +1,68 @@
+{
+ "notice_no": "R26BK01748984",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "석유판매업(일반대리점)",
+   "code": "4620",
+   "raw": {
+    "bidNtceNo": "R26BK01748984",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "석유판매업(일반대리점)/4620",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:43:07",
+    "bsnsDivNm": "물품"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "2",
+   "name": "석유판매업(주유소)",
+   "code": "4622",
+   "raw": {
+    "bidNtceNo": "R26BK01748984",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "2",
+    "lcnsLmtNm": "석유판매업(주유소)/4622",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:43:07",
+    "bsnsDivNm": "물품"
+   }
+  },
+  {
+   "group": "3",
+   "seq": "3",
+   "name": "석유판매업(일반판매소)",
+   "code": "4626",
+   "raw": {
+    "bidNtceNo": "R26BK01748984",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "3",
+    "lmtSno": "3",
+    "lcnsLmtNm": "석유판매업(일반판매소)/4626",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:43:07",
+    "bsnsDivNm": "물품"
+   }
+  }
+ ],
+ "regions": [
+  "대구광역시"
+ ],
+ "flags": {
+  "prdctClsfcLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "rgnLmtBidLocplcJdgmBssNm": "본사소재지",
+  "cntrctCnclsMthdNm": "수의계약"
+ },
+ "errors": []
+}

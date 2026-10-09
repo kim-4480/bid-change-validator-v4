@@ -1,0 +1,33 @@
+{
+ "notice_no": "R26BK01748624",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "지반조성ㆍ포장공사업",
+   "code": "4989",
+   "raw": {
+    "bidNtceNo": "R26BK01748624",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "지반조성ㆍ포장공사업/4989",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "[1^포장공사]",
+    "rgstDt": "2026-09-29 15:51:02",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "일반경쟁",
+  "cnstrtsiteRgnNm": "경상남도"
+ },
+ "errors": []
+}

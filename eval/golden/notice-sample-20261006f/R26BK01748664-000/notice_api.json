@@ -1,0 +1,52 @@
+{
+ "notice_no": "R26BK01748664",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "토목공사업",
+   "code": "0001",
+   "raw": {
+    "bidNtceNo": "R26BK01748664",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "토목공사업/0001",
+    "permsnIndstrytyList": "[토목건축공사업/0003]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:40:37",
+    "bsnsDivNm": "공사"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "1",
+   "name": "토목건축공사업",
+   "code": "0003",
+   "raw": {
+    "bidNtceNo": "R26BK01748664",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "1",
+    "lcnsLmtNm": "토목건축공사업/0003",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:40:37",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [
+  "경상남도"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "제한경쟁",
+  "cnstrtsiteRgnNm": "경상남도 창녕군"
+ },
+ "errors": []
+}

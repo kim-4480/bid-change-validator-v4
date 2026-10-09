@@ -1,0 +1,70 @@
+{
+ "notice_no": "R26BK01749057",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "2",
+   "seq": "1",
+   "name": "일반소방시설공사업(기계)",
+   "code": "0038",
+   "raw": {
+    "bidNtceNo": "R26BK01749057",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "1",
+    "lcnsLmtNm": "일반소방시설공사업(기계)/0038",
+    "permsnIndstrytyList": "[전문소방시설공사업/0040]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 16:00:46",
+    "bsnsDivNm": "공사"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "2",
+   "name": "일반소방시설공사업(전기)",
+   "code": "0039",
+   "raw": {
+    "bidNtceNo": "R26BK01749057",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "2",
+    "lcnsLmtNm": "일반소방시설공사업(전기)/0039",
+    "permsnIndstrytyList": "[전문소방시설공사업/0040]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 16:00:46",
+    "bsnsDivNm": "공사"
+   }
+  },
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "전문소방시설공사업",
+   "code": "0040",
+   "raw": {
+    "bidNtceNo": "R26BK01749057",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "전문소방시설공사업/0040",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 16:00:46",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [
+  "강원특별자치도 강릉시"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "rgnLmtBidLocplcJdgmBssNm": "본사또는참여지사소재지",
+  "cntrctCnclsMthdNm": "수의계약",
+  "cnstrtsiteRgnNm": "강원특별자치도 강릉시"
+ },
+ "errors": []
+}

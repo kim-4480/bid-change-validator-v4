@@ -1,0 +1,36 @@
+{
+ "notice_no": "R26BK01748936",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "정보통신공사업",
+   "code": "0036",
+   "raw": {
+    "bidNtceNo": "R26BK01748936",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "정보통신공사업/0036",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:29:42",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [
+  "강원특별자치도 고성군"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "rgnLmtBidLocplcJdgmBssNm": "본사또는참여지사소재지",
+  "cntrctCnclsMthdNm": "수의계약",
+  "cnstrtsiteRgnNm": "강원특별자치도 고성군"
+ },
+ "errors": []
+}

@@ -155,3 +155,13 @@ def region_name_relation(observed: str, required: str) -> str | None:
     if not observed_sidos:
         return "too_coarse"
     return "match" if sido_relation in ("match", "contained") else sido_relation
+
+
+def sidos_of(value: object) -> set[str]:
+    """지역 값이 속한 시·도(통합 전후 이름 포함). 사전에 없는 이름이면 빈 집합 — 겹치는지 모른다는 뜻이다."""
+    sidos, subs = find_regions(str(value or ""))
+    # 시·도가 적혀 있으면 그것만 본다. "울산광역시 남구" 의 '남구' 는 부산·대구에도 있어서, 시·군·구 이름으로 넓히면 겹친다고 잘못 본다.
+    found = set(sidos) or {SIDO_CANONICAL[p] for sub in subs for p in SIGUNGU_PARENTS.get(sub, ()) if p in SIDO_CANONICAL}
+    return found | {SIDO_MERGED_INTO[name] for name in found if name in SIDO_MERGED_INTO} | {
+        old for old, new in SIDO_MERGED_INTO.items() if new in found
+    }

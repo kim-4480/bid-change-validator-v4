@@ -1,0 +1,15 @@
+{
+ "notice_no": "R26BK01749048",
+ "order": "000",
+ "licenses": [],
+ "regions": [],
+ "flags": {
+  "indstrytyLmtYn": "N",
+  "prdctClsfcLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(수기)공동이행",
+  "cntrctCnclsMthdNm": "제한경쟁"
+ },
+ "errors": []
+}

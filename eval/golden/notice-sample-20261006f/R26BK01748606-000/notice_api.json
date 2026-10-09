@@ -1,0 +1,87 @@
+{
+ "notice_no": "R26BK01748606",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "건축공사업",
+   "code": "0002",
+   "raw": {
+    "bidNtceNo": "R26BK01748606",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "건축공사업/0002",
+    "permsnIndstrytyList": "[토목건축공사업/0003]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:21:43",
+    "bsnsDivNm": "공사"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "1",
+   "name": "금속창호ㆍ지붕건축물조립공사업",
+   "code": "4991",
+   "raw": {
+    "bidNtceNo": "R26BK01748606",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "1",
+    "lcnsLmtNm": "금속창호ㆍ지붕건축물조립공사업/4991",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:21:43",
+    "bsnsDivNm": "공사"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "2",
+   "name": "도장ㆍ습식ㆍ방수ㆍ석공사업",
+   "code": "4992",
+   "raw": {
+    "bidNtceNo": "R26BK01748606",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "2",
+    "lcnsLmtNm": "도장ㆍ습식ㆍ방수ㆍ석공사업/4992",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:21:43",
+    "bsnsDivNm": "공사"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "3",
+   "name": "지반조성ㆍ포장공사업",
+   "code": "4989",
+   "raw": {
+    "bidNtceNo": "R26BK01748606",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "3",
+    "lcnsLmtNm": "지반조성ㆍ포장공사업/4989",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:21:43",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [
+  "경기도 고양시"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "rgnLmtBidLocplcJdgmBssNm": "본사또는참여지사소재지",
+  "cntrctCnclsMthdNm": "수의계약",
+  "cnstrtsiteRgnNm": "경기도 고양시"
+ },
+ "errors": []
+}

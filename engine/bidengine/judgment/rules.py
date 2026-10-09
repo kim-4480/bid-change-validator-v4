@@ -20,8 +20,7 @@ from pydantic import BaseModel, Field
 
 from bidengine.contracts import Judgment, QualificationRequirement
 from bidengine.judgment.clause_safety import GUARD_REASON_EXCEPTION, is_guard_assessed, unsafe_clause_reason
-from bidengine.normalization.region_vocab import SIGUNGU_PARENTS
-from bidengine.normalization.regions import SIDO_CANONICAL, SIDO_MERGED_INTO, find_regions, region_name_relation
+from bidengine.normalization.regions import region_name_relation, sidos_of
 
 
 RULE_VERSION = "qualification-rules-v0.3"
@@ -585,6 +584,10 @@ def _judge_industry(
         ),
         None,
     )
+    held = {_norm(item.code) for item in profile.industries}
+    if match is not None and any(_norm(code) not in held for code in requirement.scope.get("with_codes") or []):
+        # 나라장터 면허제한의 한 묶음 — 묶음 안의 면허를 모두 가져야 한다. 하나라도 없으면 이 묶음은 안 맞는다.
+        match = None
     if match is not None:
         return _judgment(
             requirement=requirement,
@@ -606,12 +609,6 @@ def _judge_industry(
         # 확정하면 자격 있는 회사가 부적합이 된다(2026-10-06 가상 회사 시험의 틀린 미달 대부분).
         return _vocabulary_unknown(
             requirement, preflight_case_id, [("industry", "name", item.name) for item in profile.industries]
-        )
-    if requirement.scope.get("evidence") == "family":
-        # 공고에 이 코드도 정확한 업종명도 적혀 있지 않다 — 묶음 이름("폐기물수집·운반업")에서 추론한 코드다. 추론이
-        # 틀리면 자격 있는 회사가 부적합이 되므로 미달로 확정하지 않는다(2026-10-08, 부적합은 명시된 값으로만).
-        return _vocabulary_unknown(
-            requirement, preflight_case_id, [("industry", "code", item.code) for item in profile.industries]
         )
     general = [item for item in profile.industries if _norm(item.code) in _GENERAL_CONSTRUCTION_CODES]
     if requirement.scope.get("general_contractor_allowed") and general:
@@ -992,7 +989,18 @@ def judge_requirement(
     if exception_alternative:
         base = _judge_by_type(requirement, profile, preflight_case_id, reference_date)
         return base if base.status == "SATISFIED" else _unknown(requirement, preflight_case_id)
-    return _judge_by_type(requirement, profile, preflight_case_id, reference_date)
+    judged = _judge_by_type(requirement, profile, preflight_case_id, reference_date)
+    if judged.status == "UNSATISFIED" and requirement.scope.get("evidence") in _WEAK_EVIDENCE:
+        return judged.model_copy(update={"status": "UNKNOWN", "basis_type": "NONE", "reason_code": "NEEDS_REVIEW"})
+    return judged
+
+
+# 안 맞아도 부적합으로 확정하지 않는 근거(scope["evidence"]). 부적합은 공고 문서가 분명히 말한 값으로만 낸다.
+#   family       공고에 코드도 정확한 업종명도 없이 묶음 이름("폐기물수집·운반업")에서 추론한 코드
+#   notice_api   문서에서는 못 뽑고 나라장터 면허제한·참가가능지역에만 있는 값 — 상위 면허가 대신하거나 공동수급으로
+#                채울 수 있는지 엔진이 가르지 못한다
+#   api_conflict 문서는 필수로 읽었는데 나라장터 면허제한에서는 대안인 업종코드
+_WEAK_EVIDENCE = {"family", "notice_api", "api_conflict"}
 
 
 def _judge_by_type(
@@ -1227,14 +1235,5 @@ def _conflicting(kind: str, left: object, right: object) -> bool:
         a = _COMPANY_SIZE_ALIASES.get(str(left).strip()) or _company_size_set(str(left))
         b = _COMPANY_SIZE_ALIASES.get(str(right).strip()) or _company_size_set(str(right))
         return a is not None and b is not None and a != b
-    a, b = _sidos_of(left), _sidos_of(right)
+    a, b = sidos_of(left), sidos_of(right)
     return bool(a) and bool(b) and not (a & b)
-
-
-def _sidos_of(value: object) -> set[str]:
-    """지역 값이 속한 시·도(통합 전후 이름 포함). 사전에 없는 이름이면 빈 집합 — 겹치는지 모르니 어긋났다고 하지 않는다."""
-    sidos, subs = find_regions(str(value or ""))
-    found = set(sidos) | {SIDO_CANONICAL[p] for sub in subs for p in SIGUNGU_PARENTS.get(sub, ()) if p in SIDO_CANONICAL}
-    return found | {SIDO_MERGED_INTO[name] for name in found if name in SIDO_MERGED_INTO} | {
-        old for old, new in SIDO_MERGED_INTO.items() if new in found
-    }

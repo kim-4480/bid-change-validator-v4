@@ -1,0 +1,53 @@
+{
+ "notice_no": "R26BK01748906",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "건축공사업",
+   "code": "0002",
+   "raw": {
+    "bidNtceNo": "R26BK01748906",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "건축공사업/0002",
+    "permsnIndstrytyList": "[토목건축공사업/0003]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:23:19",
+    "bsnsDivNm": "공사"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "1",
+   "name": "토목건축공사업",
+   "code": "0003",
+   "raw": {
+    "bidNtceNo": "R26BK01748906",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "1",
+    "lcnsLmtNm": "토목건축공사업/0003",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:23:19",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [
+  "강원특별자치도 고성군"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "rgnLmtBidLocplcJdgmBssNm": "본사소재지",
+  "cntrctCnclsMthdNm": "수의계약",
+  "cnstrtsiteRgnNm": "강원특별자치도 고성군"
+ },
+ "errors": []
+}

@@ -1,0 +1,35 @@
+{
+ "notice_no": "R26BK01748045",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "건축공사업",
+   "code": "0002",
+   "raw": {
+    "bidNtceNo": "R26BK01748045",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "건축공사업/0002",
+    "permsnIndstrytyList": "[토목건축공사업/0003]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:47:44",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [
+  "대구광역시"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "제한경쟁",
+  "cnstrtsiteRgnNm": "대구광역시 동구"
+ },
+ "errors": []
+}
