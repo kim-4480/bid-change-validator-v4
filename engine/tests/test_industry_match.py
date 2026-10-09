@@ -67,4 +67,27 @@ def test_a_failed_call_is_not_remembered():
 
     memory: dict = {}
     result = match_industry_names([(CLAUSE, "위탁급식업", [("1450", "식품접객업(위탁급식영업)")])], structured_extract=broken, memory=memory)
-    assert list(result.values()) == [None] and memory == {}
+    assert result == {} and memory == {}       # 답이 없다 — '같은 업종 없음'(None)과 다르다
+
+
+def test_only_confirmed_non_industry_names_stop_blocking_the_verdict():
+    from bidengine.labeling.closed_first import _check_closed_values, dismissed_names
+
+    resolver = Resolver()
+    special = "소기업·소상공인 확인서를 소지한 자(확인서를 생략하는 특별법인 등의 경우 별도 규정에 따름)"
+    law = "다. 「의료기기법」제17조(식품접객업 등의 신고)의 요건을 구비한 자"
+
+    def blocked(text, answers):
+        candidates = scan_candidates(text, resolver)
+        asked = names_to_match(text, candidates, resolver)
+        dismissed = frozenset(dismissed_names(text, candidates, asked, answers(text, asked), resolver))
+        _reqs, diags = _check_closed_values(text, candidates, {}, [], [], [], resolver, dismissed)
+        return [d["reason"] for d in diags]
+
+    none_answer = lambda text, asked: {match_key(text, full, options): None for _n, full, options in asked}   # noqa: E731
+    no_answer = lambda text, asked: {}                                                                        # noqa: E731
+    assert blocked(special, no_answer) == []                               # 마스터에 비슷한 이름이 없다
+    assert blocked(law, none_answer) == []                                 # 모델이 후보를 보고 '없음' 이라고 답했다
+    assert blocked(law, no_answer) == ["INDUSTRY_NAME_UNRESOLVED"]         # 호출 실패 — 확인되지 않았으니 막는다
+    # 해석기가 비슷한 이름 조회를 못 하면 아무것도 확인할 수 없다.
+    assert dismissed_names(special, [], [], {}, None) == set()

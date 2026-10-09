@@ -65,7 +65,8 @@ def match_industry_names(
 ) -> dict[str, str | None]:
     """entries: (조항, 이름, 후보[(코드, 마스터 이름)]). 돌려주는 값: {match_key: 코드 또는 None}.
 
-    기억에 있는 항목은 묻지 않는다. 호출이 실패한 항목은 None 이고 기억하지 않는다 — 다음 분석에서 다시 묻는다.
+    None 은 모델이 후보를 보고 '같은 업종 없음' 이라고 답했다는 뜻이다. 호출이 실패한 항목은 돌려주는 값에 없고 기억하지도
+    않는다 — 다음 분석에서 다시 묻는다. 기억에 있는 항목은 묻지 않는다.
     """
     known: MutableMapping[str, Any] = memory if memory is not None else {}
     out: dict[str, str | None] = {}
@@ -94,9 +95,7 @@ def match_industry_names(
             except Exception:  # noqa: BLE001 - 호출 실패는 '고르지 못함' 으로 둔다
                 result = None
         if not isinstance(result, dict):
-            for key, _entry in batch:
-                out[key] = None
-            continue
+            continue   # 호출 실패 — 답이 없다. '같은 업종 없음' 이라는 답(None)과 다르므로 넣지 않는다
         answered = {
             str(m.get("id")): str(m.get("code") or "").strip()
             for m in result.get("matches") or [] if isinstance(m, dict)

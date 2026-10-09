@@ -330,6 +330,31 @@ def names_to_match(text: str, candidates: list["Candidate"], resolver: IndustryN
     return out
 
 
+def dismissed_names(text: str, candidates: list["Candidate"], asked: list[tuple[str, str, list[tuple[str, str]]]],
+                    answers: dict[str, str | None], resolver: IndustryNameResolver | None) -> set[str]:
+    """업종처럼 보이지만 나라장터 업종이 아니라고 확인된 이름 — 판정을 막는 가드에서 뺀다(2026-10-10).
+
+      - 마스터에 글자가 겹치는 업종 이름이 하나도 없다("특별법인").
+      - 겹치는 후보를 모델이 보고 '같은 업종 없음' 이라고 답했다(법 이름에서 떨어진 "판매업", "인쇄문화산업").
+    모델 호출이 실패해 답이 없는 이름은 넣지 않는다 — 확인된 것이 아니므로 지금처럼 판정을 막는다.
+    해석기가 비슷한 이름 조회를 지원하지 않으면 아무것도 확인할 수 없으니 빈 집합이다.
+    """
+    if not callable(getattr(resolver, "similar", None)):
+        return set()
+    exact = [c for c in candidates if not c.family and not c.evidence]
+    with_options = {name: (full, options) for name, full, options in asked}
+    out: set[str] = set()
+    for name in unresolved_industry_names(text, exact, resolver):
+        if name not in with_options:
+            out.add(name)
+            continue
+        full, options = with_options[name]
+        key = match_key(text, full, options)
+        if key in answers and answers[key] is None:
+            out.add(name)
+    return out
+
+
 def apply_matches(text: str, candidates: list["Candidate"], asked: list[tuple[str, str, list[tuple[str, str]]]],
                   answers: dict[str, str | None]) -> list["Candidate"]:
     """모델이 고른 코드를 후보에 더한다. 그 이름에서 묶음으로 추론해 둔 후보는 뺀다 — 고른 코드가 더 구체적이다."""
@@ -348,7 +373,8 @@ def apply_matches(text: str, candidates: list["Candidate"], asked: list[tuple[st
 
 
 def _check_closed_values(text: str, candidates: list["Candidate"], roles: dict[str, tuple[str, str]], reqs: list[dict],
-                         diags: list[dict], open_slots: list[dict], resolver: IndustryNameResolver | None) -> tuple[list[dict], list[dict]]:
+                         diags: list[dict], open_slots: list[dict], resolver: IndustryNameResolver | None,
+                         dismissed: frozenset[str] = frozenset()) -> tuple[list[dict], list[dict]]:
     """요구 조항의 닫힌 값이 결과에 다 담겼는지 코드로 대조한다(2026-10-07 구조 보완).
 
     (가) 코드로 찾은 업종코드·품명번호를 모델이 '관련 없음' 으로 둔 것, 업종처럼 보이는데 코드로 못 바꾼 이름이
@@ -358,9 +384,13 @@ def _check_closed_values(text: str, candidates: list["Candidate"], roles: dict[s
     이름으로 담은 열린 조건(등록·면허 이름)이 그 이름을 덮으면 담긴 것으로 본다 — 사용자가 확인할 항목이 된다.
     """
     open_names = [_compact(str(slot.get("등록인증_raw") or "")) for slot in open_slots]
+    # dismissed: 나라장터 업종이 아니라고 확인된 이름(dismissed_names) — 놓친 업종이 아니므로 막지 않는다.
     unresolved = [name for name in unresolved_industry_names(text, candidates, resolver)
-                  if not any(_compact(name) in open_name for open_name in open_names if open_name)]
-    unused = [c for c in candidates if c.kind in {"INDUSTRY", "PRODUCT"}
+                  if name not in dismissed
+                  and not any(_compact(name) in open_name for open_name in open_names if open_name)]
+    # 원문에 숫자로 적힌 코드만 본다. 묶음 이름에서 추론한 후보를 모델이 관련 없다고 한 것은 놓친 코드가 아니다
+    # ("대기업인 소프트웨어사업자가 참여할 수 있는 사업금액의 하한" 의 소프트웨어사업자 묶음).
+    unused = [c for c in candidates if c.kind in {"INDUSTRY", "PRODUCT"} and not c.family and not c.evidence
               and roles.get(c.id, ("NOT_RELATED", ""))[0] == "NOT_RELATED"
               and not any(str(r.get("value")) == c.value or c.value in ((r.get("scope") or {}).get("with_codes") or [])
                           for r in reqs)]
@@ -767,10 +797,14 @@ def extract_closed_first(
     ) if any(asked for _clause, _candidates, asked in to_match) else {}
 
     prepared = []
+    dismissed_by_key: dict[str, frozenset[str]] = {}
     for clause, candidates, asked in to_match:
         section = paths.get(str(clause.chunk_id), "")
+        dismissed = frozenset(dismissed_names(clause.text, candidates, asked, matched, industry_resolver))
         candidates = apply_matches(clause.text, candidates, asked, matched)
-        prepared.append((clause, section, candidates, _key(section, clause.text, candidates)))
+        key = _key(section, clause.text, candidates)
+        dismissed_by_key[key] = dismissed
+        prepared.append((clause, section, candidates, key))
 
     pending = [item for item in prepared if item[3] not in known]
     answers: dict[str, dict] = {}
@@ -898,7 +932,8 @@ def extract_closed_first(
             # '…규격적합확인서를 받은 업체' 가 소리 없이 사라졌다(2026-10-07 표본 j).
             diags = []
         if polarity == "POSITIVE":
-            reqs, diags = _check_closed_values(clause.text, candidates, roles, reqs, diags, open_slots, industry_resolver)
+            reqs, diags = _check_closed_values(clause.text, candidates, roles, reqs, diags, open_slots, industry_resolver,
+                                               dismissed_by_key.get(key, frozenset()))
 
         if not reqs and not diags and not open_slots and polarity == "POSITIVE":
             # 요구라는데 담을 값이 없다 — 공통 결격·법령 절차면 제외로, 아니면 표현 못 한 요건(공백)으로 남긴다.
