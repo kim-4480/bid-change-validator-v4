@@ -63,7 +63,7 @@ pip install -r apps/api/requirements-dev.txt   # 저장소 루트에서. 엔진�
 python eval/runners/run_golden_regression.py --out artifacts/golden_regression.json
 
 # API (PostgreSQL 필요)
-export DATABASE_URL=postgresql://bidjigi:bidjigi_local_password@localhost:5432/bidjigi
+export DATABASE_URL=postgresql+psycopg://bidjigi:bidjigi_local_password@localhost:55432/bidjigi
 export PYTHONPATH=$PWD
 (cd apps/api && python -m alembic upgrade head)
 python -m pytest -q apps/api/tests
@@ -74,15 +74,17 @@ python -m pytest -q apps/api/tests
 
 ### 로컬 실행
 
-`.env.example`을 `.env`로 복사해 값을 채운 뒤 실행합니다. API 이미지는 저장소 루트를 빌드 컨텍스트로 써서 엔진 패키지를 함께 설치합니다.
+이 Compose 구성은 2026-10-08 복원된 **기존 PostgreSQL 17 볼륨**을 요구합니다. 빈 볼륨으로 새 DB를 만들지 않습니다. 전환/롤백과 데이터 볼륨 확인은 [PostgreSQL 17 로컬 Compose 운영 절차](docs/07_handoff/pg17-compose-persistence.md)를 먼저 읽어주세요. `.env.example`을 `.env`로 복사해 값을 채운 뒤 실행합니다. API 이미지는 저장소 루트를 빌드 컨텍스트로 써서 엔진 패키지를 함께 설치합니다.
 
 ```bash
-docker compose up -d --build api notice-poller
+docker compose up -d --build api
+# 수집이 필요한 경우에만, 중복 실행 여부를 확인한 뒤:
+docker compose --profile collector up -d notice-poller
 docker compose --profile tools run --rm master-data-import   # 기준정보 적재
 cd apps/web && cp .env.example .env.local && pnpm install && pnpm dev
 ```
 
-- API health: `http://localhost:8000/health`, Swagger: `http://localhost:8000/docs`
+- API health: `http://localhost:18000/health`, Swagger: `http://localhost:18000/docs`
 - 웹: `http://localhost:3000`
 
 API 목록과 화면 흐름 등 3차 README의 상세 내용은 [docs/legacy/README-v3.md](docs/legacy/README-v3.md)에 그대로 남겨 두었습니다. 경로는 3차 기준이니 위 구조 표와 대조해서 읽어 주세요.
