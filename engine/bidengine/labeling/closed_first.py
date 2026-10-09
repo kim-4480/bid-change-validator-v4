@@ -40,7 +40,9 @@ from bidengine.labeling.requirement_extraction import (
 from bidengine.normalization.region_vocab import SIGUNGU_PARENTS
 from bidengine.normalization.regions import SIDO_CANONICAL, find_regions
 from bidengine.ports import IndustryNameResolver
+from bidengine.labeling.industry_match import match_industry_names, match_key
 from bidengine.normalization.industry_family import family_codes
+from bidengine.normalization.industry_similar import similar_candidates
 from bidengine.requirements.legacy_slots import (
     _NAMED_INDUSTRY_CODE_RE,
     _PRODUCT_CODE_RE,
@@ -151,6 +153,7 @@ class Candidate:
     value: str     # 정규 값: "전북특별자치도 전주시", "1468", "4320140101", "소기업"
     surface: str   # 원문에서 찾은 표기
     family: str = ""  # 묶음 업종 이름("산림조합")에서 나온 후보면 그 이름 — 같은 이름의 후보들은 서로 대안이다
+    evidence: str = ""  # "model_match": 모델이 마스터 후보 중에서 고른 코드(industry_match.py) — 추론이다
 
 
 def scan_candidates(text: str, resolver: IndustryNameResolver | None) -> list[Candidate]:
@@ -301,6 +304,47 @@ def unresolved_industry_names(text: str, candidates: list["Candidate"], resolver
             continue
         out.append(name)
     return list(dict.fromkeys(out))
+
+
+_QUALIFIER_AFTER_RE = re.compile(r"\s*\(([^()\d]{1,30})\)")
+
+
+def names_to_match(text: str, candidates: list["Candidate"], resolver: IndustryNameResolver | None) -> list[tuple[str, str, list[tuple[str, str]]]]:
+    """모델에게 물을 (바탕 이름, 물을 이름, 마스터 후보). 코드로 못 바꾼 업종 이름 가운데 글자가 겹치는 마스터 이름이 있는 것.
+
+    이름 바로 뒤에 괄호 세부명이 있으면 붙여서 묻는다 — "폐기물수집·운반업(건설폐기물)" 의 세부명이 업종을 가른다.
+    """
+    plain = strip_decorations(text or "")
+    exact = [c for c in candidates if not c.family and not c.evidence]
+    out = []
+    for name in unresolved_industry_names(text, exact, resolver):
+        asked = name
+        position = plain.find(name)
+        if position >= 0:
+            qualifier = _QUALIFIER_AFTER_RE.match(plain[position + len(name):])
+            if qualifier:
+                asked = f"{name}({qualifier.group(1).strip()})"
+        options = similar_candidates(asked, resolver)
+        if options:
+            out.append((name, asked, options))
+    return out
+
+
+def apply_matches(text: str, candidates: list["Candidate"], asked: list[tuple[str, str, list[tuple[str, str]]]],
+                  answers: dict[str, str | None]) -> list["Candidate"]:
+    """모델이 고른 코드를 후보에 더한다. 그 이름에서 묶음으로 추론해 둔 후보는 뺀다 — 고른 코드가 더 구체적이다."""
+    out = list(candidates)
+    for name, full, options in asked:
+        code = answers.get(match_key(text, full, options))
+        if not code:
+            continue
+        out = [c for c in out if c.family != name]
+        if not any(c.kind == "INDUSTRY" and c.value == code for c in out):
+            out.append(Candidate(id="", kind="INDUSTRY", value=code, surface=full, evidence="model_match"))
+    if out == candidates:
+        return candidates
+    return [Candidate(id=f"V{index}", kind=c.kind, value=c.value, surface=c.surface, family=c.family, evidence=c.evidence)
+            for index, c in enumerate(out, start=1)]
 
 
 def _check_closed_values(text: str, candidates: list["Candidate"], roles: dict[str, tuple[str, str]], reqs: list[dict],
@@ -488,6 +532,8 @@ def _closed_requirements(polarity: str, text: str, candidates: list[Candidate], 
             if c.family:
                 # 공고에 코드도 정확한 업종명도 없이 묶음 이름에서 추론한 코드다. 미달의 근거로 쓰지 않는다(판정기).
                 scope["evidence"] = "family"
+            elif c.evidence:
+                scope["evidence"] = c.evidence
             return {"type": "INDUSTRY", "value": c.value, "scope": scope}
         if c.kind == "PRODUCT":
             return {"type": "REGISTRATION_CERTIFICATION", "value": c.value, "scope": {"kind": "REGISTRATION", "source_name": c.surface}}
@@ -589,10 +635,18 @@ def extract_closed_first(
     known: MutableMapping[str, Any] = memory if memory is not None else {}
     notice_text = _notice_haystack(target)
 
+    # 코드로 못 바꾼 업종 이름은 모델이 마스터 후보 중에서 고른다(공고 하나에 한 번, 그런 이름이 있을 때만).
+    scanned = [(clause, scan_candidates(clause.text, industry_resolver)) for clause in kept]
+    to_match = [(clause, candidates, names_to_match(clause.text, candidates, industry_resolver)) for clause, candidates in scanned]
+    matched = match_industry_names(
+        [(clause.text, full, options) for clause, _candidates, asked in to_match for _name, full, options in asked],
+        structured_extract=structured_extract, memory=known, max_retry=max_retry,
+    ) if any(asked for _clause, _candidates, asked in to_match) else {}
+
     prepared = []
-    for clause in kept:
+    for clause, candidates, asked in to_match:
         section = paths.get(str(clause.chunk_id), "")
-        candidates = scan_candidates(clause.text, industry_resolver)
+        candidates = apply_matches(clause.text, candidates, asked, matched)
         prepared.append((clause, section, candidates, _key(section, clause.text, candidates)))
 
     pending = [item for item in prepared if item[3] not in known]

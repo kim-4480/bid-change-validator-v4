@@ -70,11 +70,18 @@ def test_a_licence_documents_missed_is_added_but_never_makes_a_company_ineligibl
     assert _overall(merged, codes=[]) == "insufficient_data"
 
 
-def test_required_in_documents_but_alternative_in_limits_is_not_a_firm_miss():
+def test_required_in_documents_but_alternative_in_limits_follows_the_limits():
     reqs = [_req("a", "INDUSTRY", "1475"), _req("b", "INDUSTRY", "4119")]
-    merged, _ = merge_notice_limits(reqs, _limits(("1", "1475"), ("2", "4119")), notice_version_id="v")
+    merged, diagnostics = merge_notice_limits(reqs, _limits(("1", "1475"), ("2", "4119")), notice_version_id="v")
     assert _overall(reqs, codes=["1475"]) == "ineligible"            # 보강 전: 문서만 믿으면 틀린 부적합
-    assert _overall(merged, codes=["1475"]) == "insufficient_data"
+    assert _overall(merged, codes=["1475"]) == "eligible"
+    assert _overall(merged, codes=[]) == "insufficient_data"
+    assert [d["reason"] for d in diagnostics] == ["REPLACED_BY_NOTICE_LIMITS"] * 2
+    # 747591: 문서가 1253 과 6728 을 둘 다 필수로 읽었다. 1253 은 모든 묶음에 있으니 남고, 6728 은 묶음이 대신한다.
+    both = [_req("a", "INDUSTRY", "1253"), _req("b", "INDUSTRY", "6728")]
+    merged, _ = merge_notice_limits(both, _limits(("1", "1253"), ("1", "6728"), ("2", "1253")), notice_version_id="v")
+    assert _overall(merged, codes=["1253"]) == "eligible"
+    assert _overall(merged, codes=["6728"]) == "ineligible"          # 1253 은 문서에 분명히 적힌 필수다
 
 
 def test_a_region_documents_missed_is_added():

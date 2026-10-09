@@ -111,6 +111,7 @@ class DbIndustryNameResolver:
         from bidengine.normalization.industry_family import family_index
 
         self._families = family_index(((code, name) for code, name in rows), _normalize_name)
+        self._rows = [(code, name) for code, name in rows]
         for code, name in rows:
             key = _normalize_name(name)
             if key in by_name and by_name[key] != code:
@@ -126,3 +127,9 @@ class DbIndustryNameResolver:
     def family_codes(self, name: str) -> list[str]:
         """세부명 없이 쓴 묶음 이름("산림조합")의 세부명 업종 코드들. 없으면 빈 목록."""
         return self._families.get(_normalize_name(name), [])
+
+    def similar(self, name: str, limit: int = 8) -> list[tuple[str, str]]:
+        """글자가 겹치는 마스터 업종 (코드, 이름) 후보. 같은 업종인지는 정하지 않는다."""
+        from bidengine.normalization.industry_similar import rank_similar
+
+        return rank_similar(name, self._rows, limit=limit)

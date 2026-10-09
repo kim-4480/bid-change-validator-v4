@@ -997,10 +997,10 @@ def judge_requirement(
 
 # 안 맞아도 부적합으로 확정하지 않는 근거(scope["evidence"]). 부적합은 공고 문서가 분명히 말한 값으로만 낸다.
 #   family       공고에 코드도 정확한 업종명도 없이 묶음 이름("폐기물수집·운반업")에서 추론한 코드
+#   model_match  공고의 이름이 마스터와 달라 모델이 마스터 후보 중에서 고른 코드
 #   notice_api   문서에서는 못 뽑고 나라장터 면허제한·참가가능지역에만 있는 값 — 상위 면허가 대신하거나 공동수급으로
 #                채울 수 있는지 엔진이 가르지 못한다
-#   api_conflict 문서는 필수로 읽었는데 나라장터 면허제한에서는 대안인 업종코드
-_WEAK_EVIDENCE = {"family", "notice_api", "api_conflict"}
+_WEAK_EVIDENCE = {"family", "model_match", "notice_api"}
 
 
 def _judge_by_type(
