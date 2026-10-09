@@ -1020,9 +1020,10 @@ def judge_requirement(
 #   family       공고에 코드도 정확한 업종명도 없이 묶음 이름("폐기물수집·운반업")에서 추론한 코드
 #   model_match  공고의 이름이 마스터와 달라 모델이 마스터 후보 중에서 고른 코드
 #   compound     코드가 '또는' 으로 갈라 읽은 대안 갈래의 업종(공통 업종은 여기에 들지 않는다)
+#   name_only    문서에 숫자 코드 없이 이름에서 푼 코드인데 나라장터 면허제한에는 없는 코드
 #   notice_api   문서에서는 못 뽑고 나라장터 면허제한·참가가능지역에만 있는 값 — 상위 면허가 대신하거나 공동수급으로
 #                채울 수 있는지 엔진이 가르지 못한다
-_WEAK_EVIDENCE = {"family", "model_match", "notice_api", "compound"}
+_WEAK_EVIDENCE = {"family", "model_match", "notice_api", "compound", "name_only"}
 
 
 def _judge_by_type(

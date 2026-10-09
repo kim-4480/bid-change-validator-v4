@@ -24,6 +24,7 @@ from ..document_rag.service import load_or_build_version_index
 from ..models import NoticeDocument, NoticeProcessingJob, NoticeRecommendationFeature
 from ..qualification.analysis import run_qualification_analysis
 from ..services.document_reprocessing import extract_pending_documents
+from ..services.participation_limits import participation_limits_fetcher
 from ..services.notice_processing import claim_next_job, enqueue_version_job, feature_text, finish_job, load_version, input_fingerprint
 from bidengine.providers.openai import OpenAIStructuredExtractor
 from bidengine.rag.store import create_openai_embeddings
@@ -71,6 +72,7 @@ def _process(db: Session, job: NoticeProcessingJob, settings: Settings) -> None:
             db, notice_id=version.notice_id, version_number=version.version_number,
             structured_extract=OpenAIStructuredExtractor(),
             commit=False,
+            limits_fetcher=participation_limits_fetcher(settings),
         )
     else:
         raise RuntimeError("UNKNOWN_PROCESSING_STAGE")

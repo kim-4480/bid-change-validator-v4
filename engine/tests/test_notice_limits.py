@@ -116,3 +116,18 @@ def test_a_notice_without_requirements_is_met_only_when_the_tender_is_stated_ope
     assert overall([], stated=True, complete=False) == "needs_review"   # 놓친 조항이 있으면 확정하지 않는다
     # 요건이 있는 공고에는 영향이 없다.
     assert overall([_req("a", "INDUSTRY", "0037")], stated=True) == "core_unmet"
+
+
+def test_a_code_resolved_from_a_name_that_the_limits_do_not_list_is_not_a_firm_miss():
+    # R26BK01698338: 문서의 "보안관제 전문기업" 이 6861 로 풀렸는데 발주처가 입력한 면허는 6526 이다.
+    named = QualificationRequirement(requirement_key="n", notice_version_id="v", type="INDUSTRY", operator="MATCH", value="6861",
+                                     raw="보안관제 전문기업으로 지정된 업체", scope={"industry_name": "보안관제 전문기업"})
+    written = QualificationRequirement(requirement_key="w", notice_version_id="v", type="INDUSTRY", operator="MATCH", value="1468",
+                                       raw="소프트웨어사업자(업종코드: 1468)", scope={})
+    merged, _ = merge_notice_limits([named, written], _limits(("1", "0036"), ("1", "6526")), notice_version_id="v")
+    by_key = {r.requirement_key: r for r in merged}
+    assert by_key["n"].scope["evidence"] == "name_only"
+    assert "evidence" not in by_key["w"].scope                         # 숫자로 적힌 코드는 발주처가 덜 입력했을 수 있다
+    assert _overall(merged, codes=["0036", "6526", "1468"]) == "needs_review"   # 6861 은 확인 필요 — 부적합이 아니다
+    assert _overall(merged, codes=["0036", "6526"]) == "core_unmet"             # 숫자로 적힌 1468 이 없다
+    assert _overall([named, written], codes=["0036", "6526", "1468"]) == "core_unmet"   # 보강 전: 틀린 부적합

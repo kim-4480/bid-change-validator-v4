@@ -11,6 +11,7 @@
   1. 문서 요건이 같은 말을 하고 있지 않으면 요건으로 더한다. 맞으면 충족, 안 맞으면 확인 필요다 — 부적합의 근거로는 쓰지 않는다.
      상위 면허가 대신하는 경우(토목건축공사업 ⊃ 건축공사업)와 공동수급으로 채우는 경우를 엔진이 가를 수 없어서다.
   2. 문서에서 추론으로 얻은 업종코드(묶음 이름에서 푼 코드)가 면허제한에 없으면 버린다. 추론보다 입력된 값이 앞선다.
+     이름에서 푼 코드(문서에 숫자가 없는 코드)가 면허제한에 없으면 요건은 두되 부적합의 근거로 쓰지 않는다.
   3. 문서는 필수라고 읽었는데 면허제한에서는 대안인 업종코드는 뺀다. 면허제한 묶음이 그 구조를 그대로 담는다.
 
 문서와 면허제한이 같은 값을 말하면 아무것도 바꾸지 않는다 — 그 요건은 지금처럼 부적합의 근거가 된다.
@@ -27,6 +28,7 @@ from bidengine.normalization.regions import sidos_of
 
 # 판정기가 '안 맞아도 부적합으로 확정하지 않는' 근거 표시(scope["evidence"]).
 EVIDENCE_NOTICE_API = "notice_api"
+EVIDENCE_NAME_ONLY = "name_only"
 _CODE_RE = re.compile(r"[0-9]{4}")
 _NO_LIMIT = ("전국", "제한없음", "해당없음")
 # 업종 제한 · 물품분류 제한 · 입찰참가 제한 여부. 공동수급 지역 제한(cmmnSpldmdCorpRgnLmtYn)은 공동수급체 구성 조건이라 넣지 않는다.
@@ -125,6 +127,16 @@ def merge_notice_limits(
             else:
                 kept.append(item)
         out = kept
+        # 2-1. 문서에 숫자 코드 없이 이름에서 푼 코드가 면허제한에 없다 — 이름이 마스터의 다른 업종과 같았을 수 있다
+        #      ("보안관제 전문기업" 은 6861 인데 발주처가 입력한 면허는 6526 보안관제전문업체). 요건은 두되 안 맞아도 부적합의
+        #      근거로 쓰지 않는다. 원문에 숫자로 적힌 코드는 발주처가 덜 입력했을 수 있으니 그대로 둔다.
+        out = [
+            item.model_copy(update={"scope": {**item.scope, "evidence": EVIDENCE_NAME_ONLY}})
+            if item.type == "INDUSTRY" and item.scope.get("origin") != "NOTICE_API" and not item.scope.get("evidence")
+            and _CODE_RE.fullmatch(str(item.value)) and str(item.value) not in api_codes
+            and str(item.value) not in "".join((item.raw or "").split()) else item
+            for item in out
+        ]
         # 3. 문서는 필수로 읽었는데 면허제한에서는 대안인 코드 — 아래에서 더하는 면허제한 묶음이 그 구조를 담으므로 뺀다.
         #    "A 와 B 허가를 받은 업체 / 또는 A 허가를 받고 장비 기준을 충족한 업체" 를 조항별로 읽으면 B 가 필수가 된다.
         kept = []
