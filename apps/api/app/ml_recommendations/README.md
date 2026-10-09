@@ -1,6 +1,6 @@
 # BidCheck v4 / Account 4 – ML Recommendations & MLOps
 
-## API contract (MASTER + Frontend owner approval required)
+## API contract (integrated in Draft PR #30; not deployed)
 
 POST /api/v1/recommendations/ml
 Request: {"company_id":"authorized-company-uuid","limit":20}
@@ -17,7 +17,7 @@ Response fields: model_version, dataset_version, scoring_source, fallback_used, 
 - Explicit close time wins. When absent, posted_at + 40 days is the candidate validity proxy and must be visibly marked assumed_40_days. Without posted_at, exclude.
 - No LLM analyses, AWS writes, automatic model training, migration, or production deployment.
 
-The API router is currently opt-in only. MASTER must mount it in the protected FastAPI app and approve the auth/Frontend contract before calling this an integrated API.
+Draft PR #30 mounts this router in the protected FastAPI app and connects the Frontend to the same-origin API. It also rejects stale qualification analyses when ranking eligible notices. This is local/CI integration, not an AWS deployment or a verified learned-model release.
 
 ## Human review, ML training, and MLflow (local machine only)
 
@@ -52,6 +52,6 @@ Only isolated experiments may set BIDCHECK_ML_ALLOW_SYNTHETIC=1 or BIDCHECK_ML_A
 ## Release blockers
 
 - No independently confirmed human-reviewed training/holdout corpus has been provided; real performance metrics and Champion approval remain NOT_RUN.
-- Shared app route registration, real Frontend integration, and AWS deployments require MASTER and account 5 approval; no shared main.py or Frontend changes here.
+- AWS deployment and real Browser → API → approved model inference remain unverified. Draft PR #30 covers route registration and Frontend API wiring, but its Playwright tests use API mocks.
 - Real-data full-corpus performance, unknown deadline policy, OpenSearch/Nori availability, and model rollout still require validation.
 - This PR must not be merged without explicit user approval.
