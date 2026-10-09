@@ -362,9 +362,9 @@ export function requestQualificationAnalysis(noticeId: string, versionNumber: nu
   );
 }
 
-export function runQualificationAnalysis(noticeId: string, versionNumber: number) {
+export function runQualificationAnalysis(noticeId: string, versionNumber: number, force = false) {
   return request<QualificationAnalysisRun>(
-    `/api/v1/notices/${noticeId}/versions/${versionNumber}/qualification-analysis`,
+    `/api/v1/notices/${noticeId}/versions/${versionNumber}/qualification-analysis${force ? '?force=true' : ''}`,
     { method: 'POST' },
   );
 }

@@ -369,7 +369,7 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
   async function getOrRunAnalysis(versionNumber: number, existing: QualificationAnalysisSummary | null, force: boolean) {
     if (!force && canReuseAnalysis(existing)) return existing!;
     try {
-      return await runQualificationAnalysis(activeCase!.notice_id, versionNumber);
+      return await runQualificationAnalysis(activeCase!.notice_id, versionNumber, force);
     } catch (cause) {
       if (cause instanceof ApiError && cause.code === 'ANALYSIS_APPROVAL_REQUIRED') {
         const requested = await requestQualificationAnalysis(activeCase!.notice_id, versionNumber);

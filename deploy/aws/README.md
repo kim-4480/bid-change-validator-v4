@@ -9,7 +9,7 @@
 - EC2의 `/opt/bidcheck/.env`는 `prepare-env.py`가 SSM SecureString에서 생성한다. 파일 권한은 `0600`이며 Git에 포함되지 않는다.
 - `deploy.sh`는 이미지 pull → 스키마/TLS/RLS 읽기 전용 검사 → 서비스 교체 → HTTPS 헬스체크 순서로 실행한다. 실패하면 이전 SHA 이미지를 다시 띄우며 DB/S3는 되돌리지 않는다. 이전 SHA는 `/opt/bidcheck/.previous-release`에 보관한다.
 - 수집기는 `/opt/bidcheck/collector.enabled`가 있을 때만 배포에 포함된다. 로컬 수집기와 동시에 실행하지 않는다. 컨테이너는 정상 종료 신호를 받고 최대 90초 기다린다.
-- 처리 Worker는 `/opt/bidcheck/processing.enabled`가 있을 때만 배포와 롤백에 포함된다. 기본값 `PROCESSING_ENABLE_EXTERNAL=false`에서는 외부 LLM·임베딩 작업을 실행하지 않는다.
+- 처리 Worker는 `/opt/bidcheck/processing.enabled`가 있을 때만 배포와 롤백에 포함된다. 기본값 `PROCESSING_ENABLE_EXTERNAL=false`에서는 Worker의 외부 LLM·임베딩 작업을 실행하지 않는다. 개발용 API의 `QUALIFICATION_SELF_SERVICE_ENABLED=true`는 별개로, 로그인한 사용자의 명시적 분석 요청만 동기 실행한다. 동일 입력의 기존 성공 분석은 재사용하고 재실행은 `force=true`로만 요청한다. 개발 사이트의 무승인 분석은 전체 계정 합산 최근 24시간 3회로 제한한다. 운영 전환 시 이 설정은 비활성화해야 한다.
 
 ## 검증 및 운영
 
