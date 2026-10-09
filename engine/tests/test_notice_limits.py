@@ -93,3 +93,26 @@ def test_a_region_documents_missed_is_added():
     merged, _ = merge_notice_limits(reqs, _limits(regions=["전남광주통합특별시 목포시", "전남광주통합특별시 여수시"]), notice_version_id="v")
     assert merged == reqs
     assert merge_notice_limits([], _limits(regions=["전국"]), notice_version_id="v")[0] == []
+
+
+def test_no_restriction_is_only_stated_by_an_open_tender_with_nothing_set():
+    open_tender = {"flags": {"cntrctCnclsMthdNm": "일반경쟁", "indstrytyLmtYn": "N", "prdctClsfcLmtYn": "N", "cmmnSpldmdCorpRgnLmtYn": "Y"}}
+    assert NoticeLimits.from_collected(open_tender).no_restriction_stated      # 공동수급 지역 표시는 참가 제한이 아니다
+    for changed in ({"cntrctCnclsMthdNm": "제한경쟁"}, {"cntrctCnclsMthdNm": "수의계약"}, {"indstrytyLmtYn": "Y"}, {"cntrctCnclsMthdNm": ""}):
+        assert not NoticeLimits.from_collected({"flags": {**open_tender["flags"], **changed}}).no_restriction_stated
+    assert not NoticeLimits.from_collected({**open_tender, "regions": ["부산광역시"]}).no_restriction_stated
+    assert not NoticeLimits.from_collected({**open_tender, "licenses": [{"group": "1", "name": "x", "code": "0037"}]}).no_restriction_stated
+    assert not NoticeLimits().no_restriction_stated
+
+
+def test_a_notice_without_requirements_is_met_only_when_the_tender_is_stated_open():
+    def overall(reqs, *, complete=True, stated=False):
+        profile = CompanyProfileSnapshot(company_id="c", region_name="서울특별시 중구", company_size="SMALL")
+        return judge_requirements(reqs, profile, preflight_case_id="c", reference_date=date(2026, 10, 10),
+                                  coverage_complete=complete, no_restriction_stated=stated).overall_status
+
+    assert overall([]) == "needs_review"                        # 요건이 없다 — 추출 실패일 수 있다
+    assert overall([], stated=True) == "core_met"
+    assert overall([], stated=True, complete=False) == "needs_review"   # 놓친 조항이 있으면 확정하지 않는다
+    # 요건이 있는 공고에는 영향이 없다.
+    assert overall([_req("a", "INDUSTRY", "0037")], stated=True) == "core_unmet"

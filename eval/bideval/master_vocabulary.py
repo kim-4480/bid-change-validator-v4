@@ -22,6 +22,7 @@ class CsvIndustryNameResolver:
         self._by_name = _load(str(path), active_only)
         self._families = _families(str(path), active_only)
         self._rows = _rows(str(path), active_only)
+        self._including = _including(str(path), active_only)
 
     def code_for(self, name: str) -> str | None:
         return self._by_name.get(normalize_name(name))
@@ -36,6 +37,23 @@ class CsvIndustryNameResolver:
         from bidengine.normalization.industry_similar import rank_similar
 
         return rank_similar(name, self._rows, limit=limit)
+
+
+    def including_codes(self, code: str) -> list[str]:
+        """이 업종을 포함하는 업종코드들(포함 면허). 그 업종을 가진 회사는 이 업종 자격도 갖춘 것으로 본다."""
+        return self._including.get(code, [])
+
+
+@lru_cache(maxsize=4)
+def _including(path: str, active_only: bool) -> dict[str, list[str]]:
+    import json
+
+    from bidengine.normalization.industry_inclusion import inclusion_index
+
+    with open(path, encoding="utf-8-sig", newline="") as handle:
+        rows = [(row["code"], (json.loads(row.get("raw_json") or "{}") or {}).get("inclsnLcns"))
+                for row in csv.DictReader(handle) if not active_only or row.get("active") in {"Y", "true", "True", "1"}]
+    return inclusion_index(rows)
 
 
 @lru_cache(maxsize=4)

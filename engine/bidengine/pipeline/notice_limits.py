@@ -29,6 +29,8 @@ from bidengine.normalization.regions import sidos_of
 EVIDENCE_NOTICE_API = "notice_api"
 _CODE_RE = re.compile(r"[0-9]{4}")
 _NO_LIMIT = ("전국", "제한없음", "해당없음")
+# 업종 제한 · 물품분류 제한 · 입찰참가 제한 여부. 공동수급 지역 제한(cmmnSpldmdCorpRgnLmtYn)은 공동수급체 구성 조건이라 넣지 않는다.
+_LIMIT_FLAG_KEYS = ("indstrytyLmtYn", "prdctClsfcLmtYn", "bidPrtcptLmtYn")
 
 
 class NoticeLicense(BaseModel):
@@ -42,11 +44,30 @@ class NoticeLimits(BaseModel):
 
     licenses: list[NoticeLicense] = Field(default_factory=list)
     regions: list[str] = Field(default_factory=list)
+    # 공고 목록 조회의 계약 방법("일반경쟁", "제한경쟁", "수의계약")과 제한 표시(업종·물품분류·입찰참가 제한 여부 Y/N).
+    contract_method: str = ""
+    limit_flags: dict[str, str] = Field(default_factory=dict)
+
+    @property
+    def no_restriction_stated(self) -> bool:
+        """나라장터가 '참가 제한이 없는 입찰' 이라고 말하는가.
+
+        일반경쟁이고, 면허제한·참가가능지역이 비어 있고, 제한 표시가 하나도 켜져 있지 않다. 문서에서 요건을 하나도 못 찾았을 때
+        그것이 추출 실패가 아니라 정말 제한이 없는 것임을 확인하는 데만 쓴다 — 이것만으로 요건이 없다고 하지는 않는다.
+        """
+        return (
+            self.contract_method.replace(" ", "").startswith("일반경쟁")
+            and not self.licenses and not self.regions
+            and not any(str(value).upper() == "Y" for value in self.limit_flags.values())
+        )
 
     @classmethod
     def from_collected(cls, data: dict[str, Any] | None) -> "NoticeLimits":
         data = data or {}
+        flags = data.get("flags") or {}
         return cls(
+            contract_method=str(flags.get("cntrctCnclsMthdNm") or ""),
+            limit_flags={key: str(flags[key]) for key in _LIMIT_FLAG_KEYS if flags.get(key) not in (None, "")},
             licenses=[NoticeLicense(group=str(item.get("group") or "1"), name=str(item.get("name") or ""), code=item.get("code"))
                       for item in data.get("licenses") or []],
             regions=[str(region) for region in data.get("regions") or []],
@@ -147,3 +168,18 @@ def merge_notice_limits(
                     scope={"origin": "NOTICE_API", "evidence": EVIDENCE_NOTICE_API, "guard": "assessed"},
                 ))
     return out, diagnostics
+
+
+def mark_accepted_licences(requirements: list[QualificationRequirement], resolver: object) -> list[QualificationRequirement]:
+    """업종 요건마다 그 업종을 포함하는 면허(포함 면허)를 scope.accepted_by 에 적는다 — 판정기가 그 면허도 인정한다.
+
+    {"0002": ["0003"]}: 건축공사업(0002) 요건은 토목건축공사업(0003) 보유로도 충족이다. 묶음 요건(with_codes)의 코드도 함께 적는다.
+    """
+    from bidengine.normalization.industry_inclusion import including_codes
+
+    out = []
+    for item in requirements:
+        codes = [str(item.value), *[str(code) for code in item.scope.get("with_codes") or []]] if item.type == "INDUSTRY" else []
+        accepted = {code: parents for code in codes if _CODE_RE.fullmatch(code) and (parents := including_codes(code, resolver))}
+        out.append(item.model_copy(update={"scope": {**item.scope, "accepted_by": accepted}}) if accepted else item)
+    return out

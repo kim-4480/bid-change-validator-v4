@@ -132,10 +132,32 @@ def with_notice_limits(label: dict, limits: NoticeLimits | None) -> dict:
     return {**label, "ideal_profile": profile}
 
 
+_RESOLVER = CsvIndustryNameResolver()
+
+
+def parent_licence_profiles(label: dict) -> list[tuple[str, dict]]:
+    """핵심 업종 요건마다, 그 업종 대신 그것을 포함하는 상위 면허 하나만 가진 가상 회사(포함 면허가 있는 업종만)."""
+    ideal = label["ideal_profile"]
+    out: list[tuple[str, dict]] = []
+    for item in label["core"]:
+        if item["type"] != "INDUSTRY":
+            continue
+        values = [str(v) for v in [*item["values"], *item.get("also_accept", [])]]
+        held = [i for i in ideal["industries"] if i["code"] in values]
+        parent = next((p for i in held for p in _RESOLVER.including_codes(i["code"]) if p not in values), None)
+        if not held or parent is None:
+            continue
+        profile = json.loads(json.dumps(ideal))
+        profile["industries"] = [i for i in profile["industries"] if i["code"] not in values] + [{"code": parent, "name": parent, "verified": True}]
+        out.append((item["id"], profile))
+    return out
+
+
 def judge(result, profile: dict, label_id: str) -> tuple[str, dict[str, str]]:
     judged = judge_requirements(
         result.requirements, CompanyProfileSnapshot.model_validate(profile), preflight_case_id=label_id,
         reference_date=REFERENCE_DATE, analysis_status=result.status, coverage_complete=result.coverage.verdict_complete,
+        no_restriction_stated=result.coverage.no_restriction_stated,
     )
     return judged.overall_status, {j.requirement_key: j.status for j in judged.judgments}
 
@@ -163,12 +185,15 @@ def run_one(version, label: dict, run: int, model: str, memories: dict[str, dict
     # 정답 파일은 예전 이름(eligible·ineligible·insufficient_data)으로 적혀 있다.
     expect = _STATUS_NAME.get(label.get("expect", "core_met"), label.get("expect", "core_met"))
     broken = {core_id: judge(result, profile, version.label)[0] for core_id, profile in broken_profiles(label)}
+    # 포함 면허: 핵심 업종 대신 그 업종을 포함하는 상위 면허만 가진 회사 — 부적합이면 틀린 부적합이다.
+    parents = {core_id: judge(result, profile, version.label)[0] for core_id, profile in parent_licence_profiles(label)}
     return {
         "label": version.label, "run": run, "seconds": round(time.monotonic() - started),
         "overall": overall, "expect": expect,
         "false_ineligible": overall == "core_unmet" and expect != "core_unmet",
         "false_eligible": sorted(core_id for core_id, verdict in broken.items() if verdict == "core_met"),
         "broken": broken, "core": score["core"],
+        "parent_licence": parents, "false_ineligible_parent": sorted(k for k, verdict in parents.items() if verdict == "core_unmet"),
         "wrong": [f"{w['type']} {w['value']}" for w in score["wrong"]],
         "requirements": [{"type": r.type, "value": r.value, "group": r.group_operator, "key": r.requirement_key,
                           "tier": requirement_tier(r), "judgment": status.get(r.requirement_key),
@@ -191,6 +216,8 @@ def summarize(rows: list[dict]) -> dict:
         counter["false_ineligible"] += row["false_ineligible"]
         counter["broken_checked"] += len(row["broken"])
         counter["false_eligible"] += len(row["false_eligible"])
+        counter["parent_checked"] += len(row["parent_licence"])
+        counter["false_ineligible_parent"] += len(row["false_ineligible_parent"])
         counter["eligible_as_expected"] += row["overall"] == row["expect"]
     return dict(counter)
 
@@ -254,6 +281,8 @@ def main() -> None:
         print("표본에 없는 정답 공고:", len(missing))
     print("\n== 위험한 틀림 ==")
     for row in sorted(rows, key=lambda r: (r["label"], r["run"])):
+        if row.get("false_ineligible_parent"):
+            print(f"  {row['label'][7:]} r{row['run']} 상위 면허만 가진 회사가 부적합: {row['false_ineligible_parent']}")
         if row.get("false_ineligible") or row.get("false_eligible"):
             print(f"  {row['label'][7:]} r{row['run']} 판정 {row['overall']} 틀린 충족 {row['false_eligible']} 오답 {row['wrong'][:3]}")
     if args.baseline and args.baseline.exists():
