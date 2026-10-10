@@ -144,6 +144,11 @@ def test_only_typed_questions_take_the_free_chat_path() -> None:
     # 저장·재검증 실행 요청은 제안과 확인을 거치는 기존 경로로 간다.
     assert not copilot_router.is_free_chat(typed.model_copy(update={"message": "재검증 해줘"}), None)
     assert copilot_router.is_free_chat(typed.model_copy(update={"message": "재검증이 왜 필요해?"}), None)
+    # '공고문 근거 답변' 만 켠 요청은 회사 정보를 모델에 보내지 않는 공고문 전용 경로로 간다.
+    document_only = typed.model_copy(update={"allow_external_processing": True})
+    assert not copilot_router.is_free_chat(document_only, None, semantic_processing=False)
+    assert copilot_router.is_free_chat(document_only, None, semantic_processing=True)
+    assert copilot_router.is_free_chat(typed, None, semantic_processing=False)      # 둘 다 끈 경우 — 동의 안내를 돌려준다
 
 
 def test_no_model_call_without_consent(monkeypatch) -> None:
