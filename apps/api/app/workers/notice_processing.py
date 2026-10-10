@@ -18,6 +18,8 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
+# The worker runs without FastAPI startup, so register app_users before job flushes.
+from .. import auth_models  # noqa: F401
 from ..config import Settings, get_settings
 from ..database import SessionLocal
 from ..document_rag.service import load_or_build_version_index
