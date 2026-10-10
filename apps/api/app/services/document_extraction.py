@@ -4,6 +4,7 @@ import struct
 import zlib
 from dataclasses import dataclass
 from datetime import datetime
+from html.parser import HTMLParser
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
 from typing import Any, BinaryIO
@@ -122,6 +123,86 @@ def _decode_hwp_paragraph_text(payload: bytes) -> str:
     return "".join(parts)
 
 
+class _HTMLBlockParser(HTMLParser):
+    """Turn a downloaded HTML notice into text blocks, retaining table rows."""
+
+    _BLOCK_TAGS = frozenset({"div", "p", "li", "section", "article", "h1", "h2", "h3", "h4", "h5", "h6"})
+    _SKIP_TAGS = frozenset({"head", "style", "script", "noscript"})
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.blocks: list[dict[str, Any]] = []
+        self._parts: list[str] = []
+        self._skip_depth = 0
+        self._in_row = False
+        self._cell_count = 0
+
+    def _flush(self) -> None:
+        text = "".join(self._parts).strip()
+        if text:
+            self.blocks.append({"location": f"html block {len(self.blocks) + 1}", "text": text})
+        self._parts.clear()
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag in self._SKIP_TAGS:
+            self._skip_depth += 1
+            return
+        if self._skip_depth:
+            return
+        if tag == "tr":
+            self._flush()
+            self._in_row = True
+            self._cell_count = 0
+        elif tag in {"td", "th"} and self._in_row:
+            if self._cell_count:
+                self._parts.append(" | ")
+            self._cell_count += 1
+        elif tag == "br":
+            self._parts.append("\n")
+        elif tag in self._BLOCK_TAGS and not self._in_row:
+            self._flush()
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in self._SKIP_TAGS:
+            self._skip_depth = max(0, self._skip_depth - 1)
+            return
+        if self._skip_depth:
+            return
+        if tag == "tr":
+            self._flush()
+            self._in_row = False
+        elif tag in self._BLOCK_TAGS and not self._in_row:
+            self._flush()
+
+    def handle_data(self, data: str) -> None:
+        if not self._skip_depth:
+            self._parts.append(data)
+
+    def finish(self) -> list[dict[str, Any]]:
+        self._flush()
+        return self.blocks
+
+
+def _decode_text_bytes(data: bytes, *, content_type: str | None = None) -> tuple[str, str]:
+    charset = re.search(r"charset\s*=\s*['\"]?([\w-]+)", content_type or "", re.IGNORECASE)
+    encodings = ([charset.group(1)] if charset else []) + ["utf-8-sig", "cp949", "euc-kr"]
+    for encoding in dict.fromkeys(encodings):
+        try:
+            return data.decode(encoding), encoding
+        except (LookupError, UnicodeDecodeError):
+            pass
+    raise ValueError("text encoding is not supported")
+
+
+def _extract_html(source: BinaryIO, *, content_type: str | None) -> ExtractionResult:
+    source.seek(0)
+    text, _ = _decode_text_bytes(source.read(), content_type=content_type)
+    parser = _HTMLBlockParser()
+    parser.feed(text)
+    parser.close()
+    return _finish("HTML_TEXT", parser.finish())
+
+
 def _extract_hwpx(source: BinaryIO) -> ExtractionResult:
     source.seek(0)
     with ZipFile(source) as archive:
@@ -156,20 +237,67 @@ def _extract_hwpx(source: BinaryIO) -> ExtractionResult:
         blocks: list[dict[str, Any]] = []
         for section_index, section_name in enumerate(section_names):
             root = ElementTree.fromstring(archive.read(section_name))
+            parents = {child: parent for parent in root.iter() for child in parent}
+
+            def nearest_ancestor(element: ElementTree.Element, name: str) -> ElementTree.Element | None:
+                parent = parents.get(element)
+                while parent is not None:
+                    if _local_name(parent.tag) == name:
+                        return parent
+                    parent = parents.get(parent)
+                return None
+
+            def paragraph_text(paragraph: ElementTree.Element) -> str:
+                return "".join(
+                    child.text or ""
+                    for child in paragraph.iter()
+                    if _local_name(child.tag) == "t"
+                    and nearest_ancestor(child, "p") is paragraph
+                )
+
+            row_indices = {
+                row: index
+                for index, row in enumerate(
+                    (element for element in root.iter() if _local_name(element.tag) == "tr"),
+                    start=1,
+                )
+            }
+            emitted_rows: set[ElementTree.Element] = set()
             paragraph_index = 0
             for element in root.iter():
                 if _local_name(element.tag) != "p":
                     continue
-                text = "".join(
-                    child.text or ""
-                    for child in element.iter()
-                    if _local_name(child.tag) == "t"
-                )
+                row = nearest_ancestor(element, "tr")
+                cell = nearest_ancestor(element, "tc")
+                if row is not None and cell is not None:
+                    if row in emitted_rows:
+                        paragraph_index += 1
+                        continue
+                    emitted_rows.add(row)
+                    cells = [
+                        item for item in row.iter()
+                        if _local_name(item.tag) == "tc"
+                        and nearest_ancestor(item, "tr") is row
+                    ]
+                    cell_texts = []
+                    for table_cell in cells:
+                        paragraphs = [
+                            paragraph_text(item)
+                            for item in table_cell.iter()
+                            if _local_name(item.tag) == "p"
+                            and nearest_ancestor(item, "tc") is table_cell
+                        ]
+                        cell_texts.append(" / ".join(text for text in paragraphs if text.strip()))
+                    text = " | ".join(cell_texts)
+                    location = f"section {section_index + 1} · table row {row_indices[row]}"
+                else:
+                    text = paragraph_text(element)
+                    location = f"section {section_index + 1} · paragraph {paragraph_index + 1}"
                 blocks.append(
                     {
                         "section_index": section_index,
                         "paragraph_index": paragraph_index,
-                        "location": f"section {section_index + 1} · paragraph {paragraph_index + 1}",
+                        "location": location,
                         "text": text,
                     }
                 )
@@ -325,16 +453,11 @@ def _extract_pdf(source: BinaryIO) -> ExtractionResult:
 
 def _extract_plain_text(source: BinaryIO) -> ExtractionResult:
     source.seek(0)
-    data = source.read()
-    for encoding in ("utf-8-sig", "cp949", "euc-kr"):
-        try:
-            return _finish(
-                f"PLAIN_TEXT_{encoding.upper()}",
-                [{"location": "text", "text": data.decode(encoding)}],
-            )
-        except UnicodeDecodeError:
-            pass
-    raise ValueError("text encoding is not supported")
+    text, encoding = _decode_text_bytes(source.read())
+    return _finish(
+        f"PLAIN_TEXT_{encoding.upper()}",
+        [{"location": "text", "text": text}],
+    )
 
 
 def extract_document(
@@ -368,6 +491,13 @@ def extract_document(
         except ElementTree.ParseError:
             source.seek(0)
             return _extract_hwp(source)
+    html_prefix = signature.lstrip().lower()
+    if (
+        suffix in {".html", ".htm"}
+        or (content_type or "").lower().startswith("text/html")
+        or html_prefix.startswith((b"<style", b"<html", b"<div", b"<!doctyp"))
+    ):
+        return _extract_html(source, content_type=content_type)
     if suffix in {".txt", ".csv", ".md"} or (content_type or "").startswith("text/"):
         return _extract_plain_text(source)
     raise UnsupportedDocumentError("document format is not supported")

@@ -114,6 +114,54 @@ def test_hwp_extension_with_hwpx_zip_is_extracted() -> None:
     assert len(result.blocks) == 1
 
 
+def test_standard_notice_html_is_readable_text_not_markup() -> None:
+    source = BytesIO(
+        b"<style>table { font-size:1em; }</style>"
+        b"<div><h1>Foreign notice</h1><p>Conditions &amp; dates</p>"
+        b"<table><tr><th>Item</th><th>Value</th></tr>"
+        b"<tr><td>Quantity</td><td>16 SET</td></tr></table>"
+        b"<script>doNotExpose()</script></div>"
+    )
+
+    result = extract_document(source, filename="표준공고문", content_type="text/html; charset=utf-8")
+
+    assert result.extractor == "HTML_TEXT"
+    assert [block["text"] for block in result.blocks] == [
+        "Foreign notice", "Conditions & dates", "Item | Value", "Quantity | 16 SET",
+    ]
+    assert "<style>" not in result.text
+    assert "doNotExpose" not in result.text
+
+
+def test_extensionless_html_notice_detected_without_content_type() -> None:
+    source = BytesIO("<style>body {color: red}</style><div>입찰공고 &amp; 설명</div>".encode("cp949"))
+
+    result = extract_document(source, filename="표준공고문", content_type=None)
+
+    assert result.extractor == "HTML_TEXT"
+    assert result.text == "입찰공고 & 설명"
+
+
+def test_hwpx_table_cells_remain_in_the_same_row() -> None:
+    source = BytesIO()
+    with ZipFile(source, "w") as archive:
+        archive.writestr(
+            "Contents/section0.xml",
+            "<section><p><t>3.1 제원</t></p><p><run><tbl>"
+            "<tr><tc><p><t>구분</t></p></tc><tc><p><t>사양</t></p></tc></tr>"
+            "<tr><tc><p><t>증폭관</t></p></tc><tc><p><t>3세대 이상</t></p></tc></tr>"
+            "</tbl></run></p><p><t>검사 기준</t></p></section>",
+        )
+
+    result = extract_document(source, filename="구매규격서.hwpx", content_type=None)
+
+    assert result.extractor == "HWPX_XML"
+    assert [block["text"] for block in result.blocks] == [
+        "3.1 제원", "구분 | 사양", "증폭관 | 3세대 이상", "검사 기준",
+    ]
+    assert "table row" in result.blocks[1]["location"]
+
+
 @pytest.mark.parametrize("filename", ["encrypted.hwpx", "misnamed.hwp"])
 def test_encrypted_hwpx_section_is_unsupported(filename: str) -> None:
     source = BytesIO()
