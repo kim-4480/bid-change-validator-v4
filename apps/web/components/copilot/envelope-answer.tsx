@@ -3,6 +3,7 @@
 import { ChevronDown } from 'lucide-react';
 import { useId, useState } from 'react';
 import type { CopilotEnvelope } from '@/lib/copilot-v31';
+import { copilotFailureMessage } from '@/lib/copilot-v31';
 import { CopilotNavigationLink } from './navigation-link';
 
 type EnvelopeSource = CopilotEnvelope['sources'][number];
@@ -51,13 +52,15 @@ export function EnvelopeAnswer({ envelope }: { envelope: CopilotEnvelope }) {
   const documentSources = uniqueSources.filter(source => source.kind === 'DOCUMENT');
   const conversationSources = uniqueSources.filter(source => source.kind === 'TURN');
   const hasPrimaryAnswer = Boolean(envelope.status_card || envelope.clarification || envelope.claims.length);
+  const failure = copilotFailureMessage(envelope);
   return <section aria-label="근거 기반 검토 답변" data-copilot-version="3.1">
+    {failure && <p role="alert" className="copilot-error">{failure}</p>}
     {envelope.status_card && <output className="copilot-status-card">
       <strong>{envelope.status_card.text}</strong>
       <small>공고 v{envelope.status_card.provenance.version_number} · 저장된 판정 기준</small>
     </output>}
     {envelope.clarification && <p>{envelope.clarification}</p>}
-    {!hasPrimaryAnswer && <p className="copilot-limitation">
+    {!hasPrimaryAnswer && !failure && <p className="copilot-limitation">
       {envelope.limitations[0] ?? '현재 자료로는 이 질문의 답변을 확인하지 못했습니다.'}
     </p>}
     <div className="copilot-claims">

@@ -15,6 +15,7 @@ from apps.api.app.main import app
 from apps.api.app.config import Settings
 from apps.api.app.analysis_models import QualificationAnalysisRun
 from apps.api.app.qualification.routers import analysis as analysis_router
+from apps.api.app.qualification.analysis import qualification_analysis_version_fingerprint
 from apps.api.app.models import (
     BidNotice, BidNoticeVersion, NoticeDocument, NoticeProcessingAttempt,
     NoticeProcessingJob, NoticeRecommendationFeature,
@@ -185,3 +186,78 @@ def test_extraction_input_drift_requeues_current_fingerprint(state, monkeypatch)
     assert len(jobs) == 2
     assert db.get(NoticeProcessingJob, original.id).status == "SUPERSEDED"
     assert next(job for job in jobs if job.id != original.id).status == "PENDING"
+
+def test_user_can_request_without_admin_approval(state):
+    db, notice, version, actor, client, admin, ordinary = state
+    actor["user"] = ordinary
+    url = f"/api/v1/notices/{notice.id}/versions/1/qualification-analysis/request"
+    first = client.post(url)
+    assert first.status_code == 202, first.text
+    assert first.json()["approved"] is False
+    assert first.json()["job_status"] == "PENDING"
+    assert client.post(url).json()["job_id"] == first.json()["job_id"]
+    job = db.get(NoticeProcessingJob, first.json()["job_id"])
+    assert job.approved_by_id is None
+    assert claim_approved_analysis_job(db, version_id=version.id) is None
+
+
+def test_development_self_service_runs_once_and_reuses_same_input(state, monkeypatch):
+    db, notice, version, actor, client, _, ordinary = state
+    actor["user"] = ordinary
+    app.dependency_overrides[analysis_router.get_optional_current_user] = lambda: ordinary
+    document = NoticeDocument(
+        notice_version_id=version.id, document_order=0, name="notice.pdf",
+        url="https://example.invalid/notice.pdf", source_field="fixture",
+        download_status="DOWNLOADED", extraction_status="EXTRACTED",
+        file_sha256="b" * 64, extracted_text_sha256="c" * 64,
+        extracted_blocks=[{"block_index": 0, "text": "qualification condition"}],
+    )
+    db.add(document)
+    db.flush()
+    monkeypatch.setattr(analysis_router, "get_settings", lambda: Settings(
+        qualification_self_service_enabled=True, qualification_self_service_daily_limit=2,
+    ))
+
+    class AvailableExtractor:
+        available = True
+
+    monkeypatch.setattr(analysis_router, "OpenAIStructuredExtractor", AvailableExtractor)
+    calls = []
+
+    def fake_analysis(session, **kwargs):
+        calls.append(kwargs)
+        run = QualificationAnalysisRun(
+            notice_version_id=version.id, contract_version="test",
+            analysis_kind="QUALIFICATION_REQUIREMENTS", status="SUCCEEDED",
+            target_chunk_ids=[], diagnostics=[], dropped_requirements=[],
+            input_fingerprint=qualification_analysis_version_fingerprint(version),
+        )
+        session.add(run)
+        session.flush()
+        return run
+
+    monkeypatch.setattr(analysis_router, "run_qualification_analysis", fake_analysis)
+    url = f"/api/v1/notices/{notice.id}/versions/1/qualification-analysis"
+    try:
+        app.dependency_overrides[analysis_router.get_optional_current_user] = lambda: None
+        assert client.post(url).status_code == 401
+        app.dependency_overrides[analysis_router.get_optional_current_user] = lambda: ordinary
+        first = client.post(url)
+        assert first.status_code == 201, first.text
+        repeated = client.post(url)
+        assert repeated.status_code == 201, repeated.text
+        assert repeated.json()["id"] == first.json()["id"]
+        assert len(calls) == 1
+        job = db.scalar(select(NoticeProcessingJob).where(NoticeProcessingJob.stage == "ANALYZE"))
+        assert job.status == "COMPLETED" and job.approved_by_id is None
+        rerun = client.post(url + "?force=true")
+        assert rerun.status_code == 201, rerun.text
+        assert rerun.json()["id"] != first.json()["id"]
+        assert len(calls) == 2
+        limited = client.post(url + "?force=true")
+        assert limited.status_code == 429
+        assert limited.json()["error"]["code"] == "ANALYSIS_DAILY_LIMIT"
+        assert len(calls) == 2
+    finally:
+        app.dependency_overrides.pop(analysis_router.get_optional_current_user, None)
+
