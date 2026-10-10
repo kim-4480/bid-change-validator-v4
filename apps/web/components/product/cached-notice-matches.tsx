@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 import { useEffect, useState } from 'react';
 import { ArrowRight, LoaderCircle } from 'lucide-react';
 
@@ -7,11 +9,11 @@ import { Button } from '@/components/ui/button';
 import { getNoticeVersions, listPreflightCases } from '@/lib/api';
 import { createPreflightCaseWithCompany, listCompanies } from '@/lib/qualification-api';
 import { listNoticeMatches, type NoticeMatch } from '@/lib/notice-matching-api';
-import { navigateTo } from '@/lib/navigation';
 /* 판정 라벨은 화면마다 따로 두지 않는다. 같은 값이 다른 이름으로 불리던 것을 공통 맵으로 모았다 (#138 리뷰). */
 import { analysisBadgeLabel, OVERALL_STATUS_BADGE } from '@/lib/status-copy';
 
 export function CachedNoticeMatches() {
+  const router = useRouter();
   const [matches, setMatches] = useState<NoticeMatch[]>([]);
   const [companyId, setCompanyId] = useState('');
   const [loading, setLoading] = useState(true);
@@ -44,7 +46,7 @@ export function CachedNoticeMatches() {
       const cases = await listPreflightCases();
       const existing = cases.items.find((item) => item.notice_id === match.notice_id && item.company_id === companyId && item.current_version_number === match.version_number);
       if (existing) {
-        navigateTo(`/qualification?caseId=${existing.id}`);
+        router.push(`/qualification?caseId=${existing.id}`);
         return;
       }
       const versions = await getNoticeVersions(match.notice_id);
@@ -58,7 +60,7 @@ export function CachedNoticeMatches() {
         current_version_number: current.version_number,
         title: `${match.bid_notice_no} 참가자격 검토`,
       });
-      navigateTo(`/qualification?caseId=${created.id}`);
+      router.push(`/qualification?caseId=${created.id}`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '검토 건을 열지 못했습니다.');
     } finally {

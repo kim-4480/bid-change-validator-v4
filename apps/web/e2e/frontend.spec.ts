@@ -258,3 +258,34 @@ test('admin navigation does not overflow narrow mobile view (MOCK)', async ({ pa
   const width = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(width).toBeLessThanOrEqual(361);
 });
+test('client navigation preserves document and avoids repeated auth checks', async ({ page }) => {
+  let authChecks = 0;
+  let documentLoads = 0;
+  await mockApi(page);
+  page.on('request', request => {
+    if (request.resourceType() === 'document') documentLoads++;
+    if (new URL(request.url()).pathname === '/api/v1/auth/me') authChecks++;
+  });
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+
+  await page.goto('/guide');
+  await expect(page.locator('nav.app-primary-nav')).toBeVisible();
+  await page.evaluate(() => { (window as Window & { __navigationProof?: string }).__navigationProof = 'kept'; });
+  const initialDocuments = documentLoads;
+
+  for (let index = 0; index < 20; index++) {
+    const pathname = index % 2 ? '/guide' : '/notices';
+    await page.locator(`nav.app-primary-nav a[href="${pathname}"]`).click();
+    await expect(page).toHaveURL(new RegExp(`${pathname}$`));
+  }
+  await page.goBack();
+  await page.goForward();
+  await expect(page).toHaveURL(/\/guide$/);
+
+  expect(await page.evaluate(() => (window as Window & { __navigationProof?: string }).__navigationProof))
+    .toBe('kept');
+  expect(documentLoads).toBe(initialDocuments);
+  expect(authChecks).toBe(1);
+  expect(errors).toEqual([]);
+});

@@ -1,9 +1,10 @@
 'use client';
+
+import { useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { ConversationStore } from '@/lib/copilot-conversation';
 import { ActionController } from '@/lib/copilot-actions';
 import { saveCopilotNavigationHandoff, takeCopilotNavigationHandoff } from '@/lib/copilot-navigation-handoff';
-import { navigateTo } from '@/lib/navigation';
 
 const Context = createContext<{ store: ConversationStore; controller: ActionController } | null>(null);
 export function CopilotProvider({ children }: { children: ReactNode }) {
@@ -43,6 +44,7 @@ export function useActions(caseId: string) {
   return { controller, action };
 }
 export function useCopilotNavigation(caseId: string) {
+  const router = useRouter();
   const { store, controller } = useStores();
   const stage = (destination: string, reopenPanel = false) => saveCopilotNavigationHandoff(
     destination,
@@ -55,7 +57,7 @@ export function useCopilotNavigation(caseId: string) {
     stage,
     navigate: (destination: string, reopenPanel = true) => {
       stage(destination, reopenPanel);
-      navigateTo(destination);
+      router.push(destination);
     },
   };
 }

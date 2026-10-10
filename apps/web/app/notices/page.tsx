@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertCircle,
@@ -25,7 +27,6 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { findPreflightCasesByNotice, getNoticeVersions, listNotices, type BidNoticeSummary } from '@/lib/api';
 import { createPreflightCaseWithCompany, listCompanies, type CompanyProfile } from '@/lib/qualification-api';
-import { navigateTo } from '@/lib/navigation';
 import { productProfileCoverage } from '@/lib/product-profile';
 import { ASK_BACK_REASON_COPY, BUSINESS_TYPE_LABEL, labelOf, OVERALL_STATUS_BADGE } from '@/lib/status-copy';
 type OverallStatus = 'core_met' | 'core_unmet' | 'unreviewed' | 'needs_review';
@@ -36,6 +37,7 @@ const EMPTY_COUNTS: Record<OverallStatus, number> = {
 };
 
 export default function NoticesPage() {
+  const router = useRouter();
   const [notices, setNotices] = useState<BidNoticeSummary[]>([]);
   const [noticeTotal, setNoticeTotal] = useState(0);
   const [statusCounts, setStatusCounts] = useState<Record<OverallStatus, number>>(EMPTY_COUNTS);
@@ -139,7 +141,7 @@ export default function NoticesPage() {
   async function startReview(notice: BidNoticeSummary) {
     const existing = existingCaseByNotice.get(notice.id);
     if (existing) {
-      navigateTo(`/qualification?caseId=${existing}`);
+      router.push(`/qualification?caseId=${existing}`);
       return;
     }
     if (!company) {
@@ -158,7 +160,7 @@ export default function NoticesPage() {
       const known = await findPreflightCasesByNotice(notice.id, company.id);
       const reusable = known.items.find((item) => item.current_version_number === notice.current_version);
       if (reusable) {
-        navigateTo(`/qualification?caseId=${reusable.id}`);
+        router.push(`/qualification?caseId=${reusable.id}`);
         return;
       }
       const versions = await getNoticeVersions(notice.id);
@@ -174,7 +176,7 @@ export default function NoticesPage() {
         current_version_number: current.version_number,
         title: `${notice.bid_notice_no} 참가자격 검토`,
       });
-      navigateTo(`/qualification?caseId=${created.id}`);
+      router.push(`/qualification?caseId=${created.id}`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '검토 건 생성에 실패했습니다.');
     } finally {
