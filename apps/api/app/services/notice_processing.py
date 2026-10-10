@@ -64,12 +64,12 @@ def feature_text(version: BidNoticeVersion, *, notice=None) -> str:
 
 def enqueue_version_job(
     db: Session, *, version_id: UUID, stage: str, priority: int = 0,
-    approved_by_id: UUID | None = None,
+    approved_by_id: UUID | None = None, allow_unapproved_analysis: bool = False,
 ) -> NoticeProcessingJob:
     version = load_version(db, version_id, lock=True)
     if version is None:
         raise ValueError("NOTICE_VERSION_NOT_FOUND")
-    if stage == "ANALYZE" and approved_by_id is None:
+    if stage == "ANALYZE" and approved_by_id is None and not allow_unapproved_analysis:
         raise ValueError("ANALYSIS_APPROVAL_REQUIRED")
     fingerprint = input_fingerprint(version, stage)
     now = datetime.now(timezone.utc)
@@ -148,22 +148,30 @@ def claim_next_job(db: Session, *, now: datetime | None = None, allow_external: 
     return _start_job(db, job, now)
 
 
-def claim_approved_analysis_job(db: Session, *, version_id: UUID) -> NoticeProcessingJob | None:
-    """Reserve exactly one administrator-approved analysis for the current input."""
+def claim_approved_analysis_job(
+    db: Session, *, version_id: UUID, allow_unapproved: bool = False,
+) -> NoticeProcessingJob | None:
+    """Reserve one analysis; only an explicit development opt-in permits self-service."""
     version = load_version(db, version_id)
     if version is None:
         return None
     fingerprint = input_fingerprint(version, "ANALYZE")
     now = datetime.now(timezone.utc)
-    job = db.scalar(select(NoticeProcessingJob).where(
+    conditions = [
         NoticeProcessingJob.notice_version_id == version_id,
         NoticeProcessingJob.stage == "ANALYZE",
         NoticeProcessingJob.input_fingerprint == fingerprint,
-        NoticeProcessingJob.approved_by_id.is_not(None),
-        NoticeProcessingJob.approved_at.is_not(None),
         NoticeProcessingJob.status.in_(("PENDING", "FAILED")),
         NoticeProcessingJob.next_attempt_at <= now,
         NoticeProcessingJob.attempts < NoticeProcessingJob.retry_budget,
+    ]
+    if not allow_unapproved:
+        conditions.extend((
+            NoticeProcessingJob.approved_by_id.is_not(None),
+            NoticeProcessingJob.approved_at.is_not(None),
+        ))
+    job = db.scalar(select(NoticeProcessingJob).where(
+        *conditions,
     ).with_for_update(skip_locked=True).limit(1))
     return _start_job(db, job, now) if job is not None else None
 

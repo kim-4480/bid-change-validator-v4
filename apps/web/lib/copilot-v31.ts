@@ -13,8 +13,27 @@ export type CopilotEnvelope = {
   capabilities: Record<string, number>; actions: ActionProposal[];
   limitations: string[]; clarification: string | null;
   guided: { job_id: string; question_id: string; status: 'COMPLETE' | 'PARTIAL' | 'BLOCKED'; next_question_id: string | null } | null;
-  processing: { path: 'v3.1'; model: string | null; fallback: boolean; task_status: 'PASS' | 'PARTIAL' | 'FAIL'; elapsed_ms: number };
+  processing: { path: 'v3.1'; model: string | null; fallback: boolean; task_status: 'PASS' | 'PARTIAL' | 'FAIL'; elapsed_ms: number;
+    validation_events?: { stage?: string; reason?: string; budget_code?: string }[]; tools?: { tool?: string; coverage?: string }[] };
 };
+
+export function copilotFailureMessage(envelope: CopilotEnvelope): string | null {
+  if (envelope.processing.task_status !== 'FAIL' || envelope.claims.length) return null;
+  if (envelope.processing.validation_events?.some(event => event.budget_code === 'INPUT_BUDGET')) {
+    return '공고문 근거가 너무 많아 답변을 생성하지 못했습니다. 질문 범위를 좁혀 다시 시도해 주세요.';
+  }
+  if (envelope.processing.tools?.some(tool => tool.coverage === 'UNAVAILABLE' &&
+      (tool.tool === 'READ_JUDGMENT' || tool.tool === 'READ_CHANGES'))) {
+    return '현재 기준의 분석·판정 자료를 확인하지 못해 답변을 생성하지 않았습니다. 참가자격 화면에서 분석 상태를 확인해 주세요.';
+  }
+  if (envelope.processing.tools?.some(tool => tool.tool === 'READ_DOCUMENT' && tool.coverage === 'UNAVAILABLE')) {
+    return '현재 공고문 근거를 확인하지 못했습니다. 원문 화면에서 문서 상태를 확인해 주세요.';
+  }
+  if (envelope.processing.validation_events?.some(event => event.reason === 'BudgetExceeded')) {
+    return 'AI 처리 시간이나 호출 한도에 도달했습니다. 잠시 후 다시 시도해 주세요.';
+  }
+  return '검증된 답변을 만들지 못했습니다. 원문과 판정 상태를 확인한 뒤 다시 시도해 주세요.';
+}
 
 export function validateEnvelope(envelope: CopilotEnvelope, caseId?: string) {
   const sources = new Map(envelope.sources.map(source => [source.source_id, source]));

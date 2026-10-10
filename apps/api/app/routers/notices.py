@@ -1,10 +1,11 @@
+from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from uuid import UUID
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import FileResponse, RedirectResponse, Response
-from sqlalchemy import String, Text, case as sql_case, cast, exists, func, literal, or_, select
+from sqlalchemy import String, Text, and_, case as sql_case, cast, exists, func, literal, or_, select
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.orm import Session, selectinload
 
@@ -100,6 +101,23 @@ def _summary(
         first_seen_at=notice.first_seen_at,
         last_seen_at=notice.last_seen_at,
         current_version=version.version_number,
+    )
+
+
+def _availability_order(now: datetime):
+    """Prioritize open notices without hiding expired history or guessing unknown dates."""
+    kind = func.lower(func.coalesce(BidNoticeVersion.notice_kind, BidNotice.notice_kind, ""))
+    not_cancelled = ~or_(kind.like("%취소%"), kind.like("%cancel%"), kind.like("%무효%"))
+    return sql_case(
+        (and_(not_cancelled, BidNoticeVersion.bid_closed_at > now), 0),
+        (and_(
+            not_cancelled,
+            BidNoticeVersion.bid_closed_at.is_(None),
+            BidNoticeVersion.posted_at.is_not(None),
+            BidNoticeVersion.posted_at <= now,
+            BidNoticeVersion.posted_at > now - timedelta(days=40),
+        ), 1),
+        else_=2,
     )
 
 
@@ -317,11 +335,12 @@ def search_notices(
         )
         .where(*filters)
     )
+    availability_order = _availability_order(datetime.now(timezone.utc))
 
     if company_id is None:
         total = db.scalar(select(func.count()).select_from(base.with_only_columns(BidNotice.id).order_by(None).subquery())) or 0
         rows = db.execute(
-            base.order_by(BidNotice.last_seen_at.desc(), BidNotice.id.desc())
+            base.order_by(availability_order, BidNotice.last_seen_at.desc(), BidNotice.id.desc())
             .offset(offset).limit(limit)
         ).all()
         return BidNoticeSearchResponse(
@@ -352,7 +371,7 @@ def search_notices(
     if qualification_status is not None:
         page_query = page_query.where(status_expr == qualification_status)
     rows = db.execute(
-        page_query.order_by(BidNotice.last_seen_at.desc(), BidNotice.id.desc())
+        page_query.order_by(availability_order, BidNotice.last_seen_at.desc(), BidNotice.id.desc())
         .offset(offset).limit(limit)
     ).all()
     return BidNoticeSearchResponse(

@@ -1,6 +1,6 @@
 # Build context is the repository root (see docker-compose.yml) so the image can
 # include the engine package. Dockerfile.dockerignore limits what is sent.
-FROM python:3.12-slim
+FROM public.ecr.aws/docker/library/python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
