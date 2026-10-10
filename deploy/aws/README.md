@@ -1,10 +1,11 @@
 # AWS 개발·MVP 배포
 
-서울 리전의 단일 EC2에서 Caddy(HTTPS), Vinext, FastAPI, notice-poller를 Docker Compose로 실행한다. 구조화 데이터는 기존 RDS PostgreSQL 17(`bidjigi`, `bidcheck_app`, TLS, Alembic `024`), 첨부 원본은 비공개 S3에 저장한다. 이 Compose에는 DB 컨테이너와 자동 Alembic 서비스가 없다. PR #7의 `025`도 적용하지 않는다.
+서울 리전의 단일 EC2에서 Caddy(HTTPS), Vinext, FastAPI, notice-poller를 Docker Compose로 실행한다. 구조화 데이터는 RDS PostgreSQL 17(`bidjigi`, `bidcheck_app`, TLS, 현재 Alembic `028`), 첨부 원본은 비공개 S3에 저장한다. 이 Compose에는 DB 컨테이너와 자동 Alembic 서비스가 없다.
 
 ## 배포
 
-- `develop`의 기존 CI가 성공한 커밋에서만 `AWS dev build and deploy` 워크플로를 수동 실행한다. `deploy=false`는 이미지를 SHA 태그로 빌드·저장만 하고, `deploy=true`는 SSM으로 EC2까지 배포한다. `develop` push만으로 자동 배포하지 않는다.
+- `develop` 병합 후 해당 push의 CI가 성공하면 `AWS dev build and deploy`가 자동으로 이미지 게시 및 EC2 배포를 실행한다. PR CI 통과만으로는 배포하지 않는다. 최신 `develop`보다 오래된 SHA는 건너뛴다.
+- 수동 실행도 유지한다. `deploy=false`는 성공한 `develop` SHA의 이미지만 빌드·저장하고, `deploy=true`는 SSM으로 EC2까지 배포한다. 배포 전 스키마 검사는 유지하며 migration을 자동 적용하지 않는다.
 - GitHub OIDC 역할은 해당 저장소의 `develop`에만 허용된다. EC2는 인스턴스 역할로 S3/ECR/SSM에 접근한다. 장기 AWS 키는 GitHub와 EC2에 저장하지 않는다.
 - EC2의 `/opt/bidcheck/.env`는 `prepare-env.py`가 SSM SecureString에서 생성한다. 파일 권한은 `0600`이며 Git에 포함되지 않는다.
 - `deploy.sh`는 이미지 pull → 스키마/TLS/RLS 읽기 전용 검사 → 서비스 교체 → HTTPS 헬스체크 순서로 실행한다. 실패하면 이전 SHA 이미지를 다시 띄우며 DB/S3는 되돌리지 않는다. 이전 SHA는 `/opt/bidcheck/.previous-release`에 보관한다.
@@ -22,4 +23,4 @@
 
 ## 비용
 
-단일 `t3.small`, 기존 `db.t3.micro`, 30GiB gp3, 같은 리전 S3/ECR, S3 Gateway VPC Endpoint로 구성했다. NAT Gateway, ALB, 다중 AZ, S3 Versioning과 상시 GitHub 자동 배포는 사용하지 않는다. 월 60달러 예산 알림은 50/80/100%에서 이메일로만 통지하며 자원을 자동 중지하지 않는다.
+단일 `t3.small`, 기존 `db.t3.micro`, 30GiB gp3, 같은 리전 S3/ECR, S3 Gateway VPC Endpoint로 구성했다. NAT Gateway, ALB, 다중 AZ, S3 Versioning은 사용하지 않는다. `develop` CI 성공 후 자동 배포마다 ECR 이미지와 작은 S3 런타임 번들이 생성되므로 병합 빈도에 비례해 저장·전송 비용이 늘 수 있다. 월 60달러 예산 알림은 50/80/100%에서 이메일로만 통지하며 자원을 자동 중지하지 않는다.
