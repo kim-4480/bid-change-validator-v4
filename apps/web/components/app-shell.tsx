@@ -1,4 +1,5 @@
 'use client';
+import { clearSharedData } from '@/lib/shared-query-cache';
 
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
@@ -137,6 +138,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [logoutFailure, setLogoutFailure] = useState<string | null>(null);
   const [authAttempt, setAuthAttempt] = useState(0);
   const lastAuthCheckAt = useRef(0);
+  const lastAuthenticatedUserId = useRef<string | null>(null);
 
 
   useEffect(() => {
@@ -146,7 +148,18 @@ export function AppShell({ children }: { children: ReactNode }) {
       lastAuthCheckAt.current = Date.now();
       void getCurrentUser()
         .then((current) => {
-          if (active) setUser(current);
+          if (!active) return;
+          const previousId = lastAuthenticatedUserId.current;
+          if (previousId && previousId !== current?.id) {
+            clearSharedData();
+            // Do not render cached data under another user's session.
+            if (current?.id) {
+              replaceWith('/company');
+              return;
+            }
+          }
+          lastAuthenticatedUserId.current = current?.id ?? null;
+          setUser(current);
         })
         .catch((cause) => {
           if (!active) return;

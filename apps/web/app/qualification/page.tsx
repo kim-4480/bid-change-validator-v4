@@ -760,9 +760,15 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
       return <QualificationRow key={requirement.requirement_key} status={status} basisType={judgment?.basis_type ?? 'NONE'} condition={`${labelOf(REQUIREMENT_TYPE_LABEL, requirement.type)} · ${requirement.raw}`} companyValue={companyValueText} evidenceLabel={evidenceLabel} actionLabel={actionable ? (askable ? '확인하기' : '원문 확인') : judgment ? null : '판정 필요'} onEvidence={requirement.evidence_keys[0] ? () => revealEvidence(requirement.evidence_keys[0]) : undefined} onAction={actionable ? () => { router.push(askable ? `/ask-back?caseId=${activeCaseId}` : evidenceHref); } : undefined} />;
   };
 
-  if (busy === 'load' || (requestedCaseId && activeCase?.id !== requestedCaseId && !error)) return <main className="app-shell-container py-12">
+  if (busy === 'load' || (requestedCaseId && activeCase?.id !== requestedCaseId && !error)) return <main className="app-shell-container py-12" aria-label="???? ?? ?? ?? ?">
     {requestedCaseId && <ActionCard caseId={requestedCaseId} />}
-    <output>검토 데이터를 불러오고 있습니다.</output>
+    <output className="block space-y-5" aria-label="?? ???? ???? ????">
+      <div className="h-10 w-64 animate-pulse rounded-xl bg-slate-200" />
+      <div className="grid gap-5 lg:grid-cols-3">
+        {[0, 1, 2].map((index) => <div key={index} className="h-36 animate-pulse rounded-2xl border border-slate-200 bg-slate-100" />)}
+      </div>
+      <div className="h-64 animate-pulse rounded-2xl border border-slate-200 bg-slate-100" />
+    </output>
   </main>;
   if (requestedCaseId && !activeCase) return <main className="app-shell-container py-12">
     <ActionCard caseId={requestedCaseId} />

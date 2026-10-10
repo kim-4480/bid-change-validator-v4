@@ -100,6 +100,34 @@ test('guide has exactly one title and its complete content, without a duplicate 
   await expect(page.locator('#main-content h1')).toHaveText('이용안내');
 });
 
+test('cached notice list survives route round trip without another GET or empty-state flash', async ({ page }) => {
+  let noticeGets = 0;
+  let companyGets = 0;
+  await mockApi(page);
+  page.on('request', (request) => {
+    const u = new URL(request.url());
+    if (request.method() !== 'GET') return;
+    if (u.pathname === '/api/v1/notices') noticeGets++;
+    if (u.pathname === '/api/v1/companies') companyGets++;
+  });
+  await page.goto('/notices');
+  await expect(page.getByText('2026-0001').first()).toBeVisible({ timeout: 20_000 });
+  const before = { noticeGets, companyGets };
+  expect(before.noticeGets).toBe(1);
+  expect(before.companyGets).toBe(1);
+
+  for (let index = 0; index < 3; index++) {
+    await page.locator('nav.app-primary-nav a[href="/guide"]').click();
+    await expect(page).toHaveURL(/\/guide$/);
+    await page.locator('nav.app-primary-nav a[href="/notices"]').click();
+    await expect(page).toHaveURL(/\/notices$/);
+    await expect(page.getByText('2026-0001').first()).toBeVisible();
+    await expect(page.getByLabel('?? ?? ???? ?')).toHaveCount(0);
+  }
+  expect(noticeGets).toBe(before.noticeGets);
+  expect(companyGets).toBe(before.companyGets);
+});
+
 test('session expiration redirects safely to login', async ({ page }) => {
   await mockApi(page, { authenticated: false });
   await page.goto('/guide');

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 
 import { useEffect, useState } from 'react';
+import { sharedQueryClient } from '@/lib/shared-query-cache';
 import { ArrowRight, LoaderCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -14,9 +15,9 @@ import { analysisBadgeLabel, OVERALL_STATUS_BADGE } from '@/lib/status-copy';
 
 export function CachedNoticeMatches() {
   const router = useRouter();
-  const [matches, setMatches] = useState<NoticeMatch[]>([]);
-  const [companyId, setCompanyId] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [matches, setMatches] = useState<NoticeMatch[]>(() => sharedQueryClient().getQueryData<{items:NoticeMatch[];companyId:string}>(['view','notice-matches'])?.items ?? []);
+  const [companyId, setCompanyId] = useState(() => sharedQueryClient().getQueryData<{items:NoticeMatch[];companyId:string}>(['view','notice-matches'])?.companyId ?? '');
+  const [loading, setLoading] = useState(() => !sharedQueryClient().getQueryData(['view','notice-matches']));
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState('');
 
@@ -29,6 +30,7 @@ export function CachedNoticeMatches() {
         setCompanyId(company.id);
         const result = await listNoticeMatches(company.id, 12);
         setMatches(result.items);
+        sharedQueryClient().setQueryData(['view', 'notice-matches'], { items: result.items, companyId: company.id });
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : '회사 기준 매칭 결과를 불러오지 못했습니다.');
       } finally {
@@ -68,7 +70,7 @@ export function CachedNoticeMatches() {
     }
   }
 
-  if (loading) return <section className="app-shell-container py-8"><div className="grid min-h-28 place-items-center rounded-[22px] border border-[var(--product-line)]"><LoaderCircle className="size-6 animate-spin text-[var(--product-accent)]" /></div></section>;
+  if (loading && matches.length === 0) return <section className="app-shell-container py-8"><div className="grid min-h-28 place-items-center rounded-[22px] border border-[var(--product-line)]"><div className="grid w-full gap-3 p-5 lg:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="h-28 animate-pulse rounded-xl bg-slate-100" />)}</div></div></section>;
   if (!companyId) return null;
 
   return (
