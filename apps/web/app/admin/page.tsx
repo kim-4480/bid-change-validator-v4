@@ -3,17 +3,13 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
 import { NavigationLink } from '@/components/navigation-link';
 import { Button } from '@/components/ui/button';
-import { getCurrentUser, type AuthUser } from '@/lib/auth';
+import { useAppUser } from '@/components/app-user-context';
 import { listHistoryJobs, retryHistoryJob, type HistoryJob } from '@/lib/admin-jobs-api';
 import { approveRelevanceReview, listRelevanceEvents, listRelevanceLabels, reopenRelevanceReview, submitRelevanceReview, type RelevanceEvent, type RelevanceLabel } from '@/lib/admin-relevance-api';
 import { approveProcessingAnalysis, listProcessingAttempts, listProcessingJobs, retryProcessingJob, type ProcessingAttempt, type ProcessingJob } from '@/lib/admin-processing-api';
 
-type AdminState = { loading: boolean; user: AuthUser | null; error: string };
-const EMPTY: AdminState = { loading: true, user: null, error: '' };
-
 export default function AdminPage() {
-  const [state, setState] = useState<AdminState>(EMPTY);
-  const [attempt, setAttempt] = useState(0);
+  const user = useAppUser();
   const [jobs, setJobs] = useState<HistoryJob[]>([]);
   const [jobsError, setJobsError] = useState<string | null>(null);
   const [jobsBusy, setJobsBusy] = useState(false);
@@ -33,17 +29,8 @@ export default function AdminPage() {
   const [analysisVersionId, setAnalysisVersionId] = useState('');
   const [attemptsByJob, setAttemptsByJob] = useState<Record<string, ProcessingAttempt[]>>({});
 
-  useEffect(() => {
-    let active = true;
-    void getCurrentUser()
-      .then((user) => { if (active) setState({ loading: false, user, error: '' }); })
-      .catch((error: unknown) => {
-        if (active) setState({ loading: false, user: null, error: error instanceof Error ? error.message : '권한을 확인하지 못했습니다.' });
-      });
-    return () => { active = false; };
-  }, [attempt]);
-
-  const canView = state.user?.role === 'SYSTEM_ADMIN' || state.user?.role === 'ADMIN';
+  // AppShell validates sessions; the page consumes its shared user.
+  const canView = user?.role === 'SYSTEM_ADMIN' || user?.role === 'ADMIN';
 
   useEffect(() => {
     if (!canView) return;
@@ -52,7 +39,7 @@ export default function AdminPage() {
       .then((items) => { if (active) setLabels(items); })
       .catch((error: unknown) => { if (active) setLabelError(error instanceof Error ? error.message : '라벨 조회에 실패했습니다.'); });
     return () => { active = false; };
-  }, [canView, state.user?.role, state.user?.company_id]);
+  }, [canView, user?.role, user?.company_id]);
 
   async function refreshLabels() {
     setLabelBusy(true);
@@ -67,7 +54,7 @@ export default function AdminPage() {
     setLabelBusy(true);
     setLabelError(null);
     try {
-      await submitRelevanceReview({ company_id: state.user?.role === 'ADMIN' ? state.user.company_id ?? '' : companyId, notice_version_id: noticeVersionId, grade, subject_origin: origin, rationale });
+      await submitRelevanceReview({ company_id: user?.role === 'ADMIN' ? user.company_id ?? '' : companyId, notice_version_id: noticeVersionId, grade, subject_origin: origin, rationale });
       setRationale('');
       setLabels(await listRelevanceLabels());
     } catch (error) { setLabelError(error instanceof Error ? error.message : '검수 저장에 실패했습니다.'); }
@@ -111,7 +98,7 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    if (state.user?.role !== 'SYSTEM_ADMIN') return;
+    if (user?.role !== 'SYSTEM_ADMIN') return;
     let active = true;
     void listHistoryJobs()
       .then((items) => { if (active) setJobs(items); })
@@ -119,16 +106,16 @@ export default function AdminPage() {
         if (active) setJobsError(error instanceof Error ? error.message : '작업 조회에 실패했습니다.');
       });
     return () => { active = false; };
-  }, [state.user?.role]);
+  }, [user?.role]);
 
   useEffect(() => {
-    if (state.user?.role !== 'SYSTEM_ADMIN') return;
+    if (user?.role !== 'SYSTEM_ADMIN') return;
     let active = true;
     void listProcessingJobs()
       .then((items) => { if (active) setProcessingJobs(items); })
       .catch((error: unknown) => { if (active) setProcessingError(error instanceof Error ? error.message : '처리 작업 조회에 실패했습니다.'); });
     return () => { active = false; };
-  }, [state.user?.role]);
+  }, [user?.role]);
 
   async function refreshProcessing() {
     setProcessingBusy(true);
@@ -183,20 +170,14 @@ export default function AdminPage() {
   return (
     <main className="app-shell-container py-8 pb-16">
       <h1 className="text-2xl font-bold">운영 작업 관리</h1>
-      {state.loading ? (
-        <output aria-live="polite" className="mt-6 block rounded-xl border p-5">관리자 권한을 확인하고 있습니다.</output>
-      ) : state.error ? (
-        <div role="alert" className="mt-6 rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
-          {state.error} <Button size="sm" variant="outline" onClick={() => setAttempt((value) => value + 1)}>다시 시도</Button>
-        </div>
-      ) : !canView ? (
+      {!canView ? (
         <div role="alert" className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
           관리자만 접근할 수 있습니다. <NavigationLink href="/notices" className="underline">공고 목록으로 이동</NavigationLink>
         </div>
       ) : (
         <>
-          <p className="mt-3 text-sm text-slate-600">현재 사용자 역할: {state.user?.role}</p>
-          {state.user?.role === 'SYSTEM_ADMIN' && (
+          <p className="mt-3 text-sm text-slate-600">현재 사용자 역할: {user?.role}</p>
+          {user?.role === 'SYSTEM_ADMIN' && (
             <section className="mt-6 rounded-xl border bg-white p-5" aria-labelledby="history-jobs-heading">
               <div className="flex items-center justify-between gap-3">
                 <h2 id="history-jobs-heading" className="font-bold">공고 이력 수집 작업</h2>
@@ -221,7 +202,7 @@ export default function AdminPage() {
               </ul>
             </section>
           )}
-          {state.user?.role === 'SYSTEM_ADMIN' && (
+          {user?.role === 'SYSTEM_ADMIN' && (
             <section className="mt-6 rounded-xl border bg-white p-5" aria-labelledby="processing-jobs-heading">
               <div className="flex items-center justify-between gap-3">
                 <h2 id="processing-jobs-heading" className="font-bold">공고 차수별 처리 작업</h2>
@@ -260,7 +241,7 @@ export default function AdminPage() {
             <p className="mt-2 text-sm text-slate-600">0~3점은 사업 연관성 라벨이며, 참가자격 충족이나 낙찰 확률이 아닙니다. 실제 기업 여부·근거를 검수한 뒤 다른 시스템 관리자가 승인해야 학습 후보로 내보낼 수 있습니다.</p>
             <form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={(event) => void submitLabel(event)}>
               <label className="text-sm">기업 ID
-                <input className="mt-1 w-full rounded-md border p-2" required value={state.user?.role === 'ADMIN' ? state.user.company_id ?? '' : companyId} readOnly={state.user?.role === 'ADMIN'} onChange={(event) => setCompanyId(event.target.value)} />
+                <input className="mt-1 w-full rounded-md border p-2" required value={user?.role === 'ADMIN' ? user.company_id ?? '' : companyId} readOnly={user?.role === 'ADMIN'} onChange={(event) => setCompanyId(event.target.value)} />
               </label>
               <label className="text-sm">공고 차수 ID
                 <input className="mt-1 w-full rounded-md border p-2" required value={noticeVersionId} onChange={(event) => setNoticeVersionId(event.target.value)} />
@@ -292,10 +273,10 @@ export default function AdminPage() {
                   <p className="mt-1 break-words">{label.rationale}</p>
                   <div className="mt-2 flex gap-2">
                     <Button type="button" size="sm" variant="outline" onClick={() => void showEvents(label)}>감사 이력</Button>
-                    {state.user?.role === 'SYSTEM_ADMIN' && label.status === 'DRAFT' && label.subject_origin === 'REAL' && label.reviewer_id !== state.user.id && (
+                    {user?.role === 'SYSTEM_ADMIN' && label.status === 'DRAFT' && label.subject_origin === 'REAL' && label.reviewer_id !== user.id && (
                       <Button type="button" size="sm" disabled={labelBusy} onClick={() => void approveLabel(label)}>독립 승인</Button>
                     )}
-                    {state.user?.role === 'SYSTEM_ADMIN' && label.status === 'APPROVED' && (
+                    {user?.role === 'SYSTEM_ADMIN' && label.status === 'APPROVED' && (
                       <Button type="button" size="sm" variant="outline" disabled={labelBusy} onClick={() => void reopenLabel(label)}>재검수 요청</Button>
                     )}
                   </div>

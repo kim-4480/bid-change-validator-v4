@@ -384,6 +384,35 @@ test('admin navigation does not overflow narrow mobile view (MOCK)', async ({ pa
   const width = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(width).toBeLessThanOrEqual(361);
 });
+test('recommendations and admin reuse AppShell session without duplicate auth checks', async ({ page }) => {
+  await mockApi(page);
+  await page.route('**/api/v1/auth/me', route => route.fulfill({
+    status: 200, json: { ...mockUser, role: 'SYSTEM_ADMIN' },
+  }));
+  let authChecks = 0;
+  let documentLoads = 0;
+  const errors: string[] = [];
+  page.on('request', request => {
+    if (new URL(request.url()).pathname === '/api/v1/auth/me') authChecks++;
+    if (request.resourceType() === 'document') documentLoads++;
+  });
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/guide');
+  await expect(page.locator('nav.app-primary-nav a[href="/admin"]')).toBeVisible();
+  await expect.poll(() => authChecks).toBe(1);
+  await page.evaluate(() => { (window as Window & { __authStateProof?: string }).__authStateProof = 'kept'; });
+  const initialDocuments = documentLoads;
+  for (let index = 0; index < 5; index++) {
+    for (const pathname of ['/recommendations', '/admin', '/guide']) {
+      await page.locator('nav.app-primary-nav a[href="' + pathname + '"]').click();
+      await expect(page).toHaveURL(new RegExp(pathname + '$'));
+    }
+  }
+  expect(await page.evaluate(() => (window as Window & { __authStateProof?: string }).__authStateProof)).toBe('kept');
+  expect(documentLoads).toBe(initialDocuments);
+  expect(authChecks).toBe(1);
+  expect(errors).toEqual([]);
+});
 test('client navigation preserves document and avoids repeated auth checks', async ({ page }) => {
   let authChecks = 0;
   let documentLoads = 0;
