@@ -1,10 +1,15 @@
+import { mayCacheGet, sharedRead, invalidateSharedData, clearSharedData } from '@/lib/shared-query-cache';
 import { apiFetch, ApiError, type PreflightCase } from '@/lib/api';
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, useCache = true): Promise<T> {
+  if (useCache && (!init?.method || init.method.toUpperCase() === 'GET') && mayCacheGet(path)) {
+    return sharedRead(path, () => request<T>(path, init, false));
+  }
   const headers = new Headers(init?.headers);
   if (init?.body && !(init.body instanceof FormData)) headers.set('Content-Type', 'application/json');
   const response = await apiFetch(path, { ...init, headers });
   if (!response.ok) {
+    if (response.status === 401) clearSharedData();
     const payload = (await response.json().catch(() => null)) as {
       error?: { message?: string; code?: string };
     } | null;
@@ -14,7 +19,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       payload?.error?.code ?? 'HTTP_ERROR',
     );
   }
-  return response.json() as Promise<T>;
+  const data = await response.json() as T;
+  if (init?.method && !['GET', 'HEAD'].includes(init.method.toUpperCase())) invalidateSharedData();
+  return data;
 }
 
 export type CompanySize = 'MICRO' | 'SMALL' | 'MEDIUM' | 'MID_SIZED' | 'LARGE' | 'NONE';
