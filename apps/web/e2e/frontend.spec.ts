@@ -82,22 +82,49 @@ test('login without JavaScript keeps submit disabled until hydration', async ({ 
     await context.close();
   }
 });
-test('guide has exactly one title and its complete content, without a duplicate shell title band', async ({ page }) => {
+test('guide uses a single shared title band and keeps complete content', async ({ page }) => {
   await mockApi(page);
   await page.goto('/guide');
   await expect(page.locator('nav.app-primary-nav')).toBeVisible();
-  await expect(page.locator('.app-title-band')).toHaveCount(0);
-  await expect(page.locator('#main-content h1')).toHaveText('이용안내');
+  await expect(page.locator('.app-title-band h1')).toHaveText('이용안내');
+  await expect(page.getByRole('heading', { name: '이용안내', level: 1 })).toHaveCount(1);
   await expect(page.locator('#main-content ol > li')).toHaveCount(3);
-  await expect(page.locator('#main-content main section')).toHaveCount(6);
+  await expect(page.locator('#main-content main section')).toHaveCount(5);
 
   // A client-side transition must not reintroduce the fallback title.
   await page.locator('nav.app-primary-nav a[href="/notices"]').click();
   await expect(page).toHaveURL(/\/notices$/);
   await page.locator('nav.app-primary-nav a[href="/guide"]').click();
   await expect(page).toHaveURL(/\/guide$/);
-  await expect(page.locator('.app-title-band')).toHaveCount(0);
-  await expect(page.locator('#main-content h1')).toHaveText('이용안내');
+  await expect(page.locator('.app-title-band')).toHaveCount(1);
+  await expect(page.locator('.app-title-band h1')).toHaveText('이용안내');
+});
+
+test('title bands share qualification spacing across four product pages', async ({ page }) => {
+  await mockApi(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const pages = [
+    ['/qualification', '참가자격 검토', '판정한 모든 항목에 공고 원문 근거를 함께 표시합니다.', '홈 › 내 입찰 건 › 참가자격 검토'],
+    ['/company', '회사 프로필', '공고 판정에 사용하는 회사 값을 출처와 함께 관리합니다.', '홈 › 회사 프로필'],
+    ['/recommendations', 'AI 추천', '모델의 연관성 추천과 기존 자격판정 결과를 구분해 확인합니다.', '홈 › 공고 추천'],
+    ['/guide', '이용안내', '공고를 찾아 참가 자격을 확인하고, 공고가 바뀌면 다시 검증합니다.', '홈 › 이용안내'],
+  ];
+  const positions = [];
+  for (const [route, title, description, crumb] of pages) {
+    await page.goto(route);
+    const band = page.locator('.app-title-band');
+    await expect(band).toHaveCount(1);
+    await expect(band).toHaveCSS('height', '142px');
+    await expect(band.locator('h1')).toHaveText(title);
+    await expect(band.locator('p').first()).toHaveText(description);
+    await expect(band.locator('p').last()).toHaveText(crumb);
+    positions.push(await band.evaluate(section => {
+      const top = section.getBoundingClientRect().top;
+      return [section.querySelector('h1'), section.querySelector('h1 + p'), section.querySelector(':scope > div > p:last-child')]
+        .map(el => Math.round(el!.getBoundingClientRect().top - top));
+    }));
+  }
+  for (const position of positions.slice(1)) expect(position).toEqual(positions[0]);
 });
 
 test('cached notice list survives route round trip without another GET or empty-state flash', async ({ page }) => {

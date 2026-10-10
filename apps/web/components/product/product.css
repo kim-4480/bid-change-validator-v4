@@ -184,7 +184,8 @@ body {
 }
 
 .app-title-band {
-  height: 120px;
+  /* Keep the qualification-review header height for all pages. */
+  height: 142px;
   background: linear-gradient(120.17deg, #dfe9ff 0%, #e9e2fb 33.82%, #dcefff 73.53%);
 }
 
