@@ -126,6 +126,16 @@ function evidenceLabelOf(requirement: QualificationAnalysisRun['requirements'][n
   return '근거 없음';
 }
 
+/** 띄어쓰기·줄바꿈만 다른 같은 조항을 같은 것으로 본다. */
+function compactRaw(text: string | null | undefined) {
+  return (text ?? '').replace(/\s+/g, '');
+}
+
+/** 요건이 실제로 가리키는 근거 수. 분석은 읽어 본 조항마다 위치를 남기므로 evidence 전체를 세면 요건과 무관한 수백 건이 된다. */
+function citedEvidenceCount(analysis: QualificationAnalysisRun) {
+  return new Set(analysis.requirements.flatMap((item) => item.evidence_keys)).size;
+}
+
 function overallCopy(status: QualificationJudgmentRun['overall_status'] | undefined) {
   const copy = status ? OVERALL_STATUS_COPY[status] : null;
   if (copy) return [copy.label, copy.description];
@@ -684,11 +694,23 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
   //  · dropped_requirements — 공고 원문 대조를 통과하지 못해 구조화에서 빠진 후보. raw·reason_code만 온다.
   // 아래 블록들은 보고 있는 차수(shownAnalysis)를 따라간다. 현재 차수 고정으로 두면
   // 기준 v1을 보는 중에도 v2의 진단·제외 요건·건수가 섞여 나온다. (#147 리뷰 필수 1)
-  const noticeFacts = shownAnalysis?.diagnostics.filter((item) => item.kind === 'NOTICE_FACT') ?? [];
+  // 커버리지가 있는 분석은 엔진이 조항을 이미 갈라 두었다. 확인할 조항(gaps)은 위 상자들이 보여 주고, 요건이 아니라고
+  // 걸러 낸 조항(ignored — 제목·평가 항목·사업 설명)은 사용자가 확인할 것이 아니다. 둘을 여기서 다시 세면 공고 하나에
+  // 「판정에 들어가지 않은 조건 269건」 같은 숫자가 나온다(2026-10-10). 어느 쪽에도 들지 않은 것만 남긴다.
+  const settledRaws = new Set(
+    [...(coverage?.gaps ?? []), ...(coverage?.ignored ?? [])].map((gap) => compactRaw(gap.raw)),
+  );
+  const noticeFacts = (shownAnalysis?.diagnostics.filter((item) => item.kind === 'NOTICE_FACT') ?? []).filter(
+    (item) => !coverage || !settledRaws.has(compactRaw(typeof item.details?.raw === 'string' ? item.details.raw : item.message)),
+  );
   const pipelineDiagnostics = shownAnalysis?.diagnostics.filter((item) => item.kind !== 'NOTICE_FACT') ?? [];
-  const shownDiagnostics = pipelineDiagnostics
-    .map((item) => ({ code: item.code, text: diagnosticText(item.code) }))
-    .filter((item): item is { code: string; text: string } => Boolean(item.text));
+  // 같은 안내는 한 번만 보여 준다. 진단은 조항마다 하나씩 생겨서 그대로 그리면 같은 문장이 열 줄 넘게 반복된다.
+  const shownDiagnostics = [...new Map(
+    pipelineDiagnostics
+      .map((item) => ({ code: item.code, text: diagnosticText(item.code) }))
+      .filter((item): item is { code: string; text: string } => Boolean(item.text))
+      .map((item) => [item.text, item] as const),
+  ).values()];
   const droppedRequirements = shownAnalysis?.dropped_requirements ?? [];
 
   // 판정 밖 조건도 셋으로 갈린다 — 아직 안 돌렸다 / 못 읽었다 / 확인했더니 없다.
@@ -1108,7 +1130,7 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
                 </div>
                 <div>
                   <span className="text-[13px] text-[var(--product-muted)]">자격요건 · 근거</span>
-                  <strong className="mt-0.5 block text-[15px]">{countedAnalysis ? `${countedAnalysis.requirements.length}건` : '-'} · 근거 {countedAnalysis ? `${countedAnalysis.evidence.length}건` : '-'}</strong>
+                  <strong className="mt-0.5 block text-[15px]">{countedAnalysis ? `${countedAnalysis.requirements.length}건` : '-'} · 근거 {countedAnalysis ? `${citedEvidenceCount(countedAnalysis)}건` : '-'}</strong>
                   {/* 요건 0건인데 근거만 여러 건이면 숫자만 보고는 뭐가 잘못됐는지 알 수 없다. */}
                   {countedAnalysis && countedAnalysis.requirements.length === 0 && countedAnalysis.evidence.length > 0 && (
                     <p className="mt-1 text-[13px] leading-[1.7] text-[var(--product-muted)]">근거 문장은 찾았지만 구조화된 자격요건으로 옮기지 못했습니다.</p>
