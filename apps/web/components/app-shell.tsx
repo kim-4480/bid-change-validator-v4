@@ -27,10 +27,8 @@ const PAGE_INFO: Array<{ match: (pathname: string) => boolean; page: PageInfo }>
     match: (pathname) => pathname === '/guide',
     page: {
       title: '이용안내',
-      description: '공고 검색과 참가자격 검토 방법을 안내합니다.',
+      description: '공고를 찾아 참가 자격을 확인하고, 공고가 바뀌면 다시 검증합니다.',
       breadcrumb: '홈 › 이용안내',
-      // GuidePage already renders its own title and introduction.
-      showTitleBand: false,
     },
   },
   {
@@ -107,7 +105,7 @@ const PAGE_INFO: Array<{ match: (pathname: string) => boolean; page: PageInfo }>
     page: {
       title: 'AI 추천',
       description: '모델의 연관성 추천과 기존 자격판정 결과를 구분해 확인합니다.',
-      breadcrumb: '공고 추천',
+      breadcrumb: '홈 › 공고 추천',
     },
   },
   {
