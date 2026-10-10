@@ -82,6 +82,24 @@ test('login without JavaScript keeps submit disabled until hydration', async ({ 
     await context.close();
   }
 });
+test('guide has exactly one title and its complete content, without a duplicate shell title band', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('/guide');
+  await expect(page.locator('nav.app-primary-nav')).toBeVisible();
+  await expect(page.locator('.app-title-band')).toHaveCount(0);
+  await expect(page.locator('#main-content h1')).toHaveText('이용안내');
+  await expect(page.locator('#main-content ol > li')).toHaveCount(3);
+  await expect(page.locator('#main-content main section')).toHaveCount(6);
+
+  // A client-side transition must not reintroduce the fallback title.
+  await page.locator('nav.app-primary-nav a[href="/notices"]').click();
+  await expect(page).toHaveURL(/\/notices$/);
+  await page.locator('nav.app-primary-nav a[href="/guide"]').click();
+  await expect(page).toHaveURL(/\/guide$/);
+  await expect(page.locator('.app-title-band')).toHaveCount(0);
+  await expect(page.locator('#main-content h1')).toHaveText('이용안내');
+});
+
 test('session expiration redirects safely to login', async ({ page }) => {
   await mockApi(page, { authenticated: false });
   await page.goto('/guide');
