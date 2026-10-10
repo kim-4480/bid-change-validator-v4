@@ -299,6 +299,8 @@ class BidNoticeVersion(Base):
     source_endpoint: Mapped[str] = mapped_column(Text)
     payload_hash: Mapped[str] = mapped_column(String(64))
     raw_json: Mapped[dict] = mapped_column(JSONB)
+    # 나라장터 면허제한·참가가능지역 조회 값. NULL 은 아직 받지 않음(services/participation_limits.py).
+    participation_limits: Mapped[dict | None] = mapped_column(JSONB)
     collected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
 

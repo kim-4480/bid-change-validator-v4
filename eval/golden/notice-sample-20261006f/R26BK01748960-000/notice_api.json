@@ -1,0 +1,18 @@
+{
+ "notice_no": "R26BK01748960",
+ "order": "000",
+ "licenses": [],
+ "regions": [
+  "경기도 남양주시"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "N",
+  "prdctClsfcLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "Y",
+  "cmmnSpldmdMethdNm": "(전자)분담이행",
+  "rgnLmtBidLocplcJdgmBssNm": "본사또는참여지사소재지",
+  "cntrctCnclsMthdNm": "수의계약"
+ },
+ "errors": []
+}

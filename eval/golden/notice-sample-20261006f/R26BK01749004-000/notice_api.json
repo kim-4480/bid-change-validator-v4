@@ -1,0 +1,69 @@
+{
+ "notice_no": "R26BK01749004",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "종합여행업",
+   "code": "1261",
+   "raw": {
+    "bidNtceNo": "R26BK01749004",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "종합여행업/1261",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:51:30",
+    "bsnsDivNm": "용역"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "2",
+   "name": "국내외여행업",
+   "code": "1262",
+   "raw": {
+    "bidNtceNo": "R26BK01749004",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "2",
+    "lcnsLmtNm": "국내외여행업/1262",
+    "permsnIndstrytyList": "[종합여행업/1261]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:51:30",
+    "bsnsDivNm": "용역"
+   }
+  },
+  {
+   "group": "3",
+   "seq": "3",
+   "name": "국내여행업",
+   "code": "1263",
+   "raw": {
+    "bidNtceNo": "R26BK01749004",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "3",
+    "lmtSno": "3",
+    "lcnsLmtNm": "국내여행업/1263",
+    "permsnIndstrytyList": "[종합여행업/1261],[국내외여행업/1262]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:51:30",
+    "bsnsDivNm": "용역"
+   }
+  }
+ ],
+ "regions": [
+  "경상남도"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "prdctClsfcLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "제한경쟁"
+ },
+ "errors": []
+}

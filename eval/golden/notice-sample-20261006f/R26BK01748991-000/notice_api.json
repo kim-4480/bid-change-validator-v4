@@ -1,0 +1,17 @@
+{
+ "notice_no": "R26BK01748991",
+ "order": "000",
+ "licenses": [],
+ "regions": [
+  "울산광역시"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "N",
+  "prdctClsfcLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "제한경쟁"
+ },
+ "errors": []
+}

@@ -36,6 +36,8 @@ from bidengine.pipeline.analysis_pipeline import (
     QualificationDocumentInput,
     analyze_qualification_documents,
 )
+from bidengine.normalization.regions import sidos_of
+from bidengine.pipeline.notice_limits import NoticeLimits, license_groups
 from bideval.master_vocabulary import CsvIndustryNameResolver
 from bideval.notice_sample import load_sample
 
@@ -49,6 +51,9 @@ REFERENCE_DATE = date(2026, 10, 7)
 _FAR_REGIONS = ("제주특별자치도 서귀포시", "강원특별자치도 삼척시", "전라남도 신안군")
 # 규모 요건을 어기는 규모: 요구한 규모 낱말 → 그보다 큰 규모.
 _BREAK_SIZE = {"소상공인": "MEDIUM", "소기업": "MEDIUM", "중기업": "LARGE", "중소기업": "LARGE"}
+
+
+_STATUS_NAME = {"eligible": "core_met", "ineligible": "core_unmet", "insufficient_data": "needs_review"}
 
 
 class FileMemory(dict):
@@ -101,17 +106,67 @@ def broken_profiles(label: dict) -> list[tuple[str, dict]]:
     return out
 
 
+def load_limits(label_id: str) -> NoticeLimits | None:
+    """collect_notice_limits.py 가 받아 둔 나라장터 면허제한·참가가능지역. 없으면 None."""
+    path = SAMPLE / label_id / "notice_api.json"
+    return NoticeLimits.from_collected(json.loads(path.read_text(encoding="utf-8"))) if path.exists() else None
+
+
+def with_notice_limits(label: dict, limits: NoticeLimits | None) -> dict:
+    """가상 회사는 공고의 자격을 모두 갖춘 회사다 — 나라장터에 입력된 면허·지역도 갖춘 것으로 맞춘다.
+
+    정답은 문서만 보고 썼다. 면허제한의 첫 묶음 면허를 더하고, 참가가능지역과 시·도가 어긋나면 첫 지역으로 옮긴다.
+    핵심 요건을 하나씩 빼는 검사(broken_profiles)는 이렇게 맞춘 회사에서 뺀다.
+    """
+    if limits is None:
+        return label
+    profile = json.loads(json.dumps(label["ideal_profile"]))
+    groups = license_groups(limits)
+    held = {item["code"] for item in profile["industries"]}
+    if groups and not any(group <= held for group in groups):
+        names = {item.code: item.name for item in limits.licenses}
+        profile["industries"] += [{"code": code, "name": names.get(code, code), "verified": True} for code in sorted(groups[0] - held)]
+    api_sidos = set().union(set(), *(sidos_of(region) for region in limits.regions))
+    if api_sidos and not (api_sidos & sidos_of(profile.get("region_name"))):
+        profile["region_name"] = limits.regions[0]
+    return {**label, "ideal_profile": profile}
+
+
+_RESOLVER = CsvIndustryNameResolver()
+
+
+def parent_licence_profiles(label: dict) -> list[tuple[str, dict]]:
+    """핵심 업종 요건마다, 그 업종 대신 그것을 포함하는 상위 면허 하나만 가진 가상 회사(포함 면허가 있는 업종만)."""
+    ideal = label["ideal_profile"]
+    out: list[tuple[str, dict]] = []
+    for item in label["core"]:
+        if item["type"] != "INDUSTRY":
+            continue
+        values = [str(v) for v in [*item["values"], *item.get("also_accept", [])]]
+        held = [i for i in ideal["industries"] if i["code"] in values]
+        parent = next((p for i in held for p in _RESOLVER.including_codes(i["code"]) if p not in values), None)
+        if not held or parent is None:
+            continue
+        profile = json.loads(json.dumps(ideal))
+        profile["industries"] = [i for i in profile["industries"] if i["code"] not in values] + [{"code": parent, "name": parent, "verified": True}]
+        out.append((item["id"], profile))
+    return out
+
+
 def judge(result, profile: dict, label_id: str) -> tuple[str, dict[str, str]]:
     judged = judge_requirements(
         result.requirements, CompanyProfileSnapshot.model_validate(profile), preflight_case_id=label_id,
         reference_date=REFERENCE_DATE, analysis_status=result.status, coverage_complete=result.coverage.verdict_complete,
+        no_restriction_stated=result.coverage.no_restriction_stated,
     )
     return judged.overall_status, {j.requirement_key: j.status for j in judged.judgments}
 
 
-def run_one(version, label: dict, run: int, model: str, memories: dict[str, dict] | None) -> dict:
+def run_one(version, label: dict, run: int, model: str, memories: dict[str, dict] | None, use_limits: bool = True) -> dict:
     started = time.monotonic()
     memories = memories or {}
+    limits = load_limits(version.label) if use_limits else None
+    label = with_notice_limits(label, limits)
     result = analyze_qualification_documents(
         QualificationAnalysisInput(
             notice_id=version.label, notice_version_id=f"{version.label}-r{run}",
@@ -121,20 +176,24 @@ def run_one(version, label: dict, run: int, model: str, memories: dict[str, dict
         extraction_mode="closed_first", clause_selection="hybrid",
         labeling_memory=memories.get("labeling", {}), selection_memory=memories.get("selection", {}),
         polarity_memory=memories.get("polarity", {}), gap_summary_memory=memories.get("gap_summary", {}),
-        memory_namespace=model,
+        memory_namespace=model, notice_limits=limits,
     )
     reqs = [r.model_dump(mode="json") for r in result.requirements]
     gaps = [g.model_dump(mode="json") for g in result.coverage.gaps]
     score = score_run({"version": version.label, "requirements": reqs, "gaps": gaps}, label)
     overall, status = judge(result, label["ideal_profile"], version.label)
-    expect = label.get("expect", "eligible")
+    # 정답 파일은 예전 이름(eligible·ineligible·insufficient_data)으로 적혀 있다.
+    expect = _STATUS_NAME.get(label.get("expect", "core_met"), label.get("expect", "core_met"))
     broken = {core_id: judge(result, profile, version.label)[0] for core_id, profile in broken_profiles(label)}
+    # 포함 면허: 핵심 업종 대신 그 업종을 포함하는 상위 면허만 가진 회사 — 부적합이면 틀린 부적합이다.
+    parents = {core_id: judge(result, profile, version.label)[0] for core_id, profile in parent_licence_profiles(label)}
     return {
         "label": version.label, "run": run, "seconds": round(time.monotonic() - started),
         "overall": overall, "expect": expect,
-        "false_ineligible": overall == "ineligible" and expect != "ineligible",
-        "false_eligible": sorted(core_id for core_id, verdict in broken.items() if verdict == "eligible"),
+        "false_ineligible": overall == "core_unmet" and expect != "core_unmet",
+        "false_eligible": sorted(core_id for core_id, verdict in broken.items() if verdict == "core_met"),
         "broken": broken, "core": score["core"],
+        "parent_licence": parents, "false_ineligible_parent": sorted(k for k, verdict in parents.items() if verdict == "core_unmet"),
         "wrong": [f"{w['type']} {w['value']}" for w in score["wrong"]],
         "requirements": [{"type": r.type, "value": r.value, "group": r.group_operator, "key": r.requirement_key,
                           "tier": requirement_tier(r), "judgment": status.get(r.requirement_key),
@@ -157,6 +216,8 @@ def summarize(rows: list[dict]) -> dict:
         counter["false_ineligible"] += row["false_ineligible"]
         counter["broken_checked"] += len(row["broken"])
         counter["false_eligible"] += len(row["false_eligible"])
+        counter["parent_checked"] += len(row["parent_licence"])
+        counter["false_ineligible_parent"] += len(row["false_ineligible_parent"])
         counter["eligible_as_expected"] += row["overall"] == row["expect"]
     return dict(counter)
 
@@ -171,6 +232,7 @@ def main() -> None:
     parser.add_argument("--memory", type=Path, help="조항 답 기억 파일(이어 쓴다)")
     parser.add_argument("--baseline", type=Path, help="비교할 이전 결과(jsonl)")
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--no-limits", action="store_true", help="나라장터 면허제한·참가가능지역 없이(문서만으로) 잰다")
     args = parser.parse_args()
 
     label_paths = args.labels or sorted(SAMPLE.glob("labels*.json"))
@@ -193,7 +255,7 @@ def main() -> None:
     def work(key: str) -> None:
         for run in range(1, args.runs + 1):
             try:
-                row = run_one(versions[key], labels[key], run, args.model, memories)
+                row = run_one(versions[key], labels[key], run, args.model, memories, not args.no_limits)
             except Exception as error:  # noqa: BLE001 - 한 공고의 실패가 전체 측정을 멈추지 않게
                 row = {"label": key, "run": run, "error": repr(error)[:300]}
             with lock:
@@ -219,6 +281,8 @@ def main() -> None:
         print("표본에 없는 정답 공고:", len(missing))
     print("\n== 위험한 틀림 ==")
     for row in sorted(rows, key=lambda r: (r["label"], r["run"])):
+        if row.get("false_ineligible_parent"):
+            print(f"  {row['label'][7:]} r{row['run']} 상위 면허만 가진 회사가 부적합: {row['false_ineligible_parent']}")
         if row.get("false_ineligible") or row.get("false_eligible"):
             print(f"  {row['label'][7:]} r{row['run']} 판정 {row['overall']} 틀린 충족 {row['false_eligible']} 오답 {row['wrong'][:3]}")
     if args.baseline and args.baseline.exists():

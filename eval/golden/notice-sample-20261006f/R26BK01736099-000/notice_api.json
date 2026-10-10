@@ -1,0 +1,67 @@
+{
+ "notice_no": "R26BK01736099",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "2",
+   "name": "토목공사업",
+   "code": "0001",
+   "raw": {
+    "bidNtceNo": "R26BK01736099",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "2",
+    "lcnsLmtNm": "토목공사업/0001",
+    "permsnIndstrytyList": "[토목건축공사업/0003]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:17:07",
+    "bsnsDivNm": "공사"
+   }
+  },
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "건축공사업",
+   "code": "0002",
+   "raw": {
+    "bidNtceNo": "R26BK01736099",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "건축공사업/0002",
+    "permsnIndstrytyList": "[토목건축공사업/0003]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:17:07",
+    "bsnsDivNm": "공사"
+   }
+  },
+  {
+   "group": "1",
+   "seq": "3",
+   "name": "기계설비ㆍ가스공사업",
+   "code": "6202",
+   "raw": {
+    "bidNtceNo": "R26BK01736099",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "3",
+    "lcnsLmtNm": "기계설비ㆍ가스공사업/6202",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "[1^기계설비공사]",
+    "rgstDt": "2026-09-29 15:17:07",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(전자)공동이행",
+  "cntrctCnclsMthdNm": "제한경쟁(1등급)",
+  "cnstrtsiteRgnNm": "경기도 시흥시"
+ },
+ "errors": []
+}

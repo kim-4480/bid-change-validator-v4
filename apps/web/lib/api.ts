@@ -1,3 +1,4 @@
+import { mayCacheGet, sharedRead, invalidateSharedData, clearSharedData } from './shared-query-cache';
 import { noticeListParams, type NoticeListOptions } from './notice-pagination';
 
 const configuredApiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000';
@@ -28,7 +29,9 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
   const base = new URL(API_BASE_URL, typeof window === 'undefined' ? 'http://localhost' : window.location.origin);
   const target = new URL(url, base);
   try {
-    return await fetch(url, { ...init, credentials: target.origin === base.origin ? 'include' : 'omit' });
+    const response = await fetch(url, { ...init, credentials: target.origin === base.origin ? 'include' : 'omit' });
+    if (response.status === 401) clearSharedData();
+    return response;
   } catch {
     // fetch가 던지는 TypeError('Failed to fetch')는 서버까지 닿지 못했다는 뜻이다.
     // 원문을 그대로 화면에 올리면 사용자가 읽을 수 없으므로 여기서 한 번만 바꾼다.
@@ -37,7 +40,10 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
   }
 }
 
-async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
+async function apiRequest<T>(path: string, init?: RequestInit, useCache = true): Promise<T> {
+  if (useCache && (!init?.method || init.method.toUpperCase() === 'GET') && mayCacheGet(path)) {
+    return sharedRead(path, () => apiRequest<T>(path, init, false));
+  }
   const headers = new Headers(init?.headers);
   if (!(init?.body instanceof FormData)) headers.set('Content-Type', 'application/json');
   const response = await apiFetch(path, {
@@ -46,6 +52,7 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
     headers,
   });
   if (!response.ok) {
+    if (response.status === 401) clearSharedData();
     const payload = (await response.json().catch(() => null)) as {
       error?: { message?: string; code?: string };
     } | null;
@@ -55,7 +62,9 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
       payload?.error?.code ?? 'HTTP_ERROR',
     );
   }
-  return response.json() as Promise<T>;
+  const data = await response.json() as T;
+  if (init?.method && !['GET', 'HEAD'].includes(init.method.toUpperCase())) invalidateSharedData();
+  return data;
 }
 
 export type NoticeDocument = {

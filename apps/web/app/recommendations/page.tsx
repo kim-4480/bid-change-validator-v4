@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { sharedQueryClient, invalidateSharedData } from '@/lib/shared-query-cache';
 import { ArrowUpRight, BrainCircuit, RefreshCw, ShieldCheck } from 'lucide-react';
 import { NavigationLink } from '@/components/navigation-link';
 import { Button } from '@/components/ui/button';
@@ -53,7 +54,7 @@ function describeFailure(error: unknown) {
 }
 
 export default function RecommendationsPage() {
-  const [state, setState] = useState<RecommendationState>(INITIAL);
+  const [state, setState] = useState<RecommendationState>(() => sharedQueryClient().getQueryData<RecommendationState>(['view', 'recommendations']) ?? INITIAL);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -74,14 +75,16 @@ export default function RecommendationsPage() {
           listMlRecommendations(company.id),
         ]);
         if (!active) return;
-        setState({
+        const next: RecommendationState = {
           loading: false, companyName: company.name,
           matches: matches.status === 'fulfilled' ? matches.value.items : [],
           ml: ml.status === 'fulfilled' ? ml.value : null,
           mlError: ml.status === 'rejected' ? describeFailure(ml.reason) : null,
           matchingError: matches.status === 'rejected' ? describeFailure(matches.reason) : null,
           error: null,
-        });
+        };
+        sharedQueryClient().setQueryData(['view', 'recommendations'], next);
+        setState(next);
       } catch (error) {
         if (active) setState({ ...INITIAL, loading: false, error: describeFailure(error) });
       }
@@ -91,6 +94,7 @@ export default function RecommendationsPage() {
   }, [attempt]);
 
   function retry() {
+    invalidateSharedData();
     setState(INITIAL);
     setAttempt((value) => value + 1);
   }
@@ -118,7 +122,8 @@ export default function RecommendationsPage() {
       </div>
 
       {state.loading ? (
-        <output className="mt-8 block rounded-xl border bg-white p-5 text-sm" aria-live="polite">
+        <output className="mt-8 block space-y-4 rounded-xl border bg-white p-5 text-sm" aria-live="polite">
+          {[0, 1, 2].map((index) => <div key={index} className="h-20 animate-pulse rounded-xl bg-slate-100" />)}
           추천 및 기존 자격판정 결과를 확인하고 있습니다.
         </output>
       ) : state.error ? (

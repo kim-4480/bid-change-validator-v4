@@ -1,5 +1,8 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+import { sharedQueryClient } from '@/lib/shared-query-cache';
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertCircle,
@@ -25,7 +28,6 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { findPreflightCasesByNotice, getNoticeVersions, listNotices, type BidNoticeSummary } from '@/lib/api';
 import { createPreflightCaseWithCompany, listCompanies, type CompanyProfile } from '@/lib/qualification-api';
-import { navigateTo } from '@/lib/navigation';
 import { productProfileCoverage } from '@/lib/product-profile';
 import { ASK_BACK_REASON_COPY, BUSINESS_TYPE_LABEL, labelOf, OVERALL_STATUS_BADGE } from '@/lib/status-copy';
 type OverallStatus = 'core_met' | 'core_unmet' | 'unreviewed' | 'needs_review';
@@ -35,22 +37,36 @@ const EMPTY_COUNTS: Record<OverallStatus, number> = {
   core_met: 0, core_unmet: 0, unreviewed: 0, needs_review: 0,
 };
 
+type NoticeView = {
+  notices: BidNoticeSummary[];
+  total: number;
+  counts: Record<OverallStatus, number>;
+  company: CompanyProfile | null;
+  query: string;
+  page: number;
+  status: StatusFilter;
+  businessType: string;
+};
+function previousNotices(): NoticeView | undefined {
+  return sharedQueryClient().getQueryData<NoticeView>(['view', 'notices']);
+}
 export default function NoticesPage() {
-  const [notices, setNotices] = useState<BidNoticeSummary[]>([]);
-  const [noticeTotal, setNoticeTotal] = useState(0);
-  const [statusCounts, setStatusCounts] = useState<Record<OverallStatus, number>>(EMPTY_COUNTS);
-  const [company, setCompany] = useState<CompanyProfile | null>(null);
-  const [query, setQuery] = useState('');
-  const [activeQuery, setActiveQuery] = useState('');
-  const [pageIndex, setPageIndex] = useState(0);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [businessTypeFilter, setBusinessTypeFilter] = useState('all');
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const [notices, setNotices] = useState<BidNoticeSummary[]>(() => previousNotices()?.notices ?? []);
+  const [noticeTotal, setNoticeTotal] = useState(() => previousNotices()?.total ?? 0);
+  const [statusCounts, setStatusCounts] = useState<Record<OverallStatus, number>>(() => previousNotices()?.counts ?? EMPTY_COUNTS);
+  const [company, setCompany] = useState<CompanyProfile | null>(() => previousNotices()?.company ?? null);
+  const [query, setQuery] = useState(() => previousNotices()?.query ?? '');
+  const [activeQuery, setActiveQuery] = useState(() => previousNotices()?.query ?? '');
+  const [pageIndex, setPageIndex] = useState(() => previousNotices()?.page ?? 0);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => previousNotices()?.status ?? 'all');
+  const [businessTypeFilter, setBusinessTypeFilter] = useState(() => previousNotices()?.businessType ?? 'all');
+  const [loading, setLoading] = useState(() => !previousNotices());
   const [creatingNoticeId, setCreatingNoticeId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [showRejected, setShowRejected] = useState(true);
   const searchGeneration = useRef(0);
-  const companyCache = useRef<CompanyProfile | null>(null);
+  const companyCache = useRef<CompanyProfile | null>(previousNotices()?.company ?? null);
 
   async function initialize(
     searchQuery = activeQuery,
@@ -65,8 +81,6 @@ export default function NoticesPage() {
     setStatusFilter(selectedStatus);
     setLoading(true);
     setError('');
-    setNotices([]);
-    setNoticeTotal(0);
     try {
       if (!companyCache.current) {
         const companies = await listCompanies();
@@ -96,6 +110,11 @@ export default function NoticesPage() {
       setNotices(result.items);
       setNoticeTotal(result.total);
       setStatusCounts({ ...EMPTY_COUNTS, ...result.status_counts });
+      sharedQueryClient().setQueryData<NoticeView>(['view', 'notices'], {
+        notices: result.items, total: result.total, counts: { ...EMPTY_COUNTS, ...result.status_counts },
+        company: selectedCompany, query: normalizedQuery, page: nextPage,
+        status: selectedStatus, businessType: selectedBusinessType,
+      });
       setLoading(false);
     } catch (cause) {
       if (generation !== searchGeneration.current) return;
@@ -105,7 +124,8 @@ export default function NoticesPage() {
   }
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void initialize('', 0, 'all', 'all'), 0);
+    const saved = previousNotices();
+    const timer = window.setTimeout(() => void initialize(saved?.query ?? '', saved?.page ?? 0, saved?.businessType ?? 'all', saved?.status ?? 'all'), 0);
     return () => { window.clearTimeout(timer); searchGeneration.current += 1; };
   }, []);
 
@@ -139,7 +159,7 @@ export default function NoticesPage() {
   async function startReview(notice: BidNoticeSummary) {
     const existing = existingCaseByNotice.get(notice.id);
     if (existing) {
-      navigateTo(`/qualification?caseId=${existing}`);
+      router.push(`/qualification?caseId=${existing}`);
       return;
     }
     if (!company) {
@@ -158,7 +178,7 @@ export default function NoticesPage() {
       const known = await findPreflightCasesByNotice(notice.id, company.id);
       const reusable = known.items.find((item) => item.current_version_number === notice.current_version);
       if (reusable) {
-        navigateTo(`/qualification?caseId=${reusable.id}`);
+        router.push(`/qualification?caseId=${reusable.id}`);
         return;
       }
       const versions = await getNoticeVersions(notice.id);
@@ -174,7 +194,7 @@ export default function NoticesPage() {
         current_version_number: current.version_number,
         title: `${notice.bid_notice_no} 참가자격 검토`,
       });
-      navigateTo(`/qualification?caseId=${created.id}`);
+      router.push(`/qualification?caseId=${created.id}`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '검토 건 생성에 실패했습니다.');
     } finally {
@@ -183,7 +203,7 @@ export default function NoticesPage() {
   }
 
   return (
-    <main className="bg-white text-[var(--product-body)]">
+    <main className="bg-white text-[var(--product-body)]" aria-busy={loading}>
       <section className="border-b border-[var(--product-line)] bg-[linear-gradient(120deg,#e6eeff_0%,#f0ebff_48%,#e8f4ff_100%)]">
         <div className="app-shell-container pt-9 pb-10 md:pt-10 md:pb-12">
           {/*
@@ -274,12 +294,17 @@ export default function NoticesPage() {
           </div>
 
           {/* DL-007 — 「전체 공고」가 아니라 「검색으로 좁힌 결과의 상위 N건」이라는 사실은 남기되, 문장이 아니라 수치로 적는다. */}
+          {loading && notices.length > 0 && (
+            <output className="mt-3 block text-[13px] font-medium text-[var(--product-muted)]">
+              ?? ??? ??? ???? ?? ??? ???? ????.
+            </output>
+          )}
           {!loading && <div className="mt-3 space-y-1 text-[13px] text-[var(--product-muted)]">
             <p>검색·필터 결과 전체 {noticeTotal.toLocaleString()}건 · 현재 페이지 {pageRange.start.toLocaleString()}–{pageRange.end.toLocaleString()}건 · 목록 표시 {activeNotices.length}건</p>
             <p>판정 상태별 건수는 선택한 회사의 전체 검색 결과 기준입니다.</p>
           </div>}
 
-          {loading ? <div className="grid min-h-64 place-items-center"><LoaderCircle className="size-7 animate-spin text-[var(--product-accent)]" /></div> : activeNotices.length ? (
+          {loading && notices.length === 0 ? <div className="grid min-h-64 place-items-center rounded-xl bg-slate-50" aria-label="?? ?? ???? ?"><div className="w-full space-y-3 px-5">{[0, 1, 2].map((index) => <div key={index} className="h-14 animate-pulse rounded-lg bg-slate-200" />)}</div></div> : activeNotices.length ? (
             /*
               카드 6장을 나열하면 한 화면에 6건뿐이라 서로 비교가 안 된다.
               같은 열을 세로로 세워 공고명·기관·유형·변경·검토 상태를 한눈에 견주게 한다.

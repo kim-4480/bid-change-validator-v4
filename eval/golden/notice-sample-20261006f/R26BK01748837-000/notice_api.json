@@ -1,0 +1,18 @@
+{
+ "notice_no": "R26BK01748837",
+ "order": "000",
+ "licenses": [],
+ "regions": [
+  "전남광주통합특별시 함평군"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "N",
+  "prdctClsfcLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "rgnLmtBidLocplcJdgmBssNm": "본사또는참여지사소재지",
+  "cntrctCnclsMthdNm": "수의계약"
+ },
+ "errors": []
+}

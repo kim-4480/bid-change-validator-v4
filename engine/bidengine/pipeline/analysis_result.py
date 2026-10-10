@@ -130,6 +130,9 @@ class AnalysisCoverage(BaseModel):
     # 완료 여부에는 영향이 없다. 조항이 소리 없이 사라지지 않게 원문을 남긴다(clause_accounting).
     ignored: list[CoverageGap] = Field(default_factory=list)
     unclassified_blocks_eligibility: bool = False
+    # 나라장터가 '참가 제한이 없는 입찰'(일반경쟁, 면허제한·지역·제한 표시 없음)이라고 말한다. 문서에서 요건을 하나도
+    # 못 찾았을 때만 판정기가 본다 — 추출 실패가 아니라 정말 제한이 없다는 확인이다(notice_limits.py).
+    no_restriction_stated: bool = False
 
     @computed_field  # type: ignore[prop-decorator]
     @property

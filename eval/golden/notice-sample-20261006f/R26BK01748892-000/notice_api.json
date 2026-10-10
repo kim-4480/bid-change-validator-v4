@@ -1,0 +1,35 @@
+{
+ "notice_no": "R26BK01748892",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "기계설비ㆍ가스공사업",
+   "code": "6202",
+   "raw": {
+    "bidNtceNo": "R26BK01748892",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "기계설비ㆍ가스공사업/6202",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "[1^기계설비공사]",
+    "rgstDt": "2026-09-29 15:29:30",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [
+  "서울특별시"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "제한경쟁",
+  "cnstrtsiteRgnNm": "서울특별시"
+ },
+ "errors": []
+}

@@ -1,6 +1,6 @@
 name: AWS dev build and deploy
 
-# Manual-only AWS build/deploy gate. Automatic ECR/S3 writes on develop push are forbidden.
+# Deploy only a merged develop commit whose push CI succeeded. Manual dispatch remains available.
 on:
   workflow_dispatch:
     inputs:
@@ -9,6 +9,10 @@ on:
         required: true
         type: boolean
         default: false
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [develop]
 
 permissions:
   contents: read
@@ -16,7 +20,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: aws-dev-${{ github.event_name }}
+  group: aws-dev-develop
   cancel-in-progress: false
 
 env:
@@ -25,31 +29,52 @@ env:
   INSTANCE_ID: i-080c0feecbcfb9826
   BUCKET: bidcheck-dev-docs-226234259348-apne2
   SITE_ORIGIN: https://15-165-249-43.sslip.io
+  DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
 
 jobs:
   build:
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop'
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'develop' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    outputs:
+      current: ${{ steps.target.outputs.current }}
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          ref: ${{ env.DEPLOY_SHA }}
+      - name: Skip superseded develop commit
+        id: target
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/develop" --jq '.object.sha')
+          if [ "$current" = "$DEPLOY_SHA" ]; then
+            echo 'current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo "Skipping superseded commit $DEPLOY_SHA; develop is $current"
+            echo 'current=false' >> "$GITHUB_OUTPUT"
+          fi
       - uses: aws-actions/configure-aws-credentials@v4
+        if: steps.target.outputs.current == 'true'
         with:
           role-to-assume: arn:aws:iam::226234259348:role/bidcheck-dev-github-deploy-role
           aws-region: ap-northeast-2
       - name: Wait for successful develop CI
+        if: steps.target.outputs.current == 'true' && github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           for attempt in $(seq 1 60); do
-            state=$(gh run list --workflow ci.yml --branch develop --commit "$GITHUB_SHA" --event push --limit 5 \
+            state=$(gh run list --workflow ci.yml --branch develop --commit "$DEPLOY_SHA" --event push --limit 5 \
               --json status,conclusion \
               --jq 'if length == 0 then "not_found" else .[0].status + ":" + (.[0].conclusion // "") end')
             case "$state" in
-              completed:success) echo "CI passed for $GITHUB_SHA"; exit 0 ;;
+              completed:success) echo "CI passed for $DEPLOY_SHA"; exit 0 ;;
               completed:*) echo "CI not successful: $state"; exit 1 ;;
               *) echo "Waiting for CI: $state"; sleep 15 ;;
             esac
@@ -57,39 +82,59 @@ jobs:
           echo "CI timeout after 15 minutes" >&2
           exit 1
       - name: Login to ECR
+        if: steps.target.outputs.current == 'true'
         run: aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$REGISTRY"
       - name: Build and publish immutable API image
+        if: steps.target.outputs.current == 'true'
         run: |
-          if ! aws ecr describe-images --repository-name bidcheck-v4-api --image-ids imageTag="$GITHUB_SHA" >/dev/null 2>&1; then
-            docker build -f apps/api/Dockerfile -t "$REGISTRY/bidcheck-v4-api:$GITHUB_SHA" .
-            docker push "$REGISTRY/bidcheck-v4-api:$GITHUB_SHA"
+          if ! aws ecr describe-images --repository-name bidcheck-v4-api --image-ids imageTag="$DEPLOY_SHA" >/dev/null 2>&1; then
+            docker build -f apps/api/Dockerfile -t "$REGISTRY/bidcheck-v4-api:$DEPLOY_SHA" .
+            docker push "$REGISTRY/bidcheck-v4-api:$DEPLOY_SHA"
           fi
       - name: Build and publish immutable Web image
+        if: steps.target.outputs.current == 'true'
         run: |
-          if ! aws ecr describe-images --repository-name bidcheck-v4-web --image-ids imageTag="$GITHUB_SHA" >/dev/null 2>&1; then
+          if ! aws ecr describe-images --repository-name bidcheck-v4-web --image-ids imageTag="$DEPLOY_SHA" >/dev/null 2>&1; then
             docker build -f apps/web/Dockerfile.aws --build-arg NEXT_PUBLIC_API_BASE_URL="$SITE_ORIGIN" \
-              -t "$REGISTRY/bidcheck-v4-web:$GITHUB_SHA" .
-            docker push "$REGISTRY/bidcheck-v4-web:$GITHUB_SHA"
+              -t "$REGISTRY/bidcheck-v4-web:$DEPLOY_SHA" .
+            docker push "$REGISTRY/bidcheck-v4-web:$DEPLOY_SHA"
           fi
       - name: Publish small runtime bundle
+        if: steps.target.outputs.current == 'true'
         run: |
           tar -czf runtime.tar.gz -C deploy/aws \
             docker-compose.yml Caddyfile prepare-env.py deploy.sh install-runtime.sh smoke_storage.py
-          aws s3 cp runtime.tar.gz "s3://$BUCKET/deploy/runtime-$GITHUB_SHA.tar.gz" --only-show-errors
+          aws s3 cp runtime.tar.gz "s3://$BUCKET/deploy/runtime-$DEPLOY_SHA.tar.gz" --only-show-errors
 
   deploy:
-    if: github.event_name == 'workflow_dispatch' && inputs.deploy == true
+    if: >-
+      needs.build.outputs.current == 'true' &&
+      (github.event_name == 'workflow_run' || inputs.deploy == true)
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Skip if a newer commit reached develop during build
+        id: target
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/develop" --jq '.object.sha')
+          if [ "$current" = "$DEPLOY_SHA" ]; then
+            echo 'current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo "Skipping superseded commit $DEPLOY_SHA; develop is $current"
+            echo 'current=false' >> "$GITHUB_OUTPUT"
+          fi
       - uses: aws-actions/configure-aws-credentials@v4
+        if: steps.target.outputs.current == 'true'
         with:
           role-to-assume: arn:aws:iam::226234259348:role/bidcheck-dev-github-deploy-role
           aws-region: ap-northeast-2
       - name: Deploy through SSM without SSH or GitHub-hosted secrets
+        if: steps.target.outputs.current == 'true'
         run: |
-          COMMANDS=$(jq -nc --arg bucket "$BUCKET" --arg sha "$GITHUB_SHA" '{commands:[
+          COMMANDS=$(jq -nc --arg bucket "$BUCKET" --arg sha "$DEPLOY_SHA" '{commands:[
             "set -eu",
             "install -d -m 0700 /opt/bidcheck",
             ("aws s3 cp s3://"+$bucket+"/deploy/runtime-"+$sha+".tar.gz /opt/bidcheck/runtime.tar.gz --region ap-northeast-2 --only-show-errors"),

@@ -1,6 +1,7 @@
 // No test framework or emitted files: use the already installed TypeScript compiler.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runInThisContext } from 'node:vm';
@@ -8,6 +9,7 @@ import ts from 'typescript';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const modules = new Map();
+const nativeRequire = createRequire(import.meta.url);
 function load(file) {
   if (modules.has(file)) return modules.get(file).exports;
   const compiled = { exports: {} };
@@ -16,7 +18,12 @@ function load(file) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }, fileName: file,
   });
   runInThisContext(`(function(require,module,exports){${outputText}\n})`, { filename: file })(
-    (name) => load(resolve(dirname(file), `${name}.ts`)), compiled, compiled.exports,
+    (name) => {
+      if (name.startsWith('@/')) return load(resolve(root, `${name.slice(2)}.ts`));
+      if (name.startsWith('.')) return load(resolve(dirname(file), `${name}.ts`));
+      // External dependencies and built-ins are loaded with Node's standard resolver.
+      return nativeRequire(name);
+    }, compiled, compiled.exports,
   );
   return compiled.exports;
 }

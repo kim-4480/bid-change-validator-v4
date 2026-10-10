@@ -1,0 +1,118 @@
+{
+ "notice_no": "R26BK01748746",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "2",
+   "name": "학술.연구용역",
+   "code": "1169",
+   "raw": {
+    "bidNtceNo": "R26BK01748746",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "2",
+    "lcnsLmtNm": "학술.연구용역/1169",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:46:10",
+    "bsnsDivNm": "용역"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "5",
+   "name": "학술.연구용역",
+   "code": "1169",
+   "raw": {
+    "bidNtceNo": "R26BK01748746",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "5",
+    "lcnsLmtNm": "학술.연구용역/1169",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:46:10",
+    "bsnsDivNm": "용역"
+   }
+  },
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "회계법인",
+   "code": "1200",
+   "raw": {
+    "bidNtceNo": "R26BK01748746",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "회계법인/1200",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:46:10",
+    "bsnsDivNm": "용역"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "4",
+   "name": "회계법인",
+   "code": "1200",
+   "raw": {
+    "bidNtceNo": "R26BK01748746",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "4",
+    "lcnsLmtNm": "회계법인/1200",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:46:10",
+    "bsnsDivNm": "용역"
+   }
+  },
+  {
+   "group": "1",
+   "seq": "3",
+   "name": "법무법인",
+   "code": "2305",
+   "raw": {
+    "bidNtceNo": "R26BK01748746",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "3",
+    "lcnsLmtNm": "법무법인/2305",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:46:10",
+    "bsnsDivNm": "용역"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "6",
+   "name": "법무법인(유한)",
+   "code": "2307",
+   "raw": {
+    "bidNtceNo": "R26BK01748746",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "6",
+    "lcnsLmtNm": "법무법인(유한)/2307",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:46:10",
+    "bsnsDivNm": "용역"
+   }
+  }
+ ],
+ "regions": [],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "prdctClsfcLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(전자)공동이행 또는 분담이행",
+  "cntrctCnclsMthdNm": "수의계약"
+ },
+ "errors": []
+}

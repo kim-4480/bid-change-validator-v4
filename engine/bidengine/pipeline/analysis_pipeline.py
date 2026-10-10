@@ -44,6 +44,8 @@ from bidengine.ports import IndustryNameResolver
 ValueNormalizer = Callable[[str], dict[str, Any]]
 
 
+from bidengine.pipeline.notice_limits import NoticeLimits, mark_accepted_licences, merge_notice_limits  # noqa: E402
+
 class QualificationDocumentInput(BaseModel):
     """Minimal Backend -> AI document input used by the orchestration layer."""
 
@@ -134,6 +136,7 @@ def analyze_qualification_documents(
     summarize_gaps: bool = True,
     legacy_retrieval_mode: str = "section",
     dense_ranked_ids: list[str] | None = None,
+    notice_limits: "NoticeLimits | None" = None,
 ) -> RequirementAnalysisResult:
     """Run one qualification Requirement analysis without touching Backend state.
 
@@ -348,6 +351,12 @@ def analyze_qualification_documents(
                 {"code": "UNMAPPED_REQUIREMENT", "raw": item.raw} if orphan
                 else {"code": "CLAUSE_NOT_LABELLED", "raw": item.raw, "reason": "CHECKLIST_FRAGMENT"}
             )
+    # 나라장터가 구조화해 둔 면허제한·참가가능지역으로 문서에서 뽑은 요건을 보강한다(notice_limits.py).
+    canonicalized["requirements"], limit_diagnostics = merge_notice_limits(
+        list(canonicalized["requirements"]), notice_limits, notice_version_id=analysis_input.notice_version_id,
+    )
+    canonicalized["diagnostics"].extend(limit_diagnostics)
+    canonicalized["requirements"] = mark_accepted_licences(list(canonicalized["requirements"]), industry_resolver)
     result = build_requirement_analysis_result(
         notice_id=analysis_input.notice_id,
         notice_version_id=analysis_input.notice_version_id,
@@ -363,6 +372,8 @@ def analyze_qualification_documents(
         input_truncated=bool(extraction.get("input_truncated")),
         candidate_count=int(extraction.get("candidate_count") or 0),
     )
+    if notice_limits is not None and notice_limits.no_restriction_stated:
+        result = result.model_copy(update={"coverage": result.coverage.model_copy(update={"no_restriction_stated": True})})
     result = with_document_notes(result, chunks)
     if summarize_gaps:
         result = _with_gap_summaries(

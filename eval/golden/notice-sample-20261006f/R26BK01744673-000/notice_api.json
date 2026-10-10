@@ -1,0 +1,36 @@
+{
+ "notice_no": "R26BK01744673",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "전기공사업",
+   "code": "0037",
+   "raw": {
+    "bidNtceNo": "R26BK01744673",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "전기공사업/0037",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:45:33",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [
+  "제주특별자치도"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "rgnLmtBidLocplcJdgmBssNm": "본사또는참여지사소재지",
+  "cntrctCnclsMthdNm": "수의계약",
+  "cnstrtsiteRgnNm": "제주특별자치도 제주시"
+ },
+ "errors": []
+}

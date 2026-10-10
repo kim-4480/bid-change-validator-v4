@@ -17,6 +17,7 @@ from ...config import get_settings
 from ...errors import ApiError
 from ...models import BidNoticeVersion, NoticeProcessingAttempt, NoticeProcessingJob
 from ...services.notice_processing import claim_approved_analysis_job, enqueue_version_job, finish_job
+from ...services.participation_limits import participation_limits_fetcher
 from ..analysis import (
     QualificationAnalysisError,
     analysis_run_response,
@@ -155,6 +156,7 @@ def trigger_qualification_analysis(
             version_number=version_number,
             structured_extract=extractor,
             commit=False,
+            limits_fetcher=participation_limits_fetcher(get_settings()),
         )
         finished = finish_job(db, job.id, attempt_number=job.attempts)
         if finished.status != "COMPLETED":

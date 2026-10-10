@@ -1,0 +1,35 @@
+{
+ "notice_no": "R26BK01723353",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "건축공사업",
+   "code": "0002",
+   "raw": {
+    "bidNtceNo": "R26BK01723353",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "건축공사업/0002",
+    "permsnIndstrytyList": "[토목건축공사업/0003]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:18:14",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [
+  "대전광역시"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "Y",
+  "cmmnSpldmdMethdNm": "(전자)공동이행",
+  "cntrctCnclsMthdNm": "제한경쟁",
+  "cnstrtsiteRgnNm": "대전광역시 유성구"
+ },
+ "errors": []
+}

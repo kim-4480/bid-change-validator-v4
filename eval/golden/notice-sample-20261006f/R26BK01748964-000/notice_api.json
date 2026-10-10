@@ -1,0 +1,56 @@
+{
+ "notice_no": "R26BK01748964",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "조경식재ㆍ시설물공사업",
+   "code": "4993",
+   "raw": {
+    "bidNtceNo": "R26BK01748964",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "조경식재ㆍ시설물공사업/4993",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "[1^조경시설물설치공사]",
+    "rgstDt": "2026-09-29 15:48:24",
+    "bsnsDivNm": "공사"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "1",
+   "name": "조경공사업",
+   "code": "0005",
+   "raw": {
+    "bidNtceNo": "R26BK01748964",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "1",
+    "lcnsLmtNm": "조경공사업/0005",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:48:24",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [
+  "전남광주통합특별시 동구",
+  "전남광주통합특별시 서구",
+  "전남광주통합특별시 남구",
+  "전남광주통합특별시 북구",
+  "전남광주통합특별시 광산구"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "제한경쟁",
+  "cnstrtsiteRgnNm": "전남광주통합특별시 북구"
+ },
+ "errors": []
+}
