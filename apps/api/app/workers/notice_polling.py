@@ -59,21 +59,27 @@ def build_changed_notice_request(
     )
 
 
-def build_foreign_registered_request(
+def build_registered_notice_request(
     settings: Settings,
     *,
+    business_type: BusinessType,
     now: datetime,
     last_completed_window_end: datetime | None,
     initial_window_start: datetime | None = None,
 ) -> NoticeSyncRequest:
-    """Preserve the oldest uncollected FOREIGN window across failed cycles."""
+    """Resume each business type's registration cursor independently of CHANGED."""
     if now.tzinfo is None:
         now = now.replace(tzinfo=KST)
     else:
         now = now.astimezone(KST)
 
     if last_completed_window_end is None:
-        window_start = initial_window_start or now - MAX_RECOVERY_WINDOW
+        initial_lookback = (
+            MAX_RECOVERY_WINDOW
+            if business_type == BusinessType.FOREIGN
+            else timedelta(minutes=settings.notice_poll_lookback_minutes)
+        )
+        window_start = initial_window_start or now - initial_lookback
     else:
         window_start = last_completed_window_end.astimezone(KST) - timedelta(
             minutes=settings.notice_poll_overlap_minutes
@@ -85,12 +91,28 @@ def build_foreign_registered_request(
     window_start = min(window_start, now)
 
     return NoticeSyncRequest(
-        business_type=BusinessType.FOREIGN,
+        business_type=business_type,
         inquiry_type=NoticeInquiryType.REGISTERED,
         window_started_at=window_start,
         window_ended_at=min(now, window_start + MAX_RECOVERY_WINDOW),
         page_size=settings.notice_poll_page_size,
         max_pages=settings.notice_poll_max_pages,
+    )
+
+
+def build_foreign_registered_request(
+    settings: Settings,
+    *,
+    now: datetime,
+    last_completed_window_end: datetime | None,
+    initial_window_start: datetime | None = None,
+) -> NoticeSyncRequest:
+    return build_registered_notice_request(
+        settings,
+        business_type=BusinessType.FOREIGN,
+        now=now,
+        last_completed_window_end=last_completed_window_end,
+        initial_window_start=initial_window_start,
     )
 
 
@@ -111,23 +133,32 @@ def _last_completed_window_end(
         )
 
 
-def _first_foreign_registered_window_start() -> datetime | None:
+def _first_registered_window_start(
+    business_type: BusinessType, *, not_before: datetime | None = None
+) -> datetime | None:
     # Anchor initial retries to the first persisted attempt, not moving now-30d.
     with SessionLocal() as db:
+        conditions = [
+            NoticeCollectionRun.business_type == business_type.value,
+            NoticeCollectionRun.inquiry_type == NoticeInquiryType.REGISTERED.value,
+            NoticeCollectionRun.status.in_(("FAILED", "RUNNING")),
+            NoticeCollectionRun.window_started_at.is_not(None),
+        ]
+        if not_before is not None:
+            conditions.append(NoticeCollectionRun.window_started_at >= not_before)
         return db.scalar(
             select(NoticeCollectionRun.window_started_at)
-            .where(
-                NoticeCollectionRun.business_type == BusinessType.FOREIGN.value,
-                NoticeCollectionRun.inquiry_type == NoticeInquiryType.REGISTERED.value,
-                NoticeCollectionRun.status.in_(("FAILED", "RUNNING")),
-                NoticeCollectionRun.window_started_at.is_not(None),
-            )
+            .where(*conditions)
             .order_by(NoticeCollectionRun.window_started_at.asc())
             .limit(1)
-        )
+    )
 
 
-def _sync_foreign_registered_window(
+def _first_foreign_registered_window_start() -> datetime | None:
+    return _first_registered_window_start(BusinessType.FOREIGN)
+
+
+def _sync_poll_window(
     request: NoticeSyncRequest,
     *,
     client: G2BClient,
@@ -141,7 +172,9 @@ def _sync_foreign_registered_window(
             document_downloader=document_downloader,
         )
     logger.info(
-        "foreign registered window status=%s start=%s end=%s fetched=%s created=%s",
+        "poll window business_type=%s inquiry_type=%s status=%s start=%s end=%s fetched=%s created=%s",
+        request.business_type.value,
+        request.inquiry_type.value,
         run.status,
         request.window_started_at,
         request.window_ended_at,
@@ -150,8 +183,10 @@ def _sync_foreign_registered_window(
     )
     if run.status == "COMPLETED":
         return True
-    if not (run.error_message or "").startswith("FOREIGN_REGISTERED_PAGE_LIMIT:"):
-        logger.error("foreign registered window failed: %s", run.error_message)
+    if not (run.error_message or "").startswith(
+        f"{request.inquiry_type.value}_PAGE_LIMIT:"
+    ):
+        logger.error("poll window failed: %s", run.error_message)
         return False
 
     # G2B's date parameters are minute precision and inclusive. Split into
@@ -160,7 +195,7 @@ def _sync_foreign_registered_window(
     end = request.window_ended_at.astimezone(KST).replace(second=0, microsecond=0)
     minutes = int((end - start).total_seconds() // 60)
     if minutes < 1:
-        logger.error("foreign registered page limit exceeded at minute resolution")
+        logger.error("poll page limit exceeded at minute resolution")
         return False
     midpoint = start + timedelta(minutes=minutes // 2)
     left = request.model_copy(
@@ -174,10 +209,32 @@ def _sync_foreign_registered_window(
     )
     # Short-circuit on the first incomplete segment: later windows must not
     # advance the completed-window checkpoint past missing notices.
-    return _sync_foreign_registered_window(
+    return _sync_poll_window(
         left, client=client, document_downloader=document_downloader
-    ) and _sync_foreign_registered_window(
+    ) and _sync_poll_window(
         right, client=client, document_downloader=document_downloader
+    )
+
+
+def _sync_registered_window(
+    request: NoticeSyncRequest,
+    *,
+    client: G2BClient,
+    document_downloader: NoticeDocumentDownloader | None,
+) -> bool:
+    return _sync_poll_window(
+        request, client=client, document_downloader=document_downloader
+    )
+
+
+def _sync_foreign_registered_window(
+    request: NoticeSyncRequest,
+    *,
+    client: G2BClient,
+    document_downloader: NoticeDocumentDownloader | None,
+) -> bool:
+    return _sync_registered_window(
+        request, client=client, document_downloader=document_downloader
     )
 
 
@@ -195,29 +252,55 @@ def run_poll_cycle(settings: Settings, *, now: datetime | None = None) -> None:
     downloader = build_document_downloader(settings)
 
     for business_type in settings.notice_poll_business_type_list:
-        if business_type == BusinessType.FOREIGN:
-            try:
-                last_registered = _last_completed_window_end(
-                    business_type, NoticeInquiryType.REGISTERED
+        try:
+            last_registered = _last_completed_window_end(
+                business_type, NoticeInquiryType.REGISTERED
+            )
+            # Pre-existing manual registration runs may be very old. Do not
+            # silently launch an unbounded historical crawl on first rollout.
+            # Older gaps require an explicit, operator-approved backfill.
+            if (
+                business_type != BusinessType.FOREIGN
+                and last_registered is not None
+                and cycle_time.astimezone(KST) - last_registered.astimezone(KST)
+                > MAX_RECOVERY_WINDOW
+            ):
+                logger.warning(
+                    "ignoring old registered checkpoint business_type=%s end=%s; "
+                    "historical recovery requires a separate backfill",
+                    business_type.value,
+                    last_registered,
                 )
-                request = build_foreign_registered_request(
-                    settings,
-                    now=cycle_time,
-                    last_completed_window_end=last_registered,
-                    initial_window_start=(
-                        _first_foreign_registered_window_start()
-                        if last_registered is None
+                last_registered = None
+            initial_start = (
+                _first_registered_window_start(
+                    business_type,
+                    not_before=(
+                        cycle_time.astimezone(KST) - MAX_RECOVERY_WINDOW
+                        if business_type != BusinessType.FOREIGN
                         else None
                     ),
                 )
-                _sync_foreign_registered_window(
-                    request, client=client, document_downloader=downloader
-                )
-            except Exception:
-                logger.exception("foreign registered poll failed")
+                if last_registered is None
+                else None
+            )
+            request = build_registered_notice_request(
+                settings,
+                business_type=business_type,
+                now=cycle_time,
+                last_completed_window_end=last_registered,
+                initial_window_start=initial_start,
+            )
+            _sync_registered_window(
+                request, client=client, document_downloader=downloader
+            )
+        except Exception:
+            logger.exception(
+                "registered poll failed business_type=%s", business_type.value
+            )
 
         # CHANGED has an independent checkpoint and always runs, even when
-        # FOREIGN REGISTERED failed or stopped on an incomplete page window.
+        # REGISTERED failed or stopped on an incomplete page window.
         try:
             request = build_changed_notice_request(
                 settings,
@@ -225,21 +308,8 @@ def run_poll_cycle(settings: Settings, *, now: datetime | None = None) -> None:
                 now=cycle_time,
                 last_completed_window_end=_last_completed_window_end(business_type),
             )
-            with SessionLocal() as db:
-                run = run_notice_sync(
-                    db,
-                    request=request,
-                    client=client,
-                    document_downloader=downloader,
-                )
-            logger.info(
-                "poll completed business_type=%s inquiry_type=%s fetched=%s created=%s versions=%s unchanged=%s",
-                business_type.value,
-                request.inquiry_type.value,
-                run.fetched_count,
-                run.created_count,
-                run.new_version_count,
-                run.unchanged_count,
+            _sync_poll_window(
+                request, client=client, document_downloader=downloader
             )
         except Exception:
             logger.exception(

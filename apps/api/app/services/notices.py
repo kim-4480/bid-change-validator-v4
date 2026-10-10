@@ -508,21 +508,21 @@ def run_notice_sync(
                 break
             page_number += 1
 
-        # Only FOREIGN REGISTERED uses completed windows as a persistent
-        # discovery checkpoint. A truncated listing must never advance it.
-        foreign_registration_error = None
+        # Periodic runs use completed windows as discovery checkpoints.
+        # A truncated listing must never advance either inquiry cursor.
+        incomplete_listing_error = None
         if (
-            request.business_type == BusinessType.FOREIGN
-            and request.inquiry_type == NoticeInquiryType.REGISTERED
+            request.inquiry_type
+            in {NoticeInquiryType.REGISTERED, NoticeInquiryType.CHANGED}
             and listed_item_count < expected_list_total
         ):
             error_code = (
-                "FOREIGN_REGISTERED_PAGE_LIMIT"
+                f"{request.inquiry_type.value}_PAGE_LIMIT"
                 if listed_page_count >= request.max_pages
                 and listed_page_count * request.page_size < expected_list_total
-                else "FOREIGN_REGISTERED_INCOMPLETE"
+                else f"{request.inquiry_type.value}_INCOMPLETE"
             )
-            foreign_registration_error = (
+            incomplete_listing_error = (
                 f"{error_code}: received {listed_item_count} of "
                 f"{expected_list_total} listed items"
             )
@@ -647,15 +647,15 @@ def run_notice_sync(
         # advance the next polling checkpoint.  Only COMPLETED runs are used by
         # the worker when calculating its next window.
         run.status = (
-            "FAILED" if item_errors or foreign_registration_error else "COMPLETED"
+            "FAILED" if item_errors or incomplete_listing_error else "COMPLETED"
         )
         if item_errors:
             run.error_message = (
                 f"{len(item_errors)}개 항목 저장 실패: " + " | ".join(item_errors[:10])
             )[:2000]
-        if foreign_registration_error:
+        if incomplete_listing_error:
             run.error_message = (
-                foreign_registration_error
+                incomplete_listing_error
                 + (f" | {run.error_message}" if run.error_message else "")
             )[:2000]
         run.completed_at = datetime.now(KST)
