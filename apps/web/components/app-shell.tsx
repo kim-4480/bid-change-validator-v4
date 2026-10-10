@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 
+import { AppUserProvider } from '@/components/app-user-context';
 import { CopilotProvider } from '@/components/copilot/provider';
 import { CopilotPanel } from '@/components/copilot/panel';
 
@@ -246,7 +247,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         : '';
 
   return (
-    <CopilotProvider>
+    <AppUserProvider user={user}>
+      <CopilotProvider>
       <div className="app-shell min-h-screen bg-[var(--product-tint)] text-[var(--product-body)]">
         <AppHeader pathname={pathname} user={user} onLogout={() => void handleLogout()} />
         {logoutFailure && (
@@ -266,6 +268,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <AppFooter />
         <CopilotPanel />
       </div>
-    </CopilotProvider>
+      </CopilotProvider>
+    </AppUserProvider>
   );
 }
