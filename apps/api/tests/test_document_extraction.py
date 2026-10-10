@@ -91,6 +91,31 @@ def test_non_hwpml_xml_with_hwp_extension_is_rejected() -> None:
         )
 
 
+@pytest.mark.parametrize("filename", ["incorrect.hwpx", "legacy.hwp", "legacy.hml"])
+@pytest.mark.parametrize("prefix", [b"", b"\xef\xbb\xbf"])
+def test_hwpml_xml_is_detected_by_content_even_with_hwpx_extension(
+    filename: str, prefix: bytes
+) -> None:
+    source = BytesIO(
+        prefix
+        + b'<?xml version="1.0" encoding="UTF-8"?>'
+        + "<HWPML><BODY><SECTION><P><TEXT><CHAR>실제 HWPML 문서</CHAR></TEXT></P></SECTION></BODY></HWPML>".encode("utf-8")
+    )
+    result = extract_document(source, filename=filename, content_type="application/octet-stream")
+    assert result.extractor == "HWPML_XML"
+    assert result.text == "실제 HWPML 문서"
+    assert len(result.blocks) == 1
+
+
+def test_non_hwpml_xml_under_hwpx_extension_is_not_accepted() -> None:
+    with pytest.raises(UnsupportedDocumentError, match="not HWPML"):
+        extract_document(
+            BytesIO(b'<?xml version="1.0"?><unrelated/>'),
+            filename="fake.hwpx",
+            content_type="application/octet-stream",
+        )
+
+
 def test_hwp_extension_with_hwpx_zip_is_extracted() -> None:
     # G2B can provide an HWPX (ZIP) payload with a legacy .hwp filename.
     from zipfile import ZipFile
