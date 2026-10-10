@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 
@@ -120,36 +120,51 @@ function pageInfoFor(pathname: string): PageInfo {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const page = pageInfoFor(pathname);
+  const isProtectedPage = pathname !== '/login';
   const [user, setUser] = useState<AuthUser | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(pathname !== '/login');
   const [authFailure, setAuthFailure] = useState<string | null>(null);
   const [logoutFailure, setLogoutFailure] = useState<string | null>(null);
   const [authAttempt, setAuthAttempt] = useState(0);
+  const lastAuthCheckAt = useRef(0);
+
 
   useEffect(() => {
-    if (pathname === '/login') return;
+    if (!isProtectedPage) return;
     let active = true;
-    void getCurrentUser()
-      .then((current) => {
-        if (active) setUser(current);
-      })
-      .catch((cause) => {
-        if (!active) return;
-        if (cause instanceof ApiError && cause.status === 401) {
-          window.sessionStorage.removeItem(LEGACY_ACTIVE_CASE_KEY);
-          setUser(null);
-          replaceWith('/login');
-          return;
-        }
-        setAuthFailure(cause instanceof ApiError ? cause.message : NETWORK_ERROR_MESSAGE);
-      })
-      .finally(() => {
-        if (active) setCheckingAuth(false);
-      });
+    const verifySession = () => {
+      lastAuthCheckAt.current = Date.now();
+      void getCurrentUser()
+        .then((current) => {
+          if (active) setUser(current);
+        })
+        .catch((cause) => {
+          if (!active) return;
+          if (cause instanceof ApiError && cause.status === 401) {
+            window.sessionStorage.removeItem(LEGACY_ACTIVE_CASE_KEY);
+            setUser(null);
+            replaceWith('/login');
+            return;
+          }
+          setAuthFailure(cause instanceof ApiError ? cause.message : NETWORK_ERROR_MESSAGE);
+        })
+        .finally(() => {
+          if (active) setCheckingAuth(false);
+        });
+    };
+
+    verifySession();
+    // Focus revalidates old sessions. Protected client-side routes share the same
+    // mounted auth check and never cancel an in-flight request on navigation.
+    const onFocus = () => {
+      if (Date.now() - lastAuthCheckAt.current >= 60_000) verifySession();
+    };
+    window.addEventListener('focus', onFocus);
     return () => {
       active = false;
+      window.removeEventListener('focus', onFocus);
     };
-  }, [authAttempt, pathname]);
+  }, [authAttempt, isProtectedPage]);
 
   if (pathname === '/login') return children;
 

@@ -91,14 +91,14 @@ export function AppHeader({
           </div>
           <nav className="app-primary-nav" aria-label="주요 메뉴">
             {PRIMARY_NAV.map((item) => (
-              <a
+              <NavigationLink
                 key={item.href}
                 href={item.href}
                 className="app-nav-link"
                 aria-current={isActive(pathname, item.href) ? 'page' : undefined}
               >
                 {item.label}
-              </a>
+              </NavigationLink>
             ))}
             {(user?.role === 'SYSTEM_ADMIN' || user?.role === 'ADMIN') && (
               <NavigationLink href="/admin" className="app-nav-link" aria-current={pathname.startsWith('/admin') ? 'page' : undefined}>운영 관리</NavigationLink>

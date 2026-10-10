@@ -8,6 +8,7 @@ COPY apps/web/ ./
 
 ARG NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+ENV BIDCHECK_NODE_TARGET=1
 RUN pnpm build
 
 FROM public.ecr.aws/docker/library/node:22-bookworm-slim
