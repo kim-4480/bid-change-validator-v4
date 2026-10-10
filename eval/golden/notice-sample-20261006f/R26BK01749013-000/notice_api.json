@@ -1,0 +1,33 @@
+{
+ "notice_no": "R26BK01749013",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "기계설비ㆍ가스공사업",
+   "code": "6202",
+   "raw": {
+    "bidNtceNo": "R26BK01749013",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "기계설비ㆍ가스공사업/6202",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:50:29",
+    "bsnsDivNm": "물품"
+   }
+  }
+ ],
+ "regions": [
+  "경기도"
+ ],
+ "flags": {
+  "prdctClsfcLmtYn": "Y",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "제한경쟁"
+ },
+ "errors": []
+}

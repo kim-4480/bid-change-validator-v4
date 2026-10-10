@@ -10,19 +10,66 @@ from __future__ import annotations
 from datetime import date
 from uuid import UUID
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session, aliased, selectinload
+from sqlalchemy import exists, func, select, tuple_
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from bidengine.judgment.rules import judge_requirements
 from ..analysis_models import QualificationAnalysisRun
 from ..judgment_models import CompanyQualificationProfileCompleteness
 from ..matching_schemas import NoticeMatchRead, NoticeMatchSearchResponse
 from ..models import BidNotice, BidNoticeVersion
-from .analysis import analysis_run_response
-from .judgment import _load_company, _record_to_completeness, build_company_profile_snapshot
+from .analysis import analysis_run_response, qualification_analysis_version_fingerprint
+from .judgment import _load_company, _record_to_completeness, build_company_profile_snapshot, grounded_keys_for_analysis
 
 
-_STATUS_ORDER = {"eligible": 0, "insufficient_data": 1, "ineligible": 2}
+_STATUS_ORDER = {"core_met": 0, "needs_review": 1, "core_unmet": 2}
+
+
+def _load_latest_valid_analysis_runs(
+    db: Session,
+    fingerprints: dict[UUID, str],
+) -> dict[UUID, QualificationAnalysisRun]:
+    """Return one newest run per version whose input still matches current documents.
+
+    Ranking happens after the fingerprint filter, so a newer stale run does not hide
+    an older still-valid run. Status is intentionally not filtered: if the newest
+    valid run failed, callers must not silently fall back to an older success.
+    """
+    if not fingerprints:
+        return {}
+
+    ranked = (
+        select(
+            QualificationAnalysisRun.id.label("run_id"),
+            func.row_number()
+            .over(
+                partition_by=QualificationAnalysisRun.notice_version_id,
+                order_by=(
+                    QualificationAnalysisRun.created_at.desc(),
+                    QualificationAnalysisRun.id.desc(),
+                ),
+            )
+            .label("rank"),
+        )
+        .where(
+            tuple_(
+                QualificationAnalysisRun.notice_version_id,
+                QualificationAnalysisRun.input_fingerprint,
+            ).in_(list(fingerprints.items()))
+        )
+        .subquery()
+    )
+    runs = db.scalars(
+        select(QualificationAnalysisRun)
+        .join(ranked, ranked.c.run_id == QualificationAnalysisRun.id)
+        .where(ranked.c.rank == 1)
+        .options(
+            joinedload(QualificationAnalysisRun.notice_version),
+            selectinload(QualificationAnalysisRun.requirements),
+            selectinload(QualificationAnalysisRun.evidence),
+        )
+    ).all()
+    return {run.notice_version_id: run for run in runs}
 
 
 def match_cached_notices(
@@ -37,33 +84,33 @@ def match_cached_notices(
     profile = build_company_profile_snapshot(company, completeness)
     ref_date = reference_date or date.today()
 
-    latest_run = aliased(QualificationAnalysisRun)
-    latest_run_id = (
-        select(latest_run.id)
-        .where(latest_run.notice_version_id == BidNoticeVersion.id)
-        .order_by(latest_run.created_at.desc(), latest_run.id.desc())
-        .limit(1)
-        .correlate(BidNoticeVersion)
-        .scalar_subquery()
-    )
-
-    analyzed_versions = db.execute(
-        select(BidNotice, BidNoticeVersion, QualificationAnalysisRun)
+    current_versions = db.execute(
+        select(BidNotice, BidNoticeVersion)
         .join(BidNoticeVersion, BidNoticeVersion.notice_id == BidNotice.id)
-        .join(QualificationAnalysisRun, QualificationAnalysisRun.id == latest_run_id)
         .where(
             BidNoticeVersion.is_current.is_(True),
-            QualificationAnalysisRun.status != "FAILED",
+            exists(
+                select(QualificationAnalysisRun.id).where(
+                    QualificationAnalysisRun.notice_version_id == BidNoticeVersion.id,
+                    QualificationAnalysisRun.input_fingerprint.is_not(None),
+                )
+            ),
         )
-        .options(
-            selectinload(QualificationAnalysisRun.requirements),
-            selectinload(QualificationAnalysisRun.evidence),
-        )
+        .options(selectinload(BidNoticeVersion.documents))
         .order_by(BidNotice.last_seen_at.desc())
     ).all()
+    versions = {version.id: version for _, version in current_versions}
+    fingerprints = {
+        version_id: qualification_analysis_version_fingerprint(version)
+        for version_id, version in versions.items()
+    }
+    runs = _load_latest_valid_analysis_runs(db, fingerprints)
 
     items: list[NoticeMatchRead] = []
-    for notice, version, run in analyzed_versions:
+    for notice, version in current_versions:
+        run = runs.get(version.id)
+        if run is None or run.status == "FAILED":
+            continue
         analysis = analysis_run_response(run)
         evaluation = judge_requirements(
             analysis.requirements,
@@ -72,6 +119,7 @@ def match_cached_notices(
             reference_date=ref_date,
             analysis_status=run.status,
             coverage_complete=analysis.verdict_complete,
+            grounded_requirement_keys=grounded_keys_for_analysis(run, analysis),
         )
         overall = evaluation.overall_status
 

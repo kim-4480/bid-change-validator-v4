@@ -1,0 +1,16 @@
+{
+ "notice_no": "R26BK01748976",
+ "order": "000",
+ "licenses": [],
+ "regions": [
+  "전북특별자치도 무주군"
+ ],
+ "flags": {
+  "prdctClsfcLmtYn": "Y",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "rgnLmtBidLocplcJdgmBssNm": "본사또는참여지사소재지",
+  "cntrctCnclsMthdNm": "수의계약"
+ },
+ "errors": []
+}

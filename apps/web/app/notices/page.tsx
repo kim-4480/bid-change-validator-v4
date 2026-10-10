@@ -1,5 +1,8 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+import { sharedQueryClient } from '@/lib/shared-query-cache';
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertCircle,
@@ -25,32 +28,45 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { findPreflightCasesByNotice, getNoticeVersions, listNotices, type BidNoticeSummary } from '@/lib/api';
 import { createPreflightCaseWithCompany, listCompanies, type CompanyProfile } from '@/lib/qualification-api';
-import { navigateTo } from '@/lib/navigation';
 import { productProfileCoverage } from '@/lib/product-profile';
 import { ASK_BACK_REASON_COPY, BUSINESS_TYPE_LABEL, labelOf, OVERALL_STATUS_BADGE } from '@/lib/status-copy';
-type OverallStatus = 'eligible' | 'ineligible' | 'insufficient_data' | 'unreviewed' | 'needs_review';
+type OverallStatus = 'core_met' | 'core_unmet' | 'unreviewed' | 'needs_review';
 type StatusFilter = 'all' | OverallStatus;
 type QuickTile = { label: string; value: string | number; icon: LucideIcon; filter: StatusFilter };
 const EMPTY_COUNTS: Record<OverallStatus, number> = {
-  eligible: 0, insufficient_data: 0, ineligible: 0, unreviewed: 0, needs_review: 0,
+  core_met: 0, core_unmet: 0, unreviewed: 0, needs_review: 0,
 };
 
+type NoticeView = {
+  notices: BidNoticeSummary[];
+  total: number;
+  counts: Record<OverallStatus, number>;
+  company: CompanyProfile | null;
+  query: string;
+  page: number;
+  status: StatusFilter;
+  businessType: string;
+};
+function previousNotices(): NoticeView | undefined {
+  return sharedQueryClient().getQueryData<NoticeView>(['view', 'notices']);
+}
 export default function NoticesPage() {
-  const [notices, setNotices] = useState<BidNoticeSummary[]>([]);
-  const [noticeTotal, setNoticeTotal] = useState(0);
-  const [statusCounts, setStatusCounts] = useState<Record<OverallStatus, number>>(EMPTY_COUNTS);
-  const [company, setCompany] = useState<CompanyProfile | null>(null);
-  const [query, setQuery] = useState('');
-  const [activeQuery, setActiveQuery] = useState('');
-  const [pageIndex, setPageIndex] = useState(0);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [businessTypeFilter, setBusinessTypeFilter] = useState('all');
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const [notices, setNotices] = useState<BidNoticeSummary[]>(() => previousNotices()?.notices ?? []);
+  const [noticeTotal, setNoticeTotal] = useState(() => previousNotices()?.total ?? 0);
+  const [statusCounts, setStatusCounts] = useState<Record<OverallStatus, number>>(() => previousNotices()?.counts ?? EMPTY_COUNTS);
+  const [company, setCompany] = useState<CompanyProfile | null>(() => previousNotices()?.company ?? null);
+  const [query, setQuery] = useState(() => previousNotices()?.query ?? '');
+  const [activeQuery, setActiveQuery] = useState(() => previousNotices()?.query ?? '');
+  const [pageIndex, setPageIndex] = useState(() => previousNotices()?.page ?? 0);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => previousNotices()?.status ?? 'all');
+  const [businessTypeFilter, setBusinessTypeFilter] = useState(() => previousNotices()?.businessType ?? 'all');
+  const [loading, setLoading] = useState(() => !previousNotices());
   const [creatingNoticeId, setCreatingNoticeId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [showRejected, setShowRejected] = useState(true);
   const searchGeneration = useRef(0);
-  const companyCache = useRef<CompanyProfile | null>(null);
+  const companyCache = useRef<CompanyProfile | null>(previousNotices()?.company ?? null);
 
   async function initialize(
     searchQuery = activeQuery,
@@ -65,8 +81,6 @@ export default function NoticesPage() {
     setStatusFilter(selectedStatus);
     setLoading(true);
     setError('');
-    setNotices([]);
-    setNoticeTotal(0);
     try {
       if (!companyCache.current) {
         const companies = await listCompanies();
@@ -96,6 +110,11 @@ export default function NoticesPage() {
       setNotices(result.items);
       setNoticeTotal(result.total);
       setStatusCounts({ ...EMPTY_COUNTS, ...result.status_counts });
+      sharedQueryClient().setQueryData<NoticeView>(['view', 'notices'], {
+        notices: result.items, total: result.total, counts: { ...EMPTY_COUNTS, ...result.status_counts },
+        company: selectedCompany, query: normalizedQuery, page: nextPage,
+        status: selectedStatus, businessType: selectedBusinessType,
+      });
       setLoading(false);
     } catch (cause) {
       if (generation !== searchGeneration.current) return;
@@ -105,7 +124,8 @@ export default function NoticesPage() {
   }
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void initialize('', 0, 'all', 'all'), 0);
+    const saved = previousNotices();
+    const timer = window.setTimeout(() => void initialize(saved?.query ?? '', saved?.page ?? 0, saved?.businessType ?? 'all', saved?.status ?? 'all'), 0);
     return () => { window.clearTimeout(timer); searchGeneration.current += 1; };
   }, []);
 
@@ -118,29 +138,28 @@ export default function NoticesPage() {
   );
   const businessTypeOptions = Object.keys(BUSINESS_TYPE_LABEL);
   const pageRange = noticePageRange(noticeTotal, pageIndex);
-  const activeNotices = notices.filter((row) => row.qualification_status !== 'ineligible');
-  const rejectedNotices = notices.filter((row) => row.qualification_status === 'ineligible');
+  const activeNotices = notices.filter((row) => row.qualification_status !== 'core_unmet');
+  const rejectedNotices = notices.filter((row) => row.qualification_status === 'core_unmet');
   const emptyReason = notices.length === 0 ? 'no-result' : rejectedNotices.length > 0 ? 'only-rejected' : 'filtered-out';
   const rejectedOpen = showRejected;
   const profile = productProfileCoverage(company);
   const missingProfile = profile.missing.map((area) => area.label);
   const profileReady = Boolean(company) && missingProfile.length === 0;
   const counts = statusCounts;
-  const unknownTotal = statusCounts.insufficient_data;
-  const firstUnknownCase = notices.find((row) => row.qualification_status === 'insufficient_data' && row.current_case_id);
+  const unknownTotal = statusCounts.needs_review;
+  const firstUnknownCase = notices.find((row) => row.qualification_status === 'needs_review' && row.current_case_id);
   const quickTiles: QuickTile[] = [
     { label: '전체', value: company ? Object.values(statusCounts).reduce((sum, count) => sum + count, 0) : noticeTotal, icon: LayoutGrid, filter: 'all' },
-    { label: '핵심 자격 충족', value: counts.eligible, icon: CheckCircle2, filter: 'eligible' },
-    { label: '확인 필요', value: counts.insufficient_data, icon: CircleHelp, filter: 'insufficient_data' },
-    { label: '참가 불가', value: counts.ineligible, icon: XCircle, filter: 'ineligible' },
+    { label: '핵심 요건 충족', value: counts.core_met, icon: CheckCircle2, filter: 'core_met' },
+    { label: '확인 필요', value: counts.needs_review, icon: CircleHelp, filter: 'needs_review' },
+    { label: '핵심 요건 미충족', value: counts.core_unmet, icon: XCircle, filter: 'core_unmet' },
     { label: '미검토', value: counts.unreviewed, icon: FileCheck2, filter: 'unreviewed' },
-    { label: '재검토 필요', value: counts.needs_review, icon: RefreshCw, filter: 'needs_review' },
   ];
 
   async function startReview(notice: BidNoticeSummary) {
     const existing = existingCaseByNotice.get(notice.id);
     if (existing) {
-      navigateTo(`/qualification?caseId=${existing}`);
+      router.push(`/qualification?caseId=${existing}`);
       return;
     }
     if (!company) {
@@ -159,7 +178,7 @@ export default function NoticesPage() {
       const known = await findPreflightCasesByNotice(notice.id, company.id);
       const reusable = known.items.find((item) => item.current_version_number === notice.current_version);
       if (reusable) {
-        navigateTo(`/qualification?caseId=${reusable.id}`);
+        router.push(`/qualification?caseId=${reusable.id}`);
         return;
       }
       const versions = await getNoticeVersions(notice.id);
@@ -175,7 +194,7 @@ export default function NoticesPage() {
         current_version_number: current.version_number,
         title: `${notice.bid_notice_no} 참가자격 검토`,
       });
-      navigateTo(`/qualification?caseId=${created.id}`);
+      router.push(`/qualification?caseId=${created.id}`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '검토 건 생성에 실패했습니다.');
     } finally {
@@ -184,7 +203,7 @@ export default function NoticesPage() {
   }
 
   return (
-    <main className="bg-white text-[var(--product-body)]">
+    <main className="bg-white text-[var(--product-body)]" aria-busy={loading}>
       <section className="border-b border-[var(--product-line)] bg-[linear-gradient(120deg,#e6eeff_0%,#f0ebff_48%,#e8f4ff_100%)]">
         <div className="app-shell-container pt-9 pb-10 md:pt-10 md:pb-12">
           {/*
@@ -275,12 +294,17 @@ export default function NoticesPage() {
           </div>
 
           {/* DL-007 — 「전체 공고」가 아니라 「검색으로 좁힌 결과의 상위 N건」이라는 사실은 남기되, 문장이 아니라 수치로 적는다. */}
+          {loading && notices.length > 0 && (
+            <output className="mt-3 block text-[13px] font-medium text-[var(--product-muted)]">
+              ?? ??? ??? ???? ?? ??? ???? ????.
+            </output>
+          )}
           {!loading && <div className="mt-3 space-y-1 text-[13px] text-[var(--product-muted)]">
             <p>검색·필터 결과 전체 {noticeTotal.toLocaleString()}건 · 현재 페이지 {pageRange.start.toLocaleString()}–{pageRange.end.toLocaleString()}건 · 목록 표시 {activeNotices.length}건</p>
             <p>판정 상태별 건수는 선택한 회사의 전체 검색 결과 기준입니다.</p>
           </div>}
 
-          {loading ? <div className="grid min-h-64 place-items-center"><LoaderCircle className="size-7 animate-spin text-[var(--product-accent)]" /></div> : activeNotices.length ? (
+          {loading && notices.length === 0 ? <div className="grid min-h-64 place-items-center rounded-xl bg-slate-50" aria-label="?? ?? ???? ?"><div className="w-full space-y-3 px-5">{[0, 1, 2].map((index) => <div key={index} className="h-14 animate-pulse rounded-lg bg-slate-200" />)}</div></div> : activeNotices.length ? (
             /*
               카드 6장을 나열하면 한 화면에 6건뿐이라 서로 비교가 안 된다.
               같은 열을 세로로 세워 공고명·기관·유형·변경·검토 상태를 한눈에 견주게 한다.
@@ -319,8 +343,8 @@ export default function NoticesPage() {
               <Search className="mx-auto size-8 text-[var(--product-faint)]" />
               {emptyReason === 'only-rejected' ? (
                 <>
-                  <p className="mt-3 font-semibold">현재 페이지의 {rejectedNotices.length}건이 모두 참가 불가입니다.</p>
-                  <p className="mt-1 text-sm text-[var(--product-muted)]">회사 프로필 기준으로 참가가 어려운 공고라 아래 「참가 불가로 접어둔 공고」에 있습니다. 숨기지 않았습니다.</p>
+                  <p className="mt-3 font-semibold">현재 페이지의 {rejectedNotices.length}건은 모두 핵심 요건 미충족입니다.</p>
+                  <p className="mt-1 text-sm text-[var(--product-muted)]">확인된 핵심 요건에 미충족 항목이 있어 아래에 접어 두었습니다. 법적 참가 불가 확정은 아닙니다.</p>
                   <Button type="button" variant="outline" size="sm" className="mt-4 rounded-full" onClick={() => setShowRejected(true)}>아래에서 보기 ↓</Button>
                 </>
               ) : emptyReason === 'filtered-out' ? (
@@ -347,11 +371,11 @@ export default function NoticesPage() {
         </section>
 
         <section className="mt-12 overflow-hidden rounded-[22px] border border-[var(--product-line)] bg-[var(--product-tint)]">
-          <button type="button" onClick={() => setShowRejected((value) => !value)} className="flex w-full items-center gap-4 px-6 py-5 text-left"><ChevronDown className={`size-5 transition-transform ${rejectedOpen ? 'rotate-180' : ''}`} /><div className="flex-1"><h3 className="text-[18px] font-bold text-[var(--product-ink)]">참가 불가로 접어둔 공고{loading ? '' : ` ${rejectedNotices.length}건`}</h3><p className="mt-1 text-[15px] text-[var(--product-muted)]">숨기지 않습니다. 조건이나 회사 정보가 바뀌면 다시 검토할 수 있습니다.</p></div><span className="text-[15px] font-medium">{rejectedOpen ? '접기' : '펼치기'}</span></button>
+          <button type="button" onClick={() => setShowRejected((value) => !value)} className="flex w-full items-center gap-4 px-6 py-5 text-left"><ChevronDown className={`size-5 transition-transform ${rejectedOpen ? 'rotate-180' : ''}`} /><div className="flex-1"><h3 className="text-[18px] font-bold text-[var(--product-ink)]">핵심 요건 미충족 공고{loading ? '' : ` ${rejectedNotices.length}건`}</h3><p className="mt-1 text-[15px] text-[var(--product-muted)]">숨기지 않습니다. 조건이나 회사 정보가 바뀌면 다시 검토할 수 있습니다.</p></div><span className="text-[15px] font-medium">{rejectedOpen ? '접기' : '펼치기'}</span></button>
           {rejectedOpen && <div className="border-t border-[var(--product-line)] bg-white px-6">{rejectedNotices.length ? rejectedNotices.map((notice) => {
-            return <div key={notice.id} className="flex flex-col gap-3 border-b border-[var(--product-line-2)] py-5 last:border-b-0 md:flex-row md:items-center"><span className={`w-fit rounded-full border px-3 py-1 text-[13px] font-semibold ${OVERALL_STATUS_BADGE.ineligible.className}`}>{OVERALL_STATUS_BADGE.ineligible.label}</span><div className="min-w-0 flex-1"><strong className="block truncate text-[15px]">{notice.title}</strong>{/* 공고번호로 검색해 찾아온 행에 공고번호가 없으면 같은 건인지 확인할 수 없다. 판정 요약과 같이 적는다. */}
+            return <div key={notice.id} className="flex flex-col gap-3 border-b border-[var(--product-line-2)] py-5 last:border-b-0 md:flex-row md:items-center"><span className={`w-fit rounded-full border px-3 py-1 text-[13px] font-semibold ${OVERALL_STATUS_BADGE.core_unmet.className}`}>{OVERALL_STATUS_BADGE.core_unmet.label}</span><div className="min-w-0 flex-1"><strong className="block truncate text-[15px]">{notice.title}</strong>{/* 공고번호로 검색해 찾아온 행에 공고번호가 없으면 같은 건인지 확인할 수 없다. 판정 요약과 같이 적는다. */}
               <span className="mt-1 block text-[13px] text-[var(--product-muted)]">{notice.bid_notice_no}</span></div><button type="button" onClick={() => void startReview(notice)} className="text-left text-[15px] font-semibold text-[var(--product-accent-deep)]">근거 확인 →</button></div>;
-          }) : <p className="py-8 text-center text-sm text-[var(--product-muted)]">{loading ? '판정 상태를 불러오는 중입니다.' : '현재 참가 불가로 판정된 공고가 없습니다.'}</p>}</div>}
+          }) : <p className="py-8 text-center text-sm text-[var(--product-muted)]">{loading ? '판정 상태를 불러오는 중입니다.' : '현재 핵심 요건 미충족 공고가 없습니다.'}</p>}</div>}
         </section>
 
         {/*

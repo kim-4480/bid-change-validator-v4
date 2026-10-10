@@ -1,0 +1,51 @@
+{
+ "notice_no": "R26BK01748933",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "액화석유가스충전사업",
+   "code": "4615",
+   "raw": {
+    "bidNtceNo": "R26BK01748933",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "액화석유가스충전사업/4615",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:27:47",
+    "bsnsDivNm": "물품"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "2",
+   "name": "액화석유가스판매사업",
+   "code": "4617",
+   "raw": {
+    "bidNtceNo": "R26BK01748933",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "2",
+    "lcnsLmtNm": "액화석유가스판매사업/4617",
+    "permsnIndstrytyList": "[액화석유가스충전사업/4615]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:27:47",
+    "bsnsDivNm": "물품"
+   }
+  }
+ ],
+ "regions": [
+  "제주특별자치도"
+ ],
+ "flags": {
+  "prdctClsfcLmtYn": "Y",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "rgnLmtBidLocplcJdgmBssNm": "본사또는참여지사소재지",
+  "cntrctCnclsMthdNm": "수의계약"
+ },
+ "errors": []
+}

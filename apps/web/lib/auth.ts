@@ -1,3 +1,4 @@
+import { clearSharedData } from '@/lib/shared-query-cache';
 import { apiFetch, ApiError } from '@/lib/api';
 
 export type AuthUser = {
@@ -24,6 +25,7 @@ async function authRequest<T>(path: string, init?: RequestInit): Promise<T> {
     headers,
   });
   if (!response.ok) {
+    if (response.status === 401) clearSharedData();
     const payload = (await response.json().catch(() => null)) as {
       error?: { message?: string; code?: string };
     } | null;
@@ -38,6 +40,7 @@ async function authRequest<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function login(username: string, password: string) {
+  clearSharedData();
   return authRequest<LoginResponse>('/api/v1/auth/login', {
     method: 'POST',
     body: JSON.stringify({ username, password }),
@@ -48,6 +51,8 @@ export function getCurrentUser() {
   return authRequest<AuthUser | null>('/api/v1/auth/me');
 }
 
-export function logout() {
-  return authRequest<void>('/api/v1/auth/logout', { method: 'POST' });
+export async function logout() {
+  const result = await authRequest<void>('/api/v1/auth/logout', { method: 'POST' });
+  clearSharedData();
+  return result;
 }

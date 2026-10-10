@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { cachedGet } from '@/lib/shared-query-cache';
 import {
   AlertCircle,
   Building2,
@@ -116,9 +117,9 @@ function companyRows(company: CompanyProfile) {
 }
 
 export default function CompanyPage() {
-  const [companies, setCompanies] = useState<CompanyProfile[]>([]);
-  const [selectedId, setSelectedId] = useState('');
-  const [busy, setBusy] = useState<Busy>('load');
+  const [companies, setCompanies] = useState<CompanyProfile[]>(() => cachedGet<CompanyProfile[]>('/api/v1/companies') ?? []);
+  const [selectedId, setSelectedId] = useState(() => cachedGet<CompanyProfile[]>('/api/v1/companies')?.[0]?.id ?? '');
+  const [busy, setBusy] = useState<Busy>(() => cachedGet('/api/v1/companies') ? null : 'load');
   const [error, setError] = useState('');
   const [industryQuery, setIndustryQuery] = useState('');
   const [industryOptions, setIndustryOptions] = useState<MasterCode[]>([]);
@@ -249,7 +250,7 @@ export default function CompanyPage() {
   }
 
   async function initialize() {
-    setBusy('load');
+    if (!cachedGet<CompanyProfile[]>('/api/v1/companies')) setBusy('load');
     setError('');
     try {
       const [companyItems, industryResult] = await Promise.all([
@@ -330,6 +331,15 @@ export default function CompanyPage() {
     }
   }
 
+  if (busy === 'load' && !company) return (
+    <main className="app-shell-container space-y-6 py-12" aria-busy="true" aria-label="?? ???? ???? ????">
+      <div className="h-10 w-60 animate-pulse rounded-xl bg-slate-200" />
+      <div className="grid gap-5 lg:grid-cols-3">
+        {[0, 1, 2].map((index) => <div key={index} className="h-36 animate-pulse rounded-2xl border border-slate-200 bg-slate-100" />)}
+      </div>
+      <div className="h-56 animate-pulse rounded-2xl border border-slate-200 bg-slate-100" />
+    </main>
+  );
   return (
     <main className="bg-white text-[var(--product-body)]">
       <div className="app-shell-container py-10 md:py-12">
@@ -384,7 +394,7 @@ export default function CompanyPage() {
               <h2 className="mt-6 text-[28px] font-extrabold">프로필 값이 판정 근거가 됩니다</h2>
               <div className="mt-7 space-y-4 text-sm text-white/78">
                 <p>업종 → 공고의 업종 제한과 대조합니다</p>
-                <p>지역 → 참가 가능 지역과 대조합니다</p>
+                <p>지역 → 공고의 핵심 지역 요건과 대조합니다</p>
                 <p>기업 규모 → 기업 구분 제한과 대조합니다</p>
                 <p>인력 → 상시 인력·전담 인력 요건과 대조합니다</p>
                 <p>수행 실적 → 실적 건수·금액 요건과 대조합니다</p>

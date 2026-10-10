@@ -1,0 +1,1843 @@
+{
+ "status": "draft",
+ "labelled_on": "2026-10-08",
+ "note": "판정 일반화 확인용 미사용 공고 20건(random_pick_l.json). 엔진을 돌리기 전에 원문만 보고 쓴 초안(사용자 검수 전). 이 표본으로는 코드를 고치지 않는다.",
+ "policy": {
+  "core": "회사 프로필로 판정하는 참가자격 요건. 유형과 값이 모두 맞아야 찾은 것으로 본다. values 가 여럿이면 대안(하나만 갖추면 됨)이다.",
+  "confirm": "공동수급 불허·단독 이행처럼 충족/미충족으로 단정하면 안 되는 조건. 조항을 찾아 '확인 필요'로 남겼으면 맞다.",
+  "excluded.common": "나라장터 참가등록, 부정당업자 제재·조세포탈 해당 없음 등 거의 모든 공고에 있는 항목. 채점하지 않는다.",
+  "excluded.conditional": "'적용되는 경우' 처럼 조건이 붙은 문장. 채점하지 않는다.",
+  "excluded.subjective": "'이행할 수 있는 업체' 처럼 프로필로 판정할 수 없는 서술. 요건으로 뽑으면 오답이다.",
+  "excluded.not_requirement": "요건이 아닌 안내 문장. 요건으로 뽑으면 오답이다.",
+  "excluded.product": "납품 물품에 대한 조건. 회사 자격으로 뽑으면 오답이다.",
+  "core.exclusion": "exclusion=true 인 core 는 배제 조건이다. 배제로 담겨야(scope.restriction=EXCLUDE) 찾은 것이고, 같은 값을 요구로 확정하면 뜻이 뒤집힌 확정(inverted)이다.",
+  "excluded.detail": "core 요건에 딸린 세부(실적의 인정 분야 등). 따로 요건으로 나와도 오답으로 세지 않는다.",
+  "excluded.evaluation": "평가·심사의 배점 항목. 참가 자격이 아니다. 요건으로 뽑으면 오답이다.",
+  "ideal_profile": "그 공고의 참가 자격을 모두 갖춘 가상 회사. 이 회사에 '미달' 이 하나라도 나오면 틀린 미달이다.",
+  "checklist": "확인할 항목 또는 요건으로 정리하지 못한 조항으로 나와야 하는 문구.",
+  "notes": "참고 정보(공동수급·하도급 허용 여부 등)로 나와야 하는 문구.",
+  "expect": "가상 회사 판정의 기대값이 '핵심 자격 충족' 이 아닌 공고만 적는다."
+ },
+ "notices": {
+  "R26BK01748943-000": {
+   "title": "개인운동기록(PSR) 데이터·플랫폼 표준화를 위한 국내외 동향조사 및 표준화 전략 수립 용역",
+   "core": [],
+   "confirm": [],
+   "checklist": [],
+   "notes": [
+    "공동계약 불허"
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748943",
+    "region_name": "서울특별시 강남구",
+    "company_size": "SMALL",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01723353-000": {
+   "title": "해양공학연구동 위험유해환경 개선사업(건축공사)",
+   "core": [
+    {
+     "id": "L2a",
+     "type": "INDUSTRY",
+     "values": [
+      "0002",
+      "0003"
+     ],
+     "source": "3.1. 건축공사업(또는 토목건축공사업) — 대안"
+    },
+    {
+     "id": "L2b",
+     "type": "REGION",
+     "values": [
+      "대전"
+     ],
+     "source": "3.1. 본점 소재지를 계속 대전광역시에 둔 자 / 2.2. 지역제한(대전광역시)"
+    }
+   ],
+   "confirm": [],
+   "checklist": [],
+   "notes": [
+    "필요시 공동이행방식이 가능"
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-723353",
+    "region_name": "대전광역시 서구",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "0002",
+      "name": "건축공사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01743985-000": {
+   "title": "중부경찰서 신축 소방공사",
+   "core": [
+    {
+     "id": "L3a",
+     "type": "INDUSTRY",
+     "values": [
+      "0040"
+     ],
+     "source": "3.1. 전문소방시설공사업을 등록한 자"
+    }
+   ],
+   "confirm": [],
+   "checklist": [],
+   "notes": [
+    "지역의무공동도급"
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-743985",
+    "region_name": "서울특별시 중구",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "0040",
+      "name": "전문소방시설공사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01749029-000": {
+   "title": "차세대발사체 구조음향해석을 위한 Simcenter 3D 유지보수(3년)\t",
+   "core": [
+    {
+     "id": "L4a",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "소기업"
+     ],
+     "source": "③ 소기업자 또는 소상공인 — 확인서",
+     "names": [
+      "소상공인"
+     ]
+    }
+   ],
+   "confirm": [],
+   "checklist": [],
+   "notes": [
+    "공동계약(공동이행방식, 분담이행방식 등)이 불가"
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-749029",
+    "region_name": "대전광역시 유성구",
+    "company_size": "SMALL",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01740842-001": {
+   "title": "업무용 소프트웨어(Microsoft OVS-ES) 라이선스 구매",
+   "core": [
+    {
+     "id": "L5a",
+     "type": "REGISTRATION_CERTIFICATION",
+     "values": [
+      "4323151301"
+     ],
+     "source": "① 사무용 소프트웨어(4323151301)로 입찰참가 등록"
+    },
+    {
+     "id": "L5b",
+     "type": "INDUSTRY",
+     "values": [
+      "1468"
+     ],
+     "source": "② 소프트웨어사업자[컴퓨터관련서비스사업(1468)]"
+    },
+    {
+     "id": "L5c",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "중소기업"
+     ],
+     "source": "③ 중소기업 또는 소상공인 — 확인서"
+    },
+    {
+     "id": "L5d",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "대기업"
+     ],
+     "source": "* 대기업 및 중견기업 소프트웨어 사업자 참여 불가",
+     "names": [
+      "중견기업"
+     ],
+     "exclusion": true
+    }
+   ],
+   "confirm": [],
+   "checklist": [],
+   "notes": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-740842",
+    "region_name": "세종특별자치시",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "1468",
+      "name": "소프트웨어사업자(컴퓨터관련서비스사업)",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [
+     {
+      "ref": "c1",
+      "name": "사무용 소프트웨어 물품 등록",
+      "certification_code": "4323151301",
+      "issuer_name": null,
+      "issued_at": "2026-01-02",
+      "expires_at": "2028-12-31"
+     }
+    ],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748999-000": {
+   "title": "2026년 연등회 전통등 정기강습회 운영 용역",
+   "core": [
+    {
+     "id": "L6a",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "소기업"
+     ],
+     "source": "라. 소기업·소상공인·벤처기업·창업기업 중 하나",
+     "names": [
+      "소상공인"
+     ]
+    }
+   ],
+   "confirm": [],
+   "checklist": [
+    "강습 기획·운영, 전통문화 관련 교육"
+   ],
+   "notes": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "preference",
+     "phrase": "우대사항"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748999",
+    "region_name": "서울특별시 종로구",
+    "company_size": "SMALL",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748988-000": {
+   "title": "2026년 부산청년 경제적 자립 성공을 위한 금융교육(하반기 부산청년, 빚투말고 영끌 영리하게 끌어모으기 클래스) 운영 용역 입찰 공고 ",
+   "core": [
+    {
+     "id": "L7a",
+     "type": "REGION",
+     "values": [
+      "부산"
+     ],
+     "source": "다. 지역제한: 부산광역시에 주된 영업소"
+    }
+   ],
+   "confirm": [],
+   "checklist": [
+    "전시, 컨벤션 및 행사대행업"
+   ],
+   "notes": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748988",
+    "region_name": "부산광역시 부산진구",
+    "company_size": "SMALL",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01745369-000": {
+   "title": "2027년 소방공무원 채용·승진시험 문제지 편집·인쇄 위탁용역",
+   "core": [
+    {
+     "id": "L8a",
+     "type": "INDUSTRY",
+     "values": [
+      "1517",
+      "1518"
+     ],
+     "source": "[출판사신고(1517)] 업종 또는 [인쇄사신고(1518)] — 대안"
+    },
+    {
+     "id": "L8b",
+     "type": "REGISTRATION_CERTIFICATION",
+     "values": [
+      "5510159901"
+     ],
+     "source": "직접생산확인증명서[기타인쇄물(5510159901)]"
+    },
+    {
+     "id": "L8c",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "중소기업"
+     ],
+     "source": "중소기업자 또는 소상공인 — 확인서"
+    }
+   ],
+   "confirm": [],
+   "checklist": [],
+   "notes": [
+    "공동계약 및 구성방식:불가"
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-745369",
+    "region_name": "서울특별시 중구",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "1518",
+      "name": "인쇄사",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [
+     {
+      "ref": "c1",
+      "name": "직접생산확인 기타인쇄물",
+      "certification_code": "5510159901",
+      "issuer_name": null,
+      "issued_at": "2026-01-02",
+      "expires_at": "2028-12-31"
+     }
+    ],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748718-000": {
+   "title": "2027년도 『대학교육』誌 인쇄",
+   "core": [
+    {
+     "id": "L9a",
+     "type": "INDUSTRY",
+     "values": [
+      "1518"
+     ],
+     "source": "다. 인쇄사 신고 등록 (제안요청서는 출판사 신고)",
+     "also_accept": [
+      "1517"
+     ]
+    },
+    {
+     "id": "L9b",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "중소기업"
+     ],
+     "source": "라. 중소기업자 — 중소기업확인서"
+    },
+    {
+     "id": "L9c",
+     "type": "REGION",
+     "values": [
+      "서울"
+     ],
+     "source": "아. 주사업장(본점) 또는 지점이 서울특별시"
+    }
+   ],
+   "confirm": [],
+   "checklist": [
+    "직접생산 확인증명서"
+   ],
+   "notes": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748718",
+    "region_name": "서울특별시 중구",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "1518",
+      "name": "인쇄사",
+      "verified": true
+     },
+     {
+      "code": "1517",
+      "name": "출판사",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [
+     {
+      "ref": "c1",
+      "name": "직접생산확인 인쇄",
+      "certification_code": null,
+      "issuer_name": null,
+      "issued_at": "2026-01-02",
+      "expires_at": "2028-12-31"
+     }
+    ],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748933-000": {
+   "title": "2026년 제주하수처리장 시설관리용 액화석유가스(LPG) 공급계약(단가계약) (사업소)",
+   "core": [
+    {
+     "id": "L10a",
+     "type": "REGION",
+     "values": [
+      "제주"
+     ],
+     "source": "가. 제주특별자치도에 주된 영업소"
+    },
+    {
+     "id": "L10b",
+     "type": "INDUSTRY",
+     "values": [
+      "4615",
+      "4617"
+     ],
+     "source": "나. 액화석유가스충전사업 또는 액화석유가스판매사업 허가 — 대안"
+    },
+    {
+     "id": "L10c",
+     "type": "REGISTRATION_CERTIFICATION",
+     "values": [
+      "1511151001"
+     ],
+     "source": "다. 액화석유가스(1511151001) 공급 물품 등록"
+    },
+    {
+     "id": "L10d",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "소기업"
+     ],
+     "source": "라. 소기업 또는 소상공인",
+     "names": [
+      "소상공인"
+     ]
+    }
+   ],
+   "confirm": [],
+   "checklist": [
+    "LPG 전용 벌크로리 차량",
+    "가스사고배상책임보험"
+   ],
+   "notes": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748933",
+    "region_name": "제주특별자치도 제주시",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "4615",
+      "name": "액화석유가스충전사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [
+     {
+      "ref": "c1",
+      "name": "액화석유가스 물품 등록",
+      "certification_code": "1511151001",
+      "issuer_name": null,
+      "issued_at": "2026-01-02",
+      "expires_at": "2028-12-31"
+     }
+    ],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01749028-000": {
+   "title": "2026년 하반기 한국지역난방공사 청주지사 작업환경측정 위탁용역",
+   "core": [],
+   "confirm": [],
+   "checklist": [],
+   "notes": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-749028",
+    "region_name": "충청북도 청주시",
+    "company_size": "SMALL",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01747811-000": {
+   "title": "신흥 포구 준설공사",
+   "core": [
+    {
+     "id": "L12a",
+     "type": "INDUSTRY",
+     "values": [
+      "4999"
+     ],
+     "source": "나. 수중ㆍ준설공사업(주력분야: 수중공사)"
+    },
+    {
+     "id": "L12b",
+     "type": "REGION",
+     "values": [
+      "제주"
+     ],
+     "source": "나. 제주특별자치도내에 본점 소재지"
+    }
+   ],
+   "confirm": [],
+   "checklist": [],
+   "notes": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-747811",
+    "region_name": "제주특별자치도 제주시",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "4999",
+      "name": "수중ㆍ준설공사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01749007-000": {
+   "title": "배곧해솔초 외벽 방수공사 2인 이상 견적제출 수의계약 안내공고",
+   "core": [
+    {
+     "id": "L13a",
+     "type": "INDUSTRY",
+     "values": [
+      "4992"
+     ],
+     "source": "가. 도장ㆍ습식ㆍ방수ㆍ석공사업(주력분야: 습식ㆍ방수공사)"
+    },
+    {
+     "id": "L13b",
+     "type": "REGION",
+     "values": [
+      "시흥"
+     ],
+     "source": "가. 본점 소재지를 경기도 시흥시 / 지역제한(경기도 시흥시)"
+    }
+   ],
+   "confirm": [],
+   "checklist": [],
+   "notes": [
+    "공동도급이 허용되지 않는"
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-749007",
+    "region_name": "경기도 시흥시",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "4992",
+      "name": "도장ㆍ습식ㆍ방수ㆍ석공사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748837-000": {
+   "title": "학교 복천지구 대구획경지정리사업 폐기물처리 용역",
+   "core": [
+    {
+     "id": "L14a",
+     "type": "REGION",
+     "values": [
+      "함평"
+     ],
+     "source": "1) 본점소재지를 계속하여 함평군 내에 둔 자"
+    },
+    {
+     "id": "L14b",
+     "type": "INDUSTRY",
+     "values": [
+      "1253"
+     ],
+     "source": "2) 건설폐기물 중간처분업(1253) [+수집·운반업(6728), 장비기준 충족 시 생략]"
+    }
+   ],
+   "confirm": [],
+   "checklist": [
+    "장비기준"
+   ],
+   "notes": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748837",
+    "region_name": "전라남도 함평군",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "1253",
+      "name": "건설폐기물 중간처리업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748957-000": {
+   "title": "정보보안 모니터링 및 관리 용역",
+   "core": [
+    {
+     "id": "L15a",
+     "type": "INDUSTRY",
+     "values": [
+      "1468"
+     ],
+     "source": "다. 소프트웨어사업자(컴퓨터관련 서비스 사업)"
+    },
+    {
+     "id": "L15b",
+     "type": "INDUSTRY",
+     "values": [
+      "0036"
+     ],
+     "source": "마. 정보통신공사업(업종코드:0036)"
+    }
+   ],
+   "confirm": [],
+   "checklist": [
+    "기관 소재지에 신속한 현장 대응"
+   ],
+   "notes": [
+    "공동수급 및 하도급 불가"
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748957",
+    "region_name": "대전광역시 유성구",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "1468",
+      "name": "소프트웨어사업자(컴퓨터관련서비스사업)",
+      "verified": true
+     },
+     {
+      "code": "0036",
+      "name": "정보통신공사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748970-000": {
+   "title": "2026년 덩굴제거사업(2차)(기번2)",
+   "core": [
+    {
+     "id": "L16a",
+     "type": "INDUSTRY",
+     "values": [
+      "4119",
+      "1475"
+     ],
+     "source": "산림조합(지역조합) 또는 산림사업법인(숲가꾸기및병해충방제) — 대안"
+    },
+    {
+     "id": "L16b",
+     "type": "REGION",
+     "values": [
+      "성주"
+     ],
+     "source": "성주군 내 법인등기부상 본점"
+    }
+   ],
+   "confirm": [],
+   "checklist": [],
+   "notes": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748970",
+    "region_name": "경상북도 성주군",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "1475",
+      "name": "산림사업법인(숲가꾸기 및 병해충방제)",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748976-000": {
+   "title": "2026년 동절기 관내 도로 제설용 소금 구입",
+   "core": [
+    {
+     "id": "L17a",
+     "type": "REGION",
+     "values": [
+      "무주"
+     ],
+     "source": "가. 주된 영업소의 소재지가 무주군 내"
+    },
+    {
+     "id": "L17b",
+     "type": "REGISTRATION_CERTIFICATION",
+     "values": [
+      "1110159801"
+     ],
+     "source": "나. 비식용소금(1110159801) 등록"
+    },
+    {
+     "id": "L17c",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "소기업"
+     ],
+     "source": "다. 소기업 또는 소상공인 — 확인서",
+     "names": [
+      "소상공인"
+     ]
+    }
+   ],
+   "confirm": [],
+   "checklist": [],
+   "notes": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748976",
+    "region_name": "전북특별자치도 무주군",
+    "company_size": "SMALL",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [
+     {
+      "ref": "c1",
+      "name": "비식용소금 물품 등록",
+      "certification_code": "1110159801",
+      "issuer_name": null,
+      "issued_at": "2026-01-02",
+      "expires_at": "2028-12-31"
+     }
+    ],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01747591-000": {
+   "title": "수의견적 제출안내 공고(조현리 마을단위 오수처리시설 철거공사 폐기물처리 용역)",
+   "core": [
+    {
+     "id": "L18a",
+     "type": "REGION",
+     "values": [
+      "양평"
+     ],
+     "source": "가. 본점이 양평군 내"
+    },
+    {
+     "id": "L18b",
+     "type": "INDUSTRY",
+     "values": [
+      "1253"
+     ],
+     "source": "1)/2) 폐기물중간처리업(건설폐기물) [+수집·운반업, 장비기준 충족 시 생략]"
+    }
+   ],
+   "confirm": [],
+   "checklist": [
+    "장비 기준"
+   ],
+   "notes": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-747591",
+    "region_name": "경기도 양평군",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "1253",
+      "name": "건설폐기물 중간처리업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01749013-000": {
+   "title": "이현중 냉난방개선 냉난방기 구매 설치",
+   "core": [
+    {
+     "id": "L19a",
+     "type": "REGISTRATION_CERTIFICATION",
+     "values": [
+      "4010180601"
+     ],
+     "source": "나. 전기히트펌프(4010180601) 물품 등록"
+    },
+    {
+     "id": "L19b",
+     "type": "REGISTRATION_CERTIFICATION",
+     "values": [
+      "4010178701"
+     ],
+     "source": "나. 히트펌프용실내기(4010178701) 물품 등록"
+    },
+    {
+     "id": "L19c",
+     "type": "INDUSTRY",
+     "values": [
+      "6202"
+     ],
+     "source": "나. 기계설비가스공사업(업종코드 6202)"
+    },
+    {
+     "id": "L19d",
+     "type": "REGION",
+     "values": [
+      "경기"
+     ],
+     "source": "다. 본점 소재지를 경기도 / 지역제한(경기도)"
+    }
+   ],
+   "confirm": [],
+   "checklist": [],
+   "notes": [
+    "공동계약이 허용되지 않습니다"
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-749013",
+    "region_name": "경기도 수원시",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "6202",
+      "name": "기계설비ㆍ가스공사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [
+     {
+      "ref": "c1",
+      "name": "전기히트펌프 물품 등록",
+      "certification_code": "4010180601",
+      "issuer_name": null,
+      "issued_at": "2026-01-02",
+      "expires_at": "2028-12-31"
+     },
+     {
+      "ref": "c2",
+      "name": "히트펌프용실내기 물품 등록",
+      "certification_code": "4010178701",
+      "issuer_name": null,
+      "issued_at": "2026-01-02",
+      "expires_at": "2028-12-31"
+     }
+    ],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748843-000": {
+   "title": "태화종합시장 노후상가 도색 및 보수 공사(건축)",
+   "core": [
+    {
+     "id": "L20a",
+     "type": "REGION",
+     "values": [
+      "울산"
+     ],
+     "source": "① 본점 소재지가 울산광역시 안"
+    },
+    {
+     "id": "L20b",
+     "type": "INDUSTRY",
+     "values": [
+      "4992"
+     ],
+     "source": "② 도장·습식·방수·석공사업 면허"
+    }
+   ],
+   "confirm": [],
+   "checklist": [],
+   "notes": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748843",
+    "region_name": "울산광역시 중구",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "4992",
+      "name": "도장ㆍ습식ㆍ방수ㆍ석공사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  }
+ }
+}

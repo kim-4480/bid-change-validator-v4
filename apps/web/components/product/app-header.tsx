@@ -13,6 +13,7 @@ const PRIMARY_NAV = [
   { label: '공고 찾기', href: '/notices' },
   { label: '내 입찰 건', href: '/qualification' },
   { label: '회사 프로필', href: '/company' },
+  { label: 'AI 추천', href: '/recommendations' },
   { label: '이용안내', href: '/guide' },
 ] as const;
 
@@ -41,6 +42,7 @@ export function AppHeader({
 }) {
   return (
     <header className="app-header">
+      <a href="#main-content" className="app-skip-link">본문으로 건너뛰기</a>
       <div className="app-utility-bar">
         <PageContainer className="flex h-full items-center justify-between text-[13px] leading-[19px]">
           {/* 우리가 쓰는 공고 데이터의 출처. 링크처럼 보이므로 실제 출처로 연결한다. */}
@@ -80,17 +82,27 @@ export function AppHeader({
             </span>
           </NavigationLink>
 
+          <div className="app-mobile-auth">
+            {user ? (
+              <button type="button" className="app-utility-action" onClick={onLogout}>로그아웃</button>
+            ) : (
+              <NavigationLink href="/login" className="app-utility-action">로그인</NavigationLink>
+            )}
+          </div>
           <nav className="app-primary-nav" aria-label="주요 메뉴">
             {PRIMARY_NAV.map((item) => (
-              <a
+              <NavigationLink
                 key={item.href}
                 href={item.href}
                 className="app-nav-link"
                 aria-current={isActive(pathname, item.href) ? 'page' : undefined}
               >
                 {item.label}
-              </a>
+              </NavigationLink>
             ))}
+            {(user?.role === 'SYSTEM_ADMIN' || user?.role === 'ADMIN') && (
+              <NavigationLink href="/admin" className="app-nav-link" aria-current={pathname.startsWith('/admin') ? 'page' : undefined}>운영 관리</NavigationLink>
+            )}
           </nav>
         </PageContainer>
       </div>

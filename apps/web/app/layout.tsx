@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist_Mono, Gothic_A1 } from 'next/font/google';
 
 import { AppShell } from '@/components/app-shell';
+import { SharedQueryProvider } from '@/components/shared-query-provider';
 
 import './globals.css';
 import '@/components/product/product.css';
@@ -32,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={`${gothicA1.variable} ${geistMono.variable} antialiased`}>
-        <AppShell>{children}</AppShell>
+        <SharedQueryProvider><AppShell>{children}</AppShell></SharedQueryProvider>
       </body>
     </html>
   );

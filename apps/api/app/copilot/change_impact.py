@@ -112,9 +112,12 @@ STATUS = {
     "SATISFIED": "충족",
     "UNSATISFIED": "미달",
     "UNKNOWN": "확인 필요",
-    "eligible": "참가 가능",
-    "ineligible": "참가 불가",
-    "insufficient_data": "판정 보류",
+    "core_met": "핵심 요건 충족",
+    "core_unmet": "핵심 요건 미충족",
+    "needs_review": "확인 필요",
+    "eligible": "과거 판정 — 재검토 필요",
+    "ineligible": "과거 판정 — 재검토 필요",
+    "insufficient_data": "과거 판정 — 재검토 필요",
     None: "해당 요건 없음",
 }
 

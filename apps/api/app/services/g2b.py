@@ -137,6 +137,32 @@ class G2BClient:
             params["inqryEndDt"] = _format_query_datetime(window_ended_at)
         return self._fetch_json_page(endpoint=endpoint, params=params)
 
+    def fetch_participation_limits(
+        self, *, bid_notice_no: str, bid_notice_order: str,
+    ) -> dict[str, list[dict]]:
+        """Fetch the structured licence limits and permitted regions of one notice version.
+
+        Both lookups require the notice order (bidNtceOrd); without it the API answers
+        "필수값 입력 에러". An agency that entered no limit yields an empty list.
+        """
+        return {
+            "licenses": self._fetch_all_by_notice("getBidPblancListInfoLicenseLimit", bid_notice_no, bid_notice_order),
+            "regions": self._fetch_all_by_notice("getBidPblancListInfoPrtcptPsblRgn", bid_notice_no, bid_notice_order),
+        }
+
+    def _fetch_all_by_notice(self, endpoint: str, bid_notice_no: str, bid_notice_order: str) -> list[dict]:
+        items: list[dict] = []
+        page_number = 1
+        while True:
+            page = self._fetch_json_page(endpoint=endpoint, params={
+                "serviceKey": self._service_key, "pageNo": page_number, "numOfRows": 100, "type": "json",
+                "inqryDiv": "2", "bidNtceNo": bid_notice_no, "bidNtceOrd": bid_notice_order,
+            })
+            items.extend(page.items)
+            if not page.items or page_number * page.page_size >= page.total_count:
+                return items
+            page_number += 1
+
     def _fetch_json_page(
         self,
         *,

@@ -1,0 +1,31 @@
+{
+ "notice_no": "R26BK01749000",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "의료기기판매업",
+   "code": "5312",
+   "raw": {
+    "bidNtceNo": "R26BK01749000",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "의료기기판매업/5312",
+    "permsnIndstrytyList": "[의약품판매업(의약품도매상)/5307],[약국/5332]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:44:29",
+    "bsnsDivNm": "물품"
+   }
+  }
+ ],
+ "regions": [],
+ "flags": {
+  "prdctClsfcLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "일반경쟁"
+ },
+ "errors": []
+}

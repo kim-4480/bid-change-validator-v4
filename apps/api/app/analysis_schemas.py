@@ -18,6 +18,8 @@ class QualificationAnalysisRunRead(BaseModel):
     contract_version: str
     analysis_kind: str
     status: str
+    input_fingerprint: str | None = None
+    is_stale: bool
     target_chunk_ids: list[str] = Field(default_factory=list)
     diagnostics: list[AnalysisDiagnostic] = Field(default_factory=list)
     dropped_requirements: list[DroppedRequirement] = Field(default_factory=list)
@@ -38,6 +40,8 @@ class QualificationAnalysisRunSummary(BaseModel):
     version_number: int
     contract_version: str
     status: str
+    input_fingerprint: str | None = None
+    is_stale: bool
     requirement_count: int
     evidence_count: int
     created_at: datetime

@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from .contracts import JudgmentProfileResult, QualificationSummary, RequiredChecksResult, RequirementEvidenceResult
 from .source_map import display_text, invalid_mapping, source_identity
+from bidengine.judgment.rules import normalize_overall_status
 
 
 class Reason(BaseModel):
@@ -42,16 +43,16 @@ REASON_LABELS = {
     "UNSUPPORTED_REQUIREMENT": "이 조건은 현재 자동 판정이 지원되지 않습니다.",
 }
 STATUS_CONCLUSIONS = {
-    "eligible": "현재 저장된 판정은 참가 가능입니다.",
-    "ineligible": "현재 저장된 판정은 참가 불가입니다.",
-    "insufficient_data": "현재 저장된 판정만으로는 참가 가능 여부를 확정할 수 없습니다.",
+    "core_met": "현재 저장된 판정은 핵심 요건 충족입니다. 법적 입찰 참가 가능을 보증하지 않습니다.",
+    "core_unmet": "현재 저장된 판정은 핵심 요건 미충족입니다. 법적 입찰 참가 불가능을 확정하지 않습니다.",
+    "needs_review": "현재 자료로는 핵심 요건 상태를 확정할 수 없습니다. 확인이 필요합니다.",
 }
 
 
 def present_product(state, evidence_refs, focus=None, summary=None):
     presentation = Presentation(conclusion="현재 저장된 검토 결과입니다.")
     if isinstance(state, QualificationSummary):
-        presentation.conclusion = STATUS_CONCLUSIONS[state.overall_status]
+        presentation.conclusion = STATUS_CONCLUSIONS[normalize_overall_status(state.overall_status)]
         items = [j for j in state.judgments if not focus or j.requirement_key == focus]
         for item in items:
             presentation.reasons.append(Reason(
@@ -63,7 +64,7 @@ def present_product(state, evidence_refs, focus=None, summary=None):
     elif isinstance(state, RequiredChecksResult):
         items = [q for q in state.questions if not focus or q.requirement_key == focus]
         if summary:
-            status = STATUS_CONCLUSIONS[summary.overall_status]
+            status = STATUS_CONCLUSIONS[normalize_overall_status(summary.overall_status)]
             presentation.conclusion = (
                 f"{status} 먼저 확인할 항목은 {len(items)}건입니다."
                 if items else f"{status} 현재 추가로 답변할 확인 항목은 없습니다."

@@ -13,7 +13,7 @@ class NoticeMatchRead(BaseModel):
     version_number: int
     analysis_run_id: UUID
     analysis_status: str
-    overall_status: Literal["eligible", "ineligible", "insufficient_data"]
+    overall_status: Literal["core_met", "core_unmet", "needs_review"]
     satisfied_count: int
     unknown_count: int
     unsatisfied_count: int

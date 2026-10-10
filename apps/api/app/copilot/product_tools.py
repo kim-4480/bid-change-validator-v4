@@ -8,14 +8,15 @@ subsequent user actions must revalidate freshness at their own write boundary.
 from copy import deepcopy
 from uuid import UUID
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..analysis_models import QualificationAnalysisRun
 from ..analysis_schemas import QualificationAnalysisRunRead
 from ..judgment_schemas import QualificationJudgmentRunRead
 from ..models import PreflightCase
-from ..qualification.analysis import analysis_run_response, load_qualification_analysis_run
+from ..qualification.analysis import (
+    analysis_run_response,
+    load_latest_current_qualification_analysis_run,
+)
 from ..qualification.ask_back import list_questions
 from ..qualification.judgment import (
     QualificationJudgmentError,
@@ -42,16 +43,12 @@ def _load_context(
     if case is None:
         raise QualificationJudgmentError("PREFLIGHT_CASE_NOT_FOUND", "사전검토 건을 찾을 수 없습니다.", status_code=404)
 
-    latest_id = db.scalar(
-        select(QualificationAnalysisRun.id)
-        .where(QualificationAnalysisRun.notice_version_id == case.current_version_id)
-        .order_by(QualificationAnalysisRun.created_at.desc(), QualificationAnalysisRun.id.desc())
-        .limit(1)
+    analysis_run = load_latest_current_qualification_analysis_run(
+        db, notice_version_id=case.current_version_id, include_failed=True
     )
-    if latest_id is None:
+    if analysis_run is None:
         raise QualificationJudgmentError("CURRENT_JUDGMENT_REQUIRED", "현재 공고 버전의 판정이 필요합니다.")
-
-    analysis_run = load_qualification_analysis_run(db, latest_id)
+    latest_id = analysis_run.id
     if analysis_run.notice_version_id != case.current_version_id or analysis_run.notice_version.notice_id != case.notice_id:
         raise QualificationJudgmentError("ANALYSIS_VERSION_MISMATCH", "현재 공고와 분석 버전이 다릅니다.")
     if analysis_run.status == "FAILED":

@@ -72,7 +72,7 @@ function PanelBody({ caseId, page }: { caseId: string; page: typeof pages[keyof 
   const [question, setQuestion] = useState('');
   const [semanticProcessing, setSemanticProcessing] = useState(false);
   const [documentProcessing, setDocumentProcessing] = useState(false);
-  const [jobsOpen, setJobsOpen] = useState(true);
+  const [jobsOpen, setJobsOpen] = useState({ page, open: true });
   const [catalogState, setCatalogState] = useState<{ caseId: string; catalog: GuidedJobCatalog | null; error: string }>({ caseId: '', catalog: null, error: '' });
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => { end.current?.scrollIntoView({ block: 'nearest' }); }, [state.turns, state.busy]);
@@ -86,14 +86,16 @@ function PanelBody({ caseId, page }: { caseId: string; page: typeof pages[keyof 
   }, [caseId]);
   const catalog = catalogState.caseId === caseId ? catalogState.catalog : null;
   const catalogError = catalogState.caseId === caseId ? catalogState.error : '';
+  // SPA navigation keeps the panel mounted; each destination starts with its
+  // guided questions visible, as it did after a document navigation.
+  const jobsExpanded = jobsOpen.page === page ? jobsOpen.open : true;
   const ask = (text: string, intent?: CopilotIntent, guided?: { jobId: string; questionId: string }) => {
     if (!caseId || state.busy || !text.trim()) return;
-    setJobsOpen(false);
+    setJobsOpen({ page, open: false });
     void store.ask(caseId, text.trim(), intent, page, semanticProcessing, documentProcessing, guided);
   };
   const noJudgment = noJudgmentCodes.includes(state.errorCode);
   const empty = !state.turns.length;
-  const jobsExpanded = jobsOpen;
   return <>
     <div className={`copilot-content${empty ? ' copilot-content-empty' : ''}`}>
       {empty && <div className="copilot-empty" data-state="EMPTY">
@@ -105,7 +107,7 @@ function PanelBody({ caseId, page }: { caseId: string; page: typeof pages[keyof 
         <label className="copilot-semantic-toggle" htmlFor="copilot-semantic-processing" aria-label="AI 상세 설명 사용">
           <input id="copilot-semantic-processing" type="checkbox" checked={semanticProcessing} disabled={state.busy}
             onChange={event => setSemanticProcessing(event.target.checked)} />
-          <span><strong>AI 상세 설명 사용</strong><small>켜면 질문·관련 대화·현재 판정 결과·요건 상태와 판정에 필요한 회사 프로필 정보를 AI 처리에 사용합니다. AI는 참가 가능 여부를 새로 판정하거나 저장하지 않습니다. 대화는 서버 재시작 시 초기화됩니다.</small></span>
+          <span><strong>AI 상세 설명 사용</strong><small>켜면 질문·관련 대화·현재 판정 결과·요건 상태와 판정에 필요한 회사 프로필 정보를 AI 처리에 사용합니다. AI는 핵심 요건 판정을 새로 만들거나 법적 참가 가능 여부를 보증하지 않습니다. 대화는 서버 재시작 시 초기화됩니다.</small></span>
         </label>
         <label className="copilot-semantic-toggle" htmlFor="copilot-document-processing" aria-label="공고문 근거 답변 사용">
           <input id="copilot-document-processing" type="checkbox" checked={documentProcessing} disabled={state.busy}
@@ -114,7 +116,7 @@ function PanelBody({ caseId, page }: { caseId: string; page: typeof pages[keyof 
         </label>
       </div>}
       {caseId && catalog && <section className="copilot-jobs" aria-label="검증된 업무 질문">
-        <button type="button" className="copilot-jobs-toggle" aria-expanded={jobsExpanded} onClick={() => setJobsOpen(value => !value)}>
+        <button type="button" className="copilot-jobs-toggle" aria-expanded={jobsExpanded} onClick={() => setJobsOpen({ page, open: !jobsExpanded })}>
           <span><ChevronDown size={16} aria-hidden="true" />추천 질문 6개</span>
           <span>{jobsExpanded ? '접기' : '보기'}</span>
         </button>

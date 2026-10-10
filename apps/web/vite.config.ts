@@ -41,6 +41,12 @@ export default defineConfig(async () => {
   process.env.WRANGLER_LOG_PATH ??= '.wrangler/logs';
   process.env.MINIFLARE_REGISTRY_PATH ??= '.wrangler/registry';
 
+  // AWS containers use Vinext's first-party Node.js runtime, not Cloudflare Workerd.
+  // Keep Cloudflare/Sites plugins for the existing local preview target only.
+  if (process.env.BIDCHECK_NODE_TARGET === '1') {
+    return { css: { postcss: { plugins: [tailwindcss()] } }, plugins: [vinext()] };
+  }
+
   // Wrangler snapshots its log path while the Cloudflare plugin is imported.
   const { cloudflare } = await import('@cloudflare/vite-plugin');
 

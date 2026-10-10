@@ -1,10 +1,12 @@
+from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from uuid import UUID
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import FileResponse, RedirectResponse, Response
-from sqlalchemy import case as sql_case, exists, func, or_, select
+from sqlalchemy import String, Text, and_, case as sql_case, cast, exists, func, literal, or_, select
+from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.orm import Session, selectinload
 
 from ..auth import authorize_company_access, get_optional_current_user
@@ -41,7 +43,7 @@ from ..schemas import (
 )
 from ..services.g2b import G2BApiError, G2BClient
 from ..services.document_storage import build_document_downloader, build_s3_client
-from ..services.document_extraction import extract_pending_documents
+from ..services.document_reprocessing import extract_pending_documents
 from ..services.notices import run_notice_sync
 from ..services.notice_facts import diff_notice_facts
 from bidengine.judgment.rules import RULE_VERSION
@@ -99,6 +101,23 @@ def _summary(
         first_seen_at=notice.first_seen_at,
         last_seen_at=notice.last_seen_at,
         current_version=version.version_number,
+    )
+
+
+def _availability_order(now: datetime):
+    """Prioritize open notices without hiding expired history or guessing unknown dates."""
+    kind = func.lower(func.coalesce(BidNoticeVersion.notice_kind, BidNotice.notice_kind, ""))
+    not_cancelled = ~or_(kind.like("%취소%"), kind.like("%cancel%"), kind.like("%무효%"))
+    return sql_case(
+        (and_(not_cancelled, BidNoticeVersion.bid_closed_at > now), 0),
+        (and_(
+            not_cancelled,
+            BidNoticeVersion.bid_closed_at.is_(None),
+            BidNoticeVersion.posted_at.is_not(None),
+            BidNoticeVersion.posted_at <= now,
+            BidNoticeVersion.posted_at > now - timedelta(days=40),
+        ), 1),
+        else_=2,
     )
 
 
@@ -176,11 +195,42 @@ def _company_notice_status(company_id: UUID):
     matching the rule version counts. Older cases without a current judgment
     are needs_review rather than being mistaken for never reviewed.
     """
+    # Recompute the same canonical document lineage as
+    # qualification_analysis_document_fingerprint in PostgreSQL. Status filters
+    # and pagination happen in SQL, so checking staleness after LIMIT would
+    # miscount and could expose an obsolete core_met badge.
+    document_json = func.concat(
+        literal('{"document_id":"'), cast(NoticeDocument.id, Text),
+        literal('","extracted_text_sha256":'),
+        sql_case(
+            (NoticeDocument.extracted_text_sha256.is_(None), literal("null")),
+            else_=func.concat(literal('"'), NoticeDocument.extracted_text_sha256, literal('"')),
+        ),
+        literal("}"),
+    )
+    document_rows = (
+        select(func.coalesce(func.string_agg(
+            document_json,
+            aggregate_order_by(literal(","), cast(NoticeDocument.id, String)),
+        ), literal("")))
+        .where(
+            NoticeDocument.notice_version_id == BidNoticeVersion.id,
+            NoticeDocument.extraction_status == "EXTRACTED",
+            NoticeDocument.extracted_blocks.is_not(None),
+            func.jsonb_array_length(NoticeDocument.extracted_blocks) > 0,
+        )
+        .correlate(BidNoticeVersion)
+        .scalar_subquery()
+    )
+    fingerprint = func.encode(func.sha256(func.convert_to(func.concat(
+        literal("qualification-analysis-input-v1\n["), document_rows, literal("]")
+    ), literal("UTF8"))), literal("hex"))
     latest_analysis = (
         select(QualificationAnalysisRun.id)
         .where(
             QualificationAnalysisRun.notice_version_id == BidNoticeVersion.id,
             QualificationAnalysisRun.status != "FAILED",
+            QualificationAnalysisRun.input_fingerprint == fingerprint,
         )
         .order_by(QualificationAnalysisRun.created_at.desc(), QualificationAnalysisRun.id.desc())
         .limit(1)
@@ -256,7 +306,7 @@ def search_notices(
     offset: Annotated[int, Query(ge=0)] = 0,
     company_id: UUID | None = None,
     qualification_status: Annotated[
-        str | None, Query(pattern="^(eligible|ineligible|insufficient_data|unreviewed|needs_review)$")
+        str | None, Query(pattern="^(core_met|core_unmet|unreviewed|needs_review)$")
     ] = None,
     db: Session = Depends(get_db),
     user: AppUser | None = Depends(get_optional_current_user),
@@ -285,11 +335,12 @@ def search_notices(
         )
         .where(*filters)
     )
+    availability_order = _availability_order(datetime.now(timezone.utc))
 
     if company_id is None:
         total = db.scalar(select(func.count()).select_from(base.with_only_columns(BidNotice.id).order_by(None).subquery())) or 0
         rows = db.execute(
-            base.order_by(BidNotice.last_seen_at.desc(), BidNotice.id.desc())
+            base.order_by(availability_order, BidNotice.last_seen_at.desc(), BidNotice.id.desc())
             .offset(offset).limit(limit)
         ).all()
         return BidNoticeSearchResponse(
@@ -312,7 +363,7 @@ def search_notices(
     )
     status_counts = {
         key: counts.get(key, 0)
-        for key in ("eligible", "insufficient_data", "ineligible", "unreviewed", "needs_review")
+        for key in ("core_met", "core_unmet", "unreviewed", "needs_review")
     }
     total = sum(status_counts.values()) if qualification_status is None else status_counts[qualification_status]
 
@@ -320,7 +371,7 @@ def search_notices(
     if qualification_status is not None:
         page_query = page_query.where(status_expr == qualification_status)
     rows = db.execute(
-        page_query.order_by(BidNotice.last_seen_at.desc(), BidNotice.id.desc())
+        page_query.order_by(availability_order, BidNotice.last_seen_at.desc(), BidNotice.id.desc())
         .offset(offset).limit(limit)
     ).all()
     return BidNoticeSearchResponse(
@@ -376,11 +427,12 @@ def get_notice_document_text(
         document_id=document.id,
         name=document.name,
         extraction_status=document.extraction_status,
-        extractor=document.text_extractor,
-        char_count=document.extracted_char_count,
-        text_sha256=document.extracted_text_sha256,
-        text=document.extracted_text,
-        blocks=document.extracted_blocks,
+        # Preserved historical extraction bytes are not current evidence.
+        extractor=document.text_extractor if document.extraction_status == "EXTRACTED" else None,
+        char_count=document.extracted_char_count if document.extraction_status == "EXTRACTED" else None,
+        text_sha256=document.extracted_text_sha256 if document.extraction_status == "EXTRACTED" else None,
+        text=document.extracted_text if document.extraction_status == "EXTRACTED" else None,
+        blocks=document.extracted_blocks if document.extraction_status == "EXTRACTED" else None,
     )
 
 

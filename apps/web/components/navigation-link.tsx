@@ -1,13 +1,12 @@
+'use client';
+
+import Link from 'next/link';
 import type { AnchorHTMLAttributes } from 'react';
 
-/**
- * Internal navigation that deliberately uses the browser's document navigation.
- *
- * The self-hosted Vinext runtime currently fails while handling Next.js RSC client
- * transitions. A native anchor keeps normal link semantics and lets the server
- * render the destination route directly.
- */
-export function NavigationLink(props: AnchorHTMLAttributes<HTMLAnchorElement>) {
-  const { children, ...anchorProps } = props;
-  return <a {...anchorProps}>{children}</a>;
+export function NavigationLink({ href, children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) {
+  if (!href) return <a {...props}>{children}</a>;
+  if (href.startsWith('#') || /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href)) {
+    return <a href={href} {...props}>{children}</a>;
+  }
+  return <Link href={href} {...props}>{children}</Link>;
 }

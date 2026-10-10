@@ -1,10 +1,15 @@
+import { mayCacheGet, sharedRead, invalidateSharedData, clearSharedData } from '@/lib/shared-query-cache';
 import { apiFetch, ApiError, type PreflightCase } from '@/lib/api';
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, useCache = true): Promise<T> {
+  if (useCache && (!init?.method || init.method.toUpperCase() === 'GET') && mayCacheGet(path)) {
+    return sharedRead(path, () => request<T>(path, init, false));
+  }
   const headers = new Headers(init?.headers);
   if (init?.body && !(init.body instanceof FormData)) headers.set('Content-Type', 'application/json');
   const response = await apiFetch(path, { ...init, headers });
   if (!response.ok) {
+    if (response.status === 401) clearSharedData();
     const payload = (await response.json().catch(() => null)) as {
       error?: { message?: string; code?: string };
     } | null;
@@ -14,7 +19,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       payload?.error?.code ?? 'HTTP_ERROR',
     );
   }
-  return response.json() as Promise<T>;
+  const data = await response.json() as T;
+  if (init?.method && !['GET', 'HEAD'].includes(init.method.toUpperCase())) invalidateSharedData();
+  return data;
 }
 
 export type CompanySize = 'MICRO' | 'SMALL' | 'MEDIUM' | 'MID_SIZED' | 'LARGE' | 'NONE';
@@ -102,6 +109,8 @@ export type QualificationAnalysisSummary = {
   version_number: number;
   contract_version: string;
   status: 'SUCCEEDED' | 'PARTIAL' | 'FAILED';
+  input_fingerprint: string | null;
+  is_stale: boolean;
   requirement_count: number;
   evidence_count: number;
   created_at: string;
@@ -214,7 +223,7 @@ export type QualificationJudgmentRun = {
   analysis_run_id: string;
   company_id: string;
   notice_version_id: string;
-  overall_status: 'eligible' | 'ineligible' | 'insufficient_data';
+  overall_status: 'core_met' | 'core_unmet' | 'needs_review';
   rule_version: string;
   reference_date: string;
   analysis_status: string;
@@ -228,7 +237,7 @@ export type QualificationJudgmentSummary = {
   analysis_run_id: string;
   company_id: string;
   notice_version_id: string;
-  overall_status: 'eligible' | 'ineligible' | 'insufficient_data';
+  overall_status: 'core_met' | 'core_unmet' | 'needs_review';
   rule_version: string;
   reference_date: string;
   analysis_status: string;
@@ -345,9 +354,24 @@ export function listQualificationAnalyses(noticeId: string, versionNumber: numbe
   );
 }
 
-export function runQualificationAnalysis(noticeId: string, versionNumber: number) {
+export type QualificationAnalysisRequest = {
+  notice_version_id: string;
+  job_id: string;
+  job_status: string;
+  approved: boolean;
+  documents_ready: boolean;
+};
+
+export function requestQualificationAnalysis(noticeId: string, versionNumber: number) {
+  return request<QualificationAnalysisRequest>(
+    `/api/v1/notices/${noticeId}/versions/${versionNumber}/qualification-analysis/request`,
+    { method: 'POST' },
+  );
+}
+
+export function runQualificationAnalysis(noticeId: string, versionNumber: number, force = false) {
   return request<QualificationAnalysisRun>(
-    `/api/v1/notices/${noticeId}/versions/${versionNumber}/qualification-analysis`,
+    `/api/v1/notices/${noticeId}/versions/${versionNumber}/qualification-analysis${force ? '?force=true' : ''}`,
     { method: 'POST' },
   );
 }

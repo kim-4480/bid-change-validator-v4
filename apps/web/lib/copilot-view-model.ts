@@ -1,7 +1,7 @@
 import type { ActionProposal, CopilotChatResponse, CopilotSource, OverallStatus } from './copilot-api';
 
 export function getCopilotStatusLabel(status: OverallStatus): string {
-  return { eligible: '참가 가능', ineligible: '참가 불가', insufficient_data: '확인 필요' }[status];
+  return { core_met: '핵심 요건 충족', core_unmet: '핵심 요건 미충족', needs_review: '확인 필요' }[status];
 }
 
 export function getCopilotActionLabel(action: ActionProposal): string {

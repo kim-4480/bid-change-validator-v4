@@ -1,0 +1,53 @@
+{
+ "notice_no": "R26BK01748920",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "지반조성ㆍ포장공사업",
+   "code": "4989",
+   "raw": {
+    "bidNtceNo": "R26BK01748920",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "지반조성ㆍ포장공사업/4989",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "[1^토공사]",
+    "rgstDt": "2026-09-29 15:29:56",
+    "bsnsDivNm": "공사"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "1",
+   "name": "지반조성ㆍ포장공사업",
+   "code": "4989",
+   "raw": {
+    "bidNtceNo": "R26BK01748920",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "1",
+    "lcnsLmtNm": "지반조성ㆍ포장공사업/4989",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "[1^포장공사]",
+    "rgstDt": "2026-09-29 15:29:56",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [
+  "경기도 남양주시"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "rgnLmtBidLocplcJdgmBssNm": "본사또는참여지사소재지",
+  "cntrctCnclsMthdNm": "수의계약",
+  "cnstrtsiteRgnNm": "경기도 남양주시"
+ },
+ "errors": []
+}

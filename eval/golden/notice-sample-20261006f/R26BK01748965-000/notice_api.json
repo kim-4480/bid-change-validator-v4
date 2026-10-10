@@ -1,0 +1,15 @@
+{
+ "notice_no": "R26BK01748965",
+ "order": "000",
+ "licenses": [],
+ "regions": [],
+ "flags": {
+  "indstrytyLmtYn": "N",
+  "prdctClsfcLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(전자)분담이행",
+  "cntrctCnclsMthdNm": "수의계약"
+ },
+ "errors": []
+}

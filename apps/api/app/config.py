@@ -41,6 +41,13 @@ class Settings(BaseSettings):
     notice_poll_business_types: str = "SERVICE,GOODS,CONSTRUCTION,FOREIGN"
     notice_history_backfill_batch_size: int = Field(default=10, ge=1, le=100)
     notice_history_backfill_retry_minutes: int = Field(default=15, ge=1, le=1_440)
+    processing_batch_size: int = Field(default=10, ge=1, le=100)
+    processing_poll_interval_seconds: int = Field(default=30, ge=1, le=3600)
+    processing_enable_external: bool = False
+    # 분석할 때 나라장터 면허제한·참가가능지역을 조회해 문서 옆의 두 번째 근거로 쓴다(services/participation_limits.py).
+    participation_limits_lookup_enabled: bool = True
+    qualification_self_service_enabled: bool = False
+    qualification_self_service_daily_limit: int = Field(default=3, ge=1, le=100)
     auth_bootstrap_admin_username: str = "admin"
     auth_bootstrap_admin_password: str = "admin"
     auth_session_ttl_hours: int = Field(default=12, ge=1, le=720)

@@ -8,6 +8,7 @@ from typing import BinaryIO, Protocol
 from zoneinfo import ZoneInfo
 
 import requests
+from botocore.exceptions import BotoCoreError, ClientError
 
 from ..config import Settings
 from ..models import NoticeDocument
@@ -21,7 +22,12 @@ class DocumentStorage(Protocol):
     def put(self, storage_key: str, source: BinaryIO, content_type: str | None) -> str: ...
 
 
-def build_s3_client(*, region: str | None, endpoint_url: str | None = None):
+def build_s3_client(
+    *,
+    region: str | None,
+    endpoint_url: str | None = None,
+    total_max_attempts: int | None = None,
+):
     """Build the S3 client used by both storage and signed-download paths.
 
     ``endpoint_url`` keeps the storage implementation compatible with OCI's
@@ -36,12 +42,22 @@ def build_s3_client(*, region: str | None, endpoint_url: str | None = None):
     # OCI's S3 Compatibility API does not accept AWS chunked payload
     # signatures. Disable payload signing and use path-style addressing; both
     # settings are also valid for AWS S3 and keep the client deterministic.
-    kwargs["config"] = Config(
-        signature_version="s3v4",
-        s3={"addressing_style": "path", "payload_signing_enabled": False},
-        request_checksum_calculation="when_required",
-        response_checksum_validation="when_required",
-    )
+    config_options: dict[str, object] = {
+        "signature_version": "s3v4",
+        "s3": {"addressing_style": "path", "payload_signing_enabled": False},
+        "request_checksum_calculation": "when_required",
+        "response_checksum_validation": "when_required",
+    }
+    if total_max_attempts is not None:
+        if not 1 <= total_max_attempts <= 3:
+            raise ValueError("total_max_attempts must be 1..3")
+        # Limit SDK retries in a cost-sensitive, explicitly bounded read path.
+        # Other callers retain their existing retry configuration.
+        config_options["retries"] = {
+            "mode": "standard",
+            "total_max_attempts": total_max_attempts,
+        }
+    kwargs["config"] = Config(**config_options)
     return boto3.client("s3", **kwargs)
 
 
@@ -170,7 +186,7 @@ class NoticeDocumentDownloader:
                     document.download_error = None
                     if extract_document:
                         extract_into_document(document, temp)
-        except (requests.RequestException, OSError, ValueError) as error:
+        except (requests.RequestException, OSError, ValueError, BotoCoreError, ClientError) as error:
             document.download_status = "FAILED"
             document.download_error = (
                 f"파일 다운로드 실패 ({type(error).__name__})"

@@ -5,7 +5,7 @@ import type { EvidenceLocation, QualificationQuestion } from './qualification-ap
 // Pydantic app/copilot/{chat,contracts,actions}.py is the source of truth.
 export type CopilotIntent = 'QUALIFICATION_SUMMARY' | 'REQUIREMENT_EVIDENCE' | 'REQUIRED_CHECKS'
   | 'PROFILE_SNAPSHOT' | 'DOCUMENT_QA' | 'ACTION_REQUEST' | 'CHANGED_NOTICE' | 'UNKNOWN';
-export type OverallStatus = 'eligible' | 'ineligible' | 'insufficient_data';
+export type OverallStatus = 'core_met' | 'core_unmet' | 'needs_review';
 export type JudgmentStatus = 'SATISFIED' | 'UNSATISFIED' | 'UNKNOWN';
 export type RequirementType = 'PERFORMANCE_AMOUNT' | 'PERFORMANCE_COUNT' | 'INDUSTRY' | 'REGION'
   | 'STAFF' | 'REGISTRATION_CERTIFICATION' | 'EXPERIENCE_FIELD' | 'COMPANY_SIZE';

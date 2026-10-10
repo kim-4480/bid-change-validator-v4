@@ -1,17 +1,28 @@
+name: bidcheck-v4-pg17
+
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     restart: unless-stopped
     shm_size: 128mb
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+      PG17_EXPECTED_SYSTEM_ID: ${PG17_EXPECTED_SYSTEM_ID:-7694180214230085666}
+    # This is the already-restored PG17 cluster, never a fresh initdb volume.
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        test "$(cat "$$PGDATA/PG_VERSION" 2>/dev/null)" = "17" || { echo 'Expected an existing PostgreSQL 17 data directory' >&2; exit 1; }
+        actual=$$(pg_controldata "$$PGDATA" | awk '/Database system identifier:/ {print $$NF}')
+        test "$$actual" = "$$PG17_EXPECTED_SYSTEM_ID" || { echo 'Unexpected PostgreSQL cluster identity' >&2; exit 1; }
+        exec docker-entrypoint.sh postgres
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-55432}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - pg17_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -59,7 +70,7 @@ services:
       AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
       AUTH_REQUIRED: ${AUTH_REQUIRED:-false}
     ports:
-      - "${API_PORT:-8000}:8000"
+      - "${API_PORT:-18000}:8000"
     volumes:
       - notice_documents_data:/data/notice-documents
     healthcheck:
@@ -111,6 +122,36 @@ services:
       - notice_documents_data:/data/notice-documents
     command: ["python", "-m", "app.workers.notice_polling"]
 
+  processing-worker:
+    profiles: ["processing"]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}}
+      DATABASE_POOL_SIZE: "1"
+      DATABASE_MAX_OVERFLOW: "0"
+      DOCUMENT_STORAGE_BACKEND: ${DOCUMENT_STORAGE_BACKEND:-LOCAL}
+      DOCUMENT_STORAGE_PATH: /data/notice-documents
+      DOCUMENT_RAG_INDEX_ROOT: /data/document-rag
+      DOCUMENT_S3_BUCKET: ${DOCUMENT_S3_BUCKET:-}
+      DOCUMENT_S3_PREFIX: ${DOCUMENT_S3_PREFIX:-notice-documents}
+      AWS_REGION: ${AWS_REGION:-ap-northeast-2}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      PROCESSING_ENABLE_EXTERNAL: ${PROCESSING_ENABLE_EXTERNAL:-false}
+      PROCESSING_BATCH_SIZE: ${PROCESSING_BATCH_SIZE:-10}
+      PROCESSING_POLL_INTERVAL_SECONDS: ${PROCESSING_POLL_INTERVAL_SECONDS:-30}
+    volumes:
+      - notice_documents_data:/data/notice-documents
+      - document_rag_index_data:/data/document-rag
+    command: ["python", "-m", "app.workers.notice_processing"]
+
   migrate:
     build:
       context: .
@@ -125,7 +166,7 @@ services:
     restart: "no"
 
   master-data-import:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     profiles: ["tools"]
     depends_on:
       db:
@@ -149,5 +190,10 @@ services:
       - /scripts/import_master_codes.sql
 
 volumes:
-  postgres_data:
+  pg17_data:
+    external: true
+    name: ${PG17_DATA_VOLUME:-bidcheck_v4_supabase_pg17_20261008}
   notice_documents_data:
+    external: true
+    name: ${NOTICE_DOCUMENTS_VOLUME:-bid-change-validator-v4_notice_documents_data}
+  document_rag_index_data:

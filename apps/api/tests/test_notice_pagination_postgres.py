@@ -14,8 +14,9 @@ from bidengine.judgment.rules import RULE_VERSION
 from apps.api.app.analysis_models import QualificationAnalysisRun
 from apps.api.app.database import SessionLocal
 from apps.api.app.judgment_models import QualificationJudgmentRun
-from apps.api.app.models import BidNotice, BidNoticeVersion, Company, PreflightCase
+from apps.api.app.models import BidNotice, BidNoticeVersion, Company, NoticeDocument, PreflightCase
 from apps.api.app.routers.notices import search_notices
+from apps.api.app.qualification.analysis import qualification_analysis_document_fingerprint
 from apps.api.app.schemas import BusinessType
 
 pytestmark = pytest.mark.skipif(
@@ -108,6 +109,7 @@ def populated_db():
                 notice_version_id=versions[index].id,
                 contract_version="v1", analysis_kind="QUALIFICATION",
                 status="SUCCEEDED", created_at=now,
+                input_fingerprint=qualification_analysis_document_fingerprint([]),
             )
             db.add(analysis)
             analyses[index] = analysis
@@ -122,10 +124,10 @@ def populated_db():
         db.add_all(more)
         db.flush()
         for index, selected_case, company_id, status in (
-            (101, cases[101], a.id, "eligible"),
-            (202, more[0], a.id, "insufficient_data"),
-            (250, more[1], a.id, "ineligible"),
-            (400, case_b, b.id, "eligible"),
+            (101, cases[101], a.id, "core_met"),
+            (202, more[0], a.id, "needs_review"),
+            (250, more[1], a.id, "core_unmet"),
+            (400, case_b, b.id, "core_met"),
         ):
             db.add(QualificationJudgmentRun(
                 preflight_case_id=selected_case.id,
@@ -189,7 +191,7 @@ def test_postgres_1010_pages_boundaries_count_and_stable_order(populated_db):
 
 def test_postgres_company_status_search_filters_and_case_over_100(populated_db):
     db, token, a, b, notices, versions, analyses = populated_db
-    assert _page(db, q=token, company=a.id, status="eligible").total == 1
+    assert _page(db, q=token, company=a.id, status="core_met").total == 1
     needs_review_total = _page(db, q=token, company=a.id, status="needs_review").total
     assert needs_review_total > 100
     needs_review_ids = []
@@ -198,20 +200,36 @@ def test_postgres_company_status_search_filters_and_case_over_100(populated_db):
         needs_review_ids.extend(item.id for item in result.items)
     assert len(needs_review_ids) == needs_review_total
     assert len(set(needs_review_ids)) == needs_review_total
-    eligible = _page(db, q=token, company=a.id, status="eligible").items[0]
+    eligible = _page(db, q=token, company=a.id, status="core_met").items[0]
     assert eligible.id == notices[101].id
     assert eligible.current_case_id is not None
     assert eligible.current_case_id == db.scalar(select(PreflightCase.id).where(PreflightCase.notice_id == notices[101].id).order_by(PreflightCase.created_at.asc()).limit(1))
     old_140 = _page(db, q=f'{token}-0140', company=a.id).items[0]
     assert old_140.current_case_id is not None
     assert old_140.qualification_status == 'needs_review'
-    for status, index in (("insufficient_data", 202), ("ineligible", 250)):
-        row = _page(db, q=token, company=a.id, status=status).items[0]
+    for status, index in (("needs_review", 202), ("core_unmet", 250)):
+        row = _page(db, q=f"{token}-{index:04d}", company=a.id, status=status).items[0]
         assert row.id == notices[index].id
-    assert _page(db, q=token, company=b.id, status="eligible").items[0].id == notices[400].id
-    assert _page(db, q=token, company=a.id, status="eligible", business_type=BusinessType.SERVICE).total == 0
-    assert _page(db, q=token, company=a.id, status="eligible", business_type=BusinessType.GOODS).total == 1
+    assert _page(db, q=token, company=b.id, status="core_met").items[0].id == notices[400].id
+    assert _page(db, q=token, company=a.id, status="core_met", business_type=BusinessType.SERVICE).total == 0
+    assert _page(db, q=token, company=a.id, status="core_met", business_type=BusinessType.GOODS).total == 1
     assert _page(db, q=token, company=a.id, business_type=BusinessType.OTHER).total == 1
+    # A newly extracted revision invalidates the old analysis and its badge
+    # before SQL pagination/filtering, even when the old judgment still exists.
+    changed_document = NoticeDocument(
+        notice_version_id=versions[101].id, document_order=0,
+        name="new.pdf", url="https://example.invalid/new.pdf", source_field="fixture",
+        download_status="DOWNLOADED", extraction_status="EXTRACTED",
+        file_sha256="a" * 64, extracted_text_sha256="b" * 64,
+        extracted_blocks=[{"block_index": 0, "text": "changed source"}],
+    )
+    db.add(changed_document)
+    db.flush()
+    assert _page(db, q=token, company=a.id, status="core_met").total == 0
+    assert _page(db, q=f"{token}-0101", company=a.id).items[0].qualification_status == "needs_review"
+    db.delete(changed_document)
+    db.flush()
+    assert _page(db, q=token, company=a.id, status="core_met").total == 1
     old = _page(db, q=f"{token}-0201", company=a.id).items[0]
     assert old.qualification_status == "needs_review" and old.current_case_id is None
     assert _page(db, q=f"{token}-0400", company=a.id).items[0].qualification_status == "unreviewed"
@@ -223,4 +241,24 @@ def test_postgres_company_status_search_filters_and_case_over_100(populated_db):
     ))
     db.flush()
     assert _page(db, q=f"{token}-0101", company=a.id).items[0].qualification_status == "needs_review"
-    assert _page(db, q=token, company=a.id, status="eligible").total == 0
+    assert _page(db, q=token, company=a.id, status="core_met").total == 0
+
+
+def test_postgres_open_notices_precede_assumed_and_expired_without_hiding_history(populated_db):
+    db, token, company, _, notices, versions, _ = populated_db
+    now = datetime.now(timezone.utc)
+    versions[10].bid_closed_at = now + timedelta(days=5)
+    versions[20].posted_at = now - timedelta(days=2)
+    versions[25].posted_at = now - timedelta(days=3)
+    versions[30].bid_closed_at = now + timedelta(days=6)
+    versions[30].notice_kind = "취소공고"
+    versions[40].bid_closed_at = now - timedelta(days=1)
+    db.flush()
+
+    for company_id in (None, company.id):
+        page = _page(db, q=token, company=company_id, limit=3)
+        assert page.total == 1010
+        assert page.items[0].id == notices[10].id
+        assert {row.id for row in page.items[1:]} == {notices[20].id, notices[25].id}
+        assert notices[30].id not in [row.id for row in page.items]
+        assert _page(db, q=f"{token}-0040", company=company_id).items[0].id == notices[40].id

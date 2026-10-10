@@ -1,0 +1,53 @@
+{
+ "notice_no": "R26BK01748541",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "산림사업법인(숲가꾸기 및 병해충방제)",
+   "code": "1475",
+   "raw": {
+    "bidNtceNo": "R26BK01748541",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "산림사업법인(숲가꾸기 및 병해충방제)/1475",
+    "permsnIndstrytyList": "[산림조합(지역조합)/4119],[산림조합중앙회/4125],[국유림영림단/4128]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:33:54",
+    "bsnsDivNm": "공사"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "1",
+   "name": "산림조합(지역조합)",
+   "code": "4119",
+   "raw": {
+    "bidNtceNo": "R26BK01748541",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "1",
+    "lcnsLmtNm": "산림조합(지역조합)/4119",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:33:54",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [
+  "전남광주통합특별시 곡성군"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "rgnLmtBidLocplcJdgmBssNm": "본사또는참여지사소재지",
+  "cntrctCnclsMthdNm": "수의계약",
+  "cnstrtsiteRgnNm": "전남광주통합특별시 곡성군"
+ },
+ "errors": []
+}

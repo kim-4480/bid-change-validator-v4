@@ -12,6 +12,8 @@ from .actions import get_changed_notice
 from .narration import _profile_for_ai, STATUS_CONCLUSION
 from .v31_contracts import EvidenceBundle, Fact, Scope, Source, StatusCard
 
+DOCUMENT_BUNDLE_BUDGET_BYTES = 8000
+
 
 def _looks_like_extraction_noise(line: str) -> bool:
     compact = ''.join(line.split())
@@ -203,7 +205,11 @@ class ProductTools:
             self.bundle.limitations.append('확인 가능한 문서 범위가 제한되어 전체 조건을 확인했다고 볼 수 없습니다.')
         from types import SimpleNamespace
         found = False
-        for passage in passages:
+        included = 0
+        omitted = 0
+        terms = set(re.findall(r'\d{3,}|[가-힣A-Za-z]{2,}', question))
+        ranked = sorted(enumerate(passages), key=lambda pair: (-sum(term in pair[1].text for term in terms), pair[0]))
+        for _, passage in ranked:
             m = passage.metadata
             if m.notice_version_id != str(self.scope.notice_version_id):
                 raise ValueError('DOCUMENT_SCOPE_MISMATCH')
@@ -213,12 +219,27 @@ class ProductTools:
             evidence = SimpleNamespace(document_id=m.document_id, source_sha256=m.source_sha256,
                                        extracted_text_sha256=m.extracted_text_sha256,
                                        location={'chunk_id': m.chunk_id, 'page': m.page, 'locations': m.source_locations})
+            existing_sources = {source.source_id for source in self.bundle.sources}
+            existing_facts = {fact.fact_id for fact in self.bundle.facts}
             sid = self._source('DOCUMENT', quote, evidence=evidence)
             location = ', '.join(m.source_locations) or (f'p.{m.page}' if m.page is not None else m.chunk_id)
-            self._fact('NOTICE_FACT', f'현재 공고문 근거: {m.document_name} · {location}', [sid])
+            fid = self._fact('NOTICE_FACT', f'현재 공고문 근거: {m.document_name} · {location}', [sid])
+            bundle_bytes = len(json.dumps(self.bundle.model_dump(mode='json'), ensure_ascii=False).encode('utf-8'))
+            if bundle_bytes > DOCUMENT_BUNDLE_BUDGET_BYTES:
+                if fid not in existing_facts:
+                    self.bundle.facts = [fact for fact in self.bundle.facts if fact.fact_id != fid]
+                if sid not in existing_sources:
+                    self.bundle.sources = [source for source in self.bundle.sources if source.source_id != sid]
+                omitted += 1
+                continue
             found = True
-        self.bundle.coverage['READ_DOCUMENT'] = 'FOUND' if found else 'NOT_FOUND'
-        if passages and not found:
+            included += 1
+        self.trace[-1]['included_chunks'] = included
+        self.trace[-1]['omitted_chunks'] = omitted
+        if omitted:
+            self.bundle.limitations.append('공고문 전체가 아닌 질문과 관련된 일부 근거만 확인했습니다. 빠진 조건은 원문에서 직접 확인해 주세요.')
+        self.bundle.coverage['READ_DOCUMENT'] = 'PARTIAL' if omitted else 'FOUND' if found else 'NOT_FOUND'
+        if passages and not found and not omitted:
             self.bundle.limitations.append('추출 원문에서 읽을 수 있는 관련 문장을 확인하지 못했습니다. 원본 문서를 직접 확인해 주세요.')
 
     def changes(self, *, compare_document_sources=False):

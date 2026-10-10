@@ -1,7 +1,8 @@
 'use client';
+import { clearSharedData } from '@/lib/shared-query-cache';
 
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 
@@ -22,6 +23,14 @@ type PageInfo = TitleBandProps & {
 const LEGACY_ACTIVE_CASE_KEY = 'bidcheck:active-case-id';
 
 const PAGE_INFO: Array<{ match: (pathname: string) => boolean; page: PageInfo }> = [
+  {
+    match: (pathname) => pathname === '/guide',
+    page: {
+      title: '이용안내',
+      description: '공고를 찾아 참가 자격을 확인하고, 공고가 바뀌면 다시 검증합니다.',
+      breadcrumb: '홈 › 이용안내',
+    },
+  },
   {
     match: (pathname) => pathname.startsWith('/notices'),
     page: {
@@ -88,6 +97,18 @@ const PAGE_INFO: Array<{ match: (pathname: string) => boolean; page: PageInfo }>
     },
   },
   {
+    match: (pathname) => pathname.startsWith('/admin'),
+    page: { title: '운영 관리', description: '관리자 전용 작업 상태 및 라벨 검수', breadcrumb: '홈 › 운영 관리' },
+  },
+  {
+    match: (pathname) => pathname.startsWith('/recommendations'),
+    page: {
+      title: 'AI 추천',
+      description: '모델의 연관성 추천과 기존 자격판정 결과를 구분해 확인합니다.',
+      breadcrumb: '홈 › 공고 추천',
+    },
+  },
+  {
     match: (pathname) => pathname.startsWith('/company') || pathname.startsWith('/company-profile'),
     page: {
       title: '회사 프로필',
@@ -108,36 +129,63 @@ function pageInfoFor(pathname: string): PageInfo {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const page = pageInfoFor(pathname);
+  const isProtectedPage = pathname !== '/login';
   const [user, setUser] = useState<AuthUser | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(pathname !== '/login');
   const [authFailure, setAuthFailure] = useState<string | null>(null);
   const [logoutFailure, setLogoutFailure] = useState<string | null>(null);
   const [authAttempt, setAuthAttempt] = useState(0);
+  const lastAuthCheckAt = useRef(0);
+  const lastAuthenticatedUserId = useRef<string | null>(null);
+
 
   useEffect(() => {
-    if (pathname === '/login') return;
+    if (!isProtectedPage) return;
     let active = true;
-    void getCurrentUser()
-      .then((current) => {
-        if (active) setUser(current);
-      })
-      .catch((cause) => {
-        if (!active) return;
-        if (cause instanceof ApiError && cause.status === 401) {
-          window.sessionStorage.removeItem(LEGACY_ACTIVE_CASE_KEY);
-          setUser(null);
-          replaceWith('/login');
-          return;
-        }
-        setAuthFailure(cause instanceof ApiError ? cause.message : NETWORK_ERROR_MESSAGE);
-      })
-      .finally(() => {
-        if (active) setCheckingAuth(false);
-      });
+    const verifySession = () => {
+      lastAuthCheckAt.current = Date.now();
+      void getCurrentUser()
+        .then((current) => {
+          if (!active) return;
+          const previousId = lastAuthenticatedUserId.current;
+          if (previousId && previousId !== current?.id) {
+            clearSharedData();
+            // Do not render cached data under another user's session.
+            if (current?.id) {
+              replaceWith('/company');
+              return;
+            }
+          }
+          lastAuthenticatedUserId.current = current?.id ?? null;
+          setUser(current);
+        })
+        .catch((cause) => {
+          if (!active) return;
+          if (cause instanceof ApiError && cause.status === 401) {
+            window.sessionStorage.removeItem(LEGACY_ACTIVE_CASE_KEY);
+            setUser(null);
+            replaceWith('/login');
+            return;
+          }
+          setAuthFailure(cause instanceof ApiError ? cause.message : NETWORK_ERROR_MESSAGE);
+        })
+        .finally(() => {
+          if (active) setCheckingAuth(false);
+        });
+    };
+
+    verifySession();
+    // Focus revalidates old sessions. Protected client-side routes share the same
+    // mounted auth check and never cancel an in-flight request on navigation.
+    const onFocus = () => {
+      if (Date.now() - lastAuthCheckAt.current >= 60_000) verifySession();
+    };
+    window.addEventListener('focus', onFocus);
     return () => {
       active = false;
+      window.removeEventListener('focus', onFocus);
     };
-  }, [authAttempt, pathname]);
+  }, [authAttempt, isProtectedPage]);
 
   if (pathname === '/login') return children;
 
@@ -214,7 +262,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             variant={page.variant}
           />
         )}
-        <div className={`app-shell-content ${legacyRouteClass}`}>{children}</div>
+        <div id="main-content" tabIndex={-1} className={`app-shell-content ${legacyRouteClass}`}>{children}</div>
         <AppFooter />
         <CopilotPanel />
       </div>

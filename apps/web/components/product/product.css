@@ -184,7 +184,8 @@ body {
 }
 
 .app-title-band {
-  height: 120px;
+  /* Keep the qualification-review header height for all pages. */
+  height: 142px;
   background: linear-gradient(120.17deg, #dfe9ff 0%, #e9e2fb 33.82%, #dcefff 73.53%);
 }
 
@@ -223,7 +224,7 @@ body {
   }
 
   .app-header {
-    height: 72px;
+    height: auto;
   }
 
   .app-utility-bar {
@@ -231,11 +232,11 @@ body {
   }
 
   .app-gnb {
-    height: 72px;
+    height: auto;
   }
 
   .app-primary-nav {
-    display: none;
+    display: flex;
   }
 
   .app-title-band,
@@ -251,4 +252,9 @@ body {
     width: auto;
     flex-basis: auto;
   }
+}
+
+.app-mobile-auth { display: none; }
+@media (max-width: 767px) {
+  .app-mobile-auth { display: flex; align-items: center; margin-left: auto; font-size: 13px; }
 }
