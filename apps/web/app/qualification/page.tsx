@@ -118,6 +118,14 @@ function resolveRequirementStatuses(
   return resolved;
 }
 
+/** 근거 칸의 글자. evidence_key 는 내부 식별자라 보여 주지 않고, 누르면 무엇이 열리는지를 쓴다. */
+function evidenceLabelOf(requirement: QualificationAnalysisRun['requirements'][number]) {
+  if (requirement.evidence_keys[0]) return '근거 보기';
+  // 문서가 아니라 나라장터에 발주처가 입력한 면허제한·참가가능지역에서 온 요건이다. 인용할 원문이 없을 뿐 근거가 없는 것이 아니다.
+  if (requirement.scope?.origin === 'NOTICE_API') return '나라장터 입력값';
+  return '근거 없음';
+}
+
 function overallCopy(status: QualificationJudgmentRun['overall_status'] | undefined) {
   const copy = status ? OVERALL_STATUS_COPY[status] : null;
   if (copy) return [copy.label, copy.description];
@@ -558,7 +566,7 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
           groupPeerNote: null,
           memberKeys: [requirement.requirement_key],
           // evidence_key(REQ-004-EVD)는 내부 식별자다. 누르면 원문이 열리므로 무엇을 하는 버튼인지 쓴다.
-          evidenceLabel: requirement.evidence_keys[0] ? '근거 보기' : '근거 없음',
+          evidenceLabel: evidenceLabelOf(requirement),
           tier: tierOf(requirement.requirement_key),
         });
         continue;
@@ -583,7 +591,7 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
             : `택일 조건 ${members.length}개 · 충족된 것 없음`
           : null,
         memberKeys: members.map((item) => item.requirement_key),
-        evidenceLabel: representative.evidence_keys[0] ? '근거 보기' : '근거 없음',
+        evidenceLabel: evidenceLabelOf(representative),
         tier: members.some((item) => tierOf(item.requirement_key) === 'VERDICT') ? 'VERDICT' : 'CHECKLIST',
       });
     }

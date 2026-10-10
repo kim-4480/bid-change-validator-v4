@@ -22,7 +22,9 @@ import {
   type QualificationQuestion,
 } from '@/lib/qualification-api';
 
-const CURRENT_QUALIFICATION_RULE_VERSION = 'qualification-rules-v0.3';
+// 서버의 RULE_VERSION(engine/bidengine/judgment/rules.py)과 같아야 한다. 다르면 저장된 판정을 옛 규칙의 것으로 보고 버려,
+// 새로고침할 때마다 '검토 전' 으로 돌아간다(2026-10-10, v0.3 으로 남아 있어 실제로 그랬다).
+const CURRENT_QUALIFICATION_RULE_VERSION = 'qualification-rules-v0.4-core-requirements';
 
 export type CaseWorkspace = {
   caseItem: PreflightCase;
