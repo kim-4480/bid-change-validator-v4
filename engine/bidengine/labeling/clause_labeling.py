@@ -109,6 +109,10 @@ def select_clauses(
         if picked is None:
             selection_note = "조항 선택 호출이 실패해 코드 선택으로 분석했습니다."
         elif picked or clause_selection == "hybrid":
+            if clause_selection == "hybrid":
+                # 모델이 문서 전체의 조항을 보고 골랐다. 자격 절 제목이 없는 문서를 키워드로 다시 훑으면 제안요청서 본문이
+                # 통째로 딸려 온다(공고 하나에 '요건 아님' 조항 200여 개, 2026-10-10). 코드 몫은 제목으로 찾은 절로 좁힌다.
+                target, _mode = select_eligibility_chunks_with_mode(chunks, unanchored_keyword_fallback=False)
             code_chunk_ids = {chunk.get("chunk_id") for chunk in target}
             picked_chunk_ids = {c.chunk_id for c in document_clauses if selection_key(c.text) in picked}
             wanted = picked_chunk_ids | code_chunk_ids if clause_selection == "hybrid" else picked_chunk_ids

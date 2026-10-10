@@ -276,10 +276,17 @@ def select_eligibility_chunks(chunks: list[dict[str, Any]]) -> list[dict[str, An
 
 def select_eligibility_chunks_with_mode(
     chunks: list[dict[str, Any]],
+    *,
+    unanchored_keyword_fallback: bool = True,
 ) -> tuple[list[dict[str, Any]], SelectionMode]:
     """자격 절을 고르고, 어떻게 골랐는지(제목 앵커 / 키워드 폴백 / 문서 전체)를 함께 돌려준다.
 
     앵커를 못 찾았다는 것은 "자격 절을 봤다"고 말할 수 없다는 뜻이라 커버리지가 쓴다.
+
+    unanchored_keyword_fallback: 다른 문서에서 자격 절 제목을 찾았을 때, 제목이 없는 문서(제안요청서·과업지시서)를
+    키워드('인력', '실적', '등록' …)로 훑을지. 이 낱말들은 본문 어디에나 있어 문서의 3분의 1이 딸려 온다. 모델이 문서
+    전체에서 자격 조항을 따로 고르는 경로(hybrid)는 그것으로 충분하니 끈다. 어느 문서에서도 제목을 못 찾았으면 이 값과
+    상관없이 키워드로 고른다 — 그때는 키워드가 유일한 단서다.
     """
     selected: dict[int, dict[str, Any]] = {}
     anchors = [index for index, chunk in enumerate(chunks) if _is_eligibility_section_anchor(chunk)]
@@ -304,6 +311,8 @@ def select_eligibility_chunks_with_mode(
     anchored_documents = {_chunk_document_id(chunks[index]) for index in anchors}
     fallback_keywords = _FALLBACK_REQUIREMENT_KEYWORDS[len(_SECTION_HEADER_KEYWORDS):] if anchors else _FALLBACK_REQUIREMENT_KEYWORDS
     for index, chunk in enumerate(chunks):
+        if anchors and not unanchored_keyword_fallback:
+            break
         if _chunk_document_id(chunk) not in anchored_documents and any(keyword in (chunk.get("text") or "") for keyword in fallback_keywords):
             selected[index] = chunk
     if not selected:

@@ -148,3 +148,41 @@ def test_same_unmapped_clause_counts_once():
     result = _result([clause, dict(clause, raw="건축(또는 토목건축)공사업  등록업체")])
     assert result.coverage.unrepresentable == 1
     assert len(result.coverage.gaps) == 1
+
+
+def test_documents_without_a_section_title_are_not_swept_by_keywords_when_the_model_selects():
+    """제안요청서 본문의 '인력'·'실적' 낱말 때문에 문서 3분의 1이 딸려 오던 문제(2026-10-10)."""
+    from bidengine.labeling.clause_labeling import select_clauses
+
+    def chunk(index, document, label, text):
+        return {"chunk_id": str(index), "document_id": document, "clause_label": label, "text": text,
+                "source_blocks": [{"document_id": document, "block_index": index}]}
+
+    chunks = [
+        chunk(0, "notice", "3.", "3. 입찰참가자격\n가. 전기공사업 등록업체"),
+        chunk(1, "notice", "4.", "4. 입찰 방법"),
+        chunk(2, "rfp", None, "□ 투입 인력은 상주 3명으로 한다"),
+        chunk(3, "rfp", None, "□ 유사 사업 실적을 제안서에 기술한다"),
+        chunk(4, "rfp", None, "□ 정보통신공사업 등록업체이어야 한다"),
+    ]
+    swept, mode = select_eligibility_chunks_with_mode(chunks)
+    assert mode == "anchored" and {c["chunk_id"] for c in swept} == {"0", "2", "3", "4"}
+    narrow, mode = select_eligibility_chunks_with_mode(chunks, unanchored_keyword_fallback=False)
+    assert mode == "anchored" and {c["chunk_id"] for c in narrow} == {"0"}
+    # 어느 문서에서도 제목을 못 찾았으면 키워드가 유일한 단서라 그대로 쓴다.
+    untitled = chunks[2:]
+    assert select_eligibility_chunks_with_mode(untitled, unanchored_keyword_fallback=False) == select_eligibility_chunks_with_mode(untitled)
+
+    def model(_system, body, _schema):
+        # 모델은 문서 전체의 조항을 보고 자격 조항만 고른다 — 제안요청서의 등록업체 조항.
+        blocks = [block.split(chr(10), 1) for block in body.split(chr(10) * 2)]
+        return {"clause_ids": [head.strip("[]") for head, text in blocks if "정보통신공사업" in text]}
+
+    kept, target, base, _note = select_clauses(chunks, structured_extract=model, clause_selection="hybrid", selection_memory={})
+    texts = [clause.text for clause in kept]
+    assert any("전기공사업" in text for text in texts) and any("정보통신공사업" in text for text in texts)
+    assert not any("투입 인력" in text or "유사 사업 실적" in text for text in texts)
+    assert base["selection_mode"] == "anchored"
+    # 코드만으로 고르는 방식은 예전 그대로다.
+    kept_code, *_ = select_clauses(chunks, structured_extract=model, clause_selection="code")
+    assert any("투입 인력" in clause.text for clause in kept_code)
