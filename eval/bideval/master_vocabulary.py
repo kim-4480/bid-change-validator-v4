@@ -20,9 +20,57 @@ def normalize_name(name: str) -> str:
 class CsvIndustryNameResolver:
     def __init__(self, path: Path = DEFAULT_CSV, *, active_only: bool = True) -> None:
         self._by_name = _load(str(path), active_only)
+        self._families = _families(str(path), active_only)
+        self._rows = _rows(str(path), active_only)
+        self._including = _including(str(path), active_only)
 
     def code_for(self, name: str) -> str | None:
         return self._by_name.get(normalize_name(name))
+
+    def family_codes(self, name: str) -> list[str]:
+        """세부명 없이 쓴 묶음 이름("산림조합")의 세부명 업종 코드들. 없으면 빈 목록."""
+        return self._families.get(normalize_name(name), [])
+
+
+    def similar(self, name: str, limit: int = 8) -> list[tuple[str, str]]:
+        """글자가 겹치는 마스터 업종 (코드, 이름) 후보. 같은 업종인지는 정하지 않는다."""
+        from bidengine.normalization.industry_similar import rank_similar
+
+        return rank_similar(name, self._rows, limit=limit)
+
+
+    def including_codes(self, code: str) -> list[str]:
+        """이 업종을 포함하는 업종코드들(포함 면허). 그 업종을 가진 회사는 이 업종 자격도 갖춘 것으로 본다."""
+        return self._including.get(code, [])
+
+
+@lru_cache(maxsize=4)
+def _including(path: str, active_only: bool) -> dict[str, list[str]]:
+    import json
+
+    from bidengine.normalization.industry_inclusion import inclusion_index
+
+    with open(path, encoding="utf-8-sig", newline="") as handle:
+        rows = [(row["code"], (json.loads(row.get("raw_json") or "{}") or {}).get("inclsnLcns"))
+                for row in csv.DictReader(handle) if not active_only or row.get("active") in {"Y", "true", "True", "1"}]
+    return inclusion_index(rows)
+
+
+@lru_cache(maxsize=4)
+def _rows(path: str, active_only: bool) -> tuple[tuple[str, str], ...]:
+    with open(path, encoding="utf-8-sig", newline="") as handle:
+        return tuple((row["code"], row["name"]) for row in csv.DictReader(handle)
+                     if not active_only or row.get("active") in {"Y", "true", "True", "1"})
+
+
+@lru_cache(maxsize=4)
+def _families(path: str, active_only: bool) -> dict[str, list[str]]:
+    from bidengine.normalization.industry_family import family_index
+
+    with open(path, encoding="utf-8-sig", newline="") as handle:
+        rows = [(row["code"], row["name"]) for row in csv.DictReader(handle)
+                if not active_only or row.get("active") in {"Y", "true", "True", "1"}]
+    return family_index(rows, normalize_name)
 
 
 @lru_cache(maxsize=4)

@@ -1,0 +1,10 @@
+# Install in a separate OFFLINE training environment, not the EC2 service image.
+numpy>=2,<3
+scikit-learn>=1.5,<2
+lightgbm>=4.4,<5
+torch>=2.5,<3
+transformers>=4.50,<5
+safetensors>=0.4,<1
+psycopg[binary]>=3.2,<4
+# MLflow is optional and LOCAL only unless a separate destination is approved.
+# mlflow>=3,<4

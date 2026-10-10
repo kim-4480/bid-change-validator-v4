@@ -23,9 +23,11 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: engine/pyproject.toml
-      - name: Install engine
-        run: python -m pip install -e engine pytest
+          cache-dependency-path: |
+            engine/pyproject.toml
+            eval/pyproject.toml
+      - name: Install engine and eval test dependency
+        run: python -m pip install -e engine -e eval pytest
       - name: Engine tests (경계 검사 포함)
         working-directory: engine
         run: python -m pytest -q tests
@@ -66,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        image: public.ecr.aws/docker/library/postgres:17
         env:
           POSTGRES_DB: bidjigi
           POSTGRES_USER: bidjigi
@@ -114,8 +116,7 @@ jobs:
       - name: Install frontend dependencies
         working-directory: apps/web
         run: pnpm install --frozen-lockfile
-      - name: Inventory existing frontend lint debt
-        continue-on-error: true
+      - name: Frontend lint (required)
         working-directory: apps/web
         run: pnpm lint
       - name: Frontend unit tests
@@ -126,3 +127,19 @@ jobs:
         env:
           NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
         run: pnpm build
+      - name: Install Playwright Chromium
+        working-directory: apps/web
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Frontend browser E2E (mocked API)
+        working-directory: apps/web
+        run: pnpm test:e2e
+      - name: Upload Playwright failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-e2e-${{ github.sha }}
+          path: |
+            apps/web/test-results/
+            apps/web/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7

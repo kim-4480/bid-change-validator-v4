@@ -8,6 +8,7 @@ Backend-owned notice/document identifiers remain the source of truth.
 
 from __future__ import annotations
 
+import re
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, computed_field, model_validator
@@ -50,7 +51,7 @@ class DroppedRequirement(BaseModel):
     detail_value: str | None = None
 
 
-CoverageGapKind = Literal["UNREPRESENTABLE", "UNCLASSIFIED", "DROPPED", "SECTION", "TRUNCATED"]
+CoverageGapKind = Literal["UNREPRESENTABLE", "UNCLASSIFIED", "DROPPED", "SECTION", "TRUNCATED", "IGNORED"]
 
 # 매핑 실패 조항을 세 갈래로 나눈다 (docs/experiments/2026-09-30).
 #   절차 조항 — 코드가 절차 규칙으로 식별했다. 회사 프로필로 판정할 조건이 아니므로 공백이 아니다.
@@ -66,6 +67,8 @@ CoverageGapKind = Literal["UNREPRESENTABLE", "UNCLASSIFIED", "DROPPED", "SECTION
 _PROCEDURAL_REASONS = {
     "LEGAL_PROCEDURAL_RULE", "REPRESENTATIVE_CONFLICT_RULE",
     "COMMON_DISQUALIFICATION", "MODEL_POLARITY_NOT_REQUIREMENT",
+    # 모델이 점수 기준(평가 항목)으로 읽은 조항 — 참가 자격이 아니다.
+    "MODEL_POLARITY_EVALUATION",
 }
 _UNREPRESENTABLE_CODES = {
     "UNMAPPED_PERFORMANCE", "UNMAPPED_EXPERIENCE_FIELD", "UNMAPPED_INDUSTRY", "UNMAPPED_REGION",
@@ -77,6 +80,34 @@ class CoverageGap(BaseModel):
     kind: CoverageGapKind
     raw: str = ""
     reason: str | None = None
+    # 판정을 막는가. 커버리지를 만들 때 요건과 대조해 정한다(None 이면 gap_blocks_verdict 가 원문만 보고 정한다).
+    blocks_verdict: bool | None = None
+    # 사용자가 확인할 때 보는 설명(gap_summary): 조항 종류와 확인할 내용 한 문장. 원문 검사를 통과한 것만 담긴다.
+    category: str | None = None
+    summary: str | None = None
+
+
+_INDUSTRY_WORD_RE = re.compile(r"공사업|[가-힣]업\s*(?:을|으로|를)?\s*(?:등록|면허)|업종")
+_VERDICT_GAP_CODES = ("UNMAPPED_INDUSTRY", "UNMAPPED_REGION", "UNMAPPED_COMPANY_SIZE", "UNMAPPED_REGISTRATION_CERTIFICATION")
+
+
+def gap_blocks_verdict(gap: CoverageGap) -> bool:
+    """이 공백이 판정 대상(업종코드·지역·규모·품명번호)을 놓쳤을 수 있는가. 그러면 '적합' 을 막는다.
+
+    닫힌 값 유형의 매핑 실패이거나, 조항 원문에 닫힌 값이 적혀 있으면 막는다. 나머지는 확인 항목이다.
+    """
+    from bidengine.requirements.legacy_slots import has_closed_value_text
+
+    if gap.kind in {"SECTION", "TRUNCATED"}:
+        return True
+    if gap.blocks_verdict is not None:
+        return gap.blocks_verdict
+    if (gap.reason or "").startswith(_VERDICT_GAP_CODES):
+        return True
+    if gap.reason == "COMPOSITE_PARTY_RULE" and _INDUSTRY_WORD_RE.search(gap.raw or ""):
+        # 공동도급 역할별 업종 자격 — 한 회사로 판정할 수 없지만 업종 자격이라 '적합' 을 막는다.
+        return True
+    return has_closed_value_text(gap.raw)
 
 
 class AnalysisCoverage(BaseModel):
@@ -95,7 +126,38 @@ class AnalysisCoverage(BaseModel):
     unclassified: int = 0
     dropped: int = 0
     gaps: list[CoverageGap] = Field(default_factory=list)
+    # 요건도 공백도 아닌 것으로 처리한 조항과 그 이유(법령 절차 문구, 공통 결격, 모델이 요건 아님으로 본 조항).
+    # 완료 여부에는 영향이 없다. 조항이 소리 없이 사라지지 않게 원문을 남긴다(clause_accounting).
+    ignored: list[CoverageGap] = Field(default_factory=list)
     unclassified_blocks_eligibility: bool = False
+    # 나라장터가 '참가 제한이 없는 입찰'(일반경쟁, 면허제한·지역·제한 표시 없음)이라고 말한다. 문서에서 요건을 하나도
+    # 못 찾았을 때만 판정기가 본다 — 추출 실패가 아니라 정말 제한이 없다는 확인이다(notice_limits.py).
+    no_restriction_stated: bool = False
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def verdict_complete(self) -> bool:
+        """판정 대상(닫힌 값) 쪽으로는 다 봤는가. 종합 판정의 '적합' 은 이것만 본다(2026-10-07).
+
+        닫힌 값과 상관없는 공백(이름만 있는 인증, 생산시설 조건 등)은 사용자가 확인할 항목이라 적합을 막지 않는다.
+        """
+        return (
+            self.section_selection == "anchored"
+            and not self.input_truncated
+            and not any(gap_blocks_verdict(gap) for gap in self.gaps)
+        )
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def checklist_gaps(self) -> list[CoverageGap]:
+        """사용자가 확인할 조항(판정을 막지 않는 공백)."""
+        return [gap for gap in self.gaps if not gap_blocks_verdict(gap)]
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def notes(self) -> list[CoverageGap]:
+        """참고 정보: 공동수급·하도급 허용 여부, 건설업역 상호시장 진출 허용처럼 회사 자격이 아니라 입찰 방식인 조항."""
+        return [gap for gap in self.ignored if gap.reason in {"GAP_JOINT_CONTRACT_NOTE", "GAP_MUTUAL_MARKET_NOTE"}]
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -120,6 +182,7 @@ def build_analysis_coverage(
     unclassified_blocks_eligibility: bool = False,
 ) -> AnalysisCoverage:
     gaps: list[CoverageGap] = []
+    ignored: list[CoverageGap] = []
     procedural = unrepresentable = unclassified = 0
     seen: set[tuple[str, str]] = set()  # 모델이 같은 조항을 두 번 올리는 일이 있다 (C03 실측)
     for item in diagnostics:
@@ -133,18 +196,36 @@ def build_analysis_coverage(
         if item.code == "UNMAPPED_REQUIREMENT":
             if reason in _PROCEDURAL_REASONS:
                 procedural += 1
+                ignored.append(CoverageGap(kind="IGNORED", raw=raw, reason=str(reason)))
             elif reason:
                 unrepresentable += 1
                 gaps.append(CoverageGap(kind="UNREPRESENTABLE", raw=raw, reason=str(reason)))
             else:
                 unclassified += 1
                 gaps.append(CoverageGap(kind="UNCLASSIFIED", raw=raw))
+        elif item.code == "CLAUSE_NOT_LABELLED":
+            ignored.append(CoverageGap(kind="IGNORED", raw=raw, reason=str(reason or "MODEL_NO_REQUIREMENT")))
         elif item.code in _UNREPRESENTABLE_CODES:
             unrepresentable += 1
-            gaps.append(CoverageGap(kind="UNREPRESENTABLE", raw=raw, reason=item.code))
+            # 세부 이유가 있으면 붙인다: "UNMAPPED_INDUSTRY/ALTERNATIVE_UNRESOLVED"(대안 중 못 푼 업종이 있다).
+            gaps.append(CoverageGap(kind="UNREPRESENTABLE", raw=raw, reason=f"{item.code}/{reason}" if reason else item.code))
     for record in dropped:
         data = record.model_dump() if isinstance(record, BaseModel) else dict(record)
         gaps.append(CoverageGap(kind="DROPPED", raw=str(data.get("raw") or ""), reason=data.get("reason_code")))
+    # 제목·머리말·중복·조각·공통 결격·공동수급 안내는 확인할 자격이 아니다 — 이유와 함께 제외로 옮긴다(gap_triage).
+    from bidengine.pipeline.gap_triage import triage_gaps
+
+    gaps, moved = triage_gaps(gaps, requirements)
+    for gap, reason in moved:
+        if gap.kind == "UNREPRESENTABLE":
+            unrepresentable -= 1
+        elif gap.kind == "UNCLASSIFIED":
+            unclassified -= 1
+        ignored.append(CoverageGap(kind="IGNORED", raw=gap.raw, reason=f"GAP_{reason}"))
+    # 닫힌 값이 이미 요건으로 담긴 공백은 판정을 막지 않는다 — 나머지는 사용자가 확인한다(gap_triage.closed_values_covered).
+    from bidengine.pipeline.gap_triage import closed_values_covered
+
+    gaps = [gap.model_copy(update={"blocks_verdict": False}) if closed_values_covered(gap, requirements) else gap for gap in gaps]
     if section_selection != "anchored":
         gaps.append(CoverageGap(kind="SECTION", reason=section_selection))
     if input_truncated:
@@ -157,10 +238,23 @@ def build_analysis_coverage(
         procedural=procedural,
         unrepresentable=unrepresentable,
         unclassified=unclassified,
-        dropped=len(dropped),
+        dropped=sum(gap.kind == "DROPPED" for gap in gaps),
         gaps=gaps,
+        ignored=ignored,
         unclassified_blocks_eligibility=unclassified_blocks_eligibility,
     )
+
+
+def _compact(text: str) -> str:
+    return "".join((text or "").split())
+
+
+def clause_accounting(clause_texts: list[str], result: "RequirementAnalysisResult") -> list[str]:
+    """고른 조항 중 결과 어디에도 남지 않은 조항(요건·공백·제외 이유 어느 것도 아님). 비어 있어야 한다."""
+    seen = {_compact(item.raw) for item in result.requirements}
+    if result.coverage is not None:
+        seen |= {_compact(gap.raw) for gap in [*result.coverage.gaps, *result.coverage.ignored]}
+    return [text for text in clause_texts if _compact(text) and _compact(text) not in seen]
 
 
 class RequirementAnalysisResult(BaseModel):
@@ -224,6 +318,7 @@ class RequirementAnalysisResult(BaseModel):
 
 
 _DIAGNOSTIC_MESSAGES = {
+    "CLAUSE_NOT_LABELLED": "모델이 요건이 아니라고 본 조항입니다. 판정하지 않고 원문을 기록합니다.",
     "UNMAPPED_REQUIREMENT": "공고에서 확인했으나 회사 프로필과 대조할 자격요건이 아닙니다. 판정하지 않고 근거와 함께 기록합니다.",
     "UNMAPPED_PERFORMANCE": "실적요건을 판정 가능한 원자 조건으로 구조화하지 못했습니다.",
     "UNMAPPED_EXPERIENCE_FIELD": "경험분야 요건의 비교값을 구조화하지 못했습니다.",
@@ -249,6 +344,8 @@ _NOTICE_FACT_CODES = {"UNMAPPED_REQUIREMENT", "UNKNOWN_LEGACY_TYPE"}
 # 요건을 하나 **살려낸** 기록이다. 무엇이 안 된 기록이 아니므로 분석을 PARTIAL 로
 # 내리지 않는다. 그래도 남기는 이유는 모델 분류가 틀렸다는 신호이기 때문이다.
 _INFORMATIONAL_PIPELINE_CODES = {
+    # 모델이 요건 아님으로 본 조항의 기록. 분석 상태를 낮출 이유가 아니다.
+    "CLAUSE_NOT_LABELLED",
     "COMPANY_SIZE_FROM_CERTIFICATE",
     # 예외 단서가 붙은 코드는 요건 행 자체가 composite(확인 필요)로 남는다 — 불확실성은
     # 구조가 들고 있으므로 분석을 PARTIAL 로 내릴 이유가 없다.

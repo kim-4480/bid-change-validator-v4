@@ -1,0 +1,971 @@
+"""닫힌 값 먼저(closed_first, B안): 닫힌 값은 코드가 찾고, 모델은 조항마다 한 번 그 값의 역할만 정한다.
+
+왜
+--
+조항 단위 추출(clause)에서는 모델이 슬롯 유형(업종/등록/면허/인증/지역/기타)을 고르고, 코드가 그 선택을 다시
+뒤집었다. 2026-10-06 세션의 수정 대부분이 "모델이 어떤 유형을 골랐든 원문에서 닫힌 값을 다시 읽는" 패치였다
+(업종 이름이 등록요건으로, 소재지 조항이 기타요건으로, 품명번호가 이름 문자열 속으로). 닫힌 값을 코드가 확정한다면
+모델에게 그 유형을 고르게 할 이유가 없다.
+
+흐름
+----
+1. 조항 고르기는 clause 방식과 같다(select_clauses).
+2. 코드가 조항에서 닫힌 값 후보를 사전으로 모두 찾는다 — 지역(시·도, 시·군·구), 업종코드(띄어 쓴 숫자 포함),
+   업종 이름(업종 사전), 품명번호(10자리), 기업 규모 낱말.
+3. 모델은 조항마다 한 번: 조항의 극성, 후보마다 역할(REQUIRED / ALTERNATIVE+group / EXCLUDED / NOT_RELATED),
+   그리고 후보로 표현되지 않는 열린 조건(실적·인력·인증·면허)만 낸다.
+4. 코드가 역할대로 요건을 만든다. 닫힌 값 요건은 유형 재분류와 낱말 가드를 거치지 않는다(_CLOSED 슬롯).
+   열린 조건만 기존 변환을 탄다.
+"""
+from __future__ import annotations
+
+import hashlib
+import re
+from collections.abc import MutableMapping
+from dataclasses import dataclass
+from typing import Any
+
+from bidengine.clauses.enumerate import Clause
+from bidengine.judgment.clause_safety import guard_reasons, strip_decorations
+from bidengine.judgment.context_guard import _NEGATION_VETO_RE
+from bidengine.labeling.clause_labeling import CLAUSE_SCHEMA, select_clauses
+from bidengine.labeling.clause_polarity import POLARITIES
+from bidengine.labeling.requirement_extraction import (
+    StructuredExtractor,
+    _notice_haystack,
+    _rejection_reason_code,
+    section_paths,
+    validate_extracted_slot,
+)
+from bidengine.normalization.region_vocab import SIGUNGU_PARENTS
+from bidengine.normalization.regions import SIDO_CANONICAL, find_regions
+from bidengine.ports import IndustryNameResolver
+from bidengine.labeling.industry_match import match_industry_names, match_key
+from bidengine.normalization.industry_family import family_codes
+from bidengine.normalization.industry_similar import similar_candidates
+from bidengine.requirements.legacy_slots import (
+    _NAMED_INDUSTRY_CODE_RE,
+    _PRODUCT_CODE_RE,
+    _PRODUCT_CONTEXT_RE,
+    _SIZE_WORD_RE,
+    _compact,
+    _size_text,
+    company_size_alias,
+    industry_code_for_name,
+    is_common_disqualification,
+    labelled_industry_codes,
+)
+
+CLOSED_FIRST_VERSION = "closed-first-v1"
+MAX_BODY_CHARS = 24_000
+ROLES = ("REQUIRED", "ALTERNATIVE", "EXCLUDED", "NOT_RELATED")
+# 공동도급 역할별 자격('주계약자(대표사) : 건축공사업과 토목공사업…', '부계약자 : 기계설비·가스공사업…')도 공동수급 조항이다.
+# 역할마다 다른 업종을 모두 필수로 만들면 한 회사에 틀린 미달이 난다(2026-10-08 표본 k LH 아파트).
+_PARTY_CLAUSE_RE = re.compile(r"공동\s*(?:수급|계약|도급|이행)|분담\s*이행|(?:주|부)\s*계약자\s*(?:\([^()]{0,10}\))?\s*[:：]|구성사\s*\)?\s*[:：]")
+_PARTY_PROCEDURE_RE = re.compile(r"협정서|제출|승인|서식|간주")
+_INDUSTRY_NAME_SPAN_RE = re.compile(r"[가-힣][가-힣·ㆍ∙․]{1,24}업")
+# 괄호 세부명이 붙은 업종 이름: 「산림사업법인(숲가꾸기 및 병해충방제)」, 【일반소방시설공사업(전기, 기계】(닫는 괄호 빠짐).
+_QUALIFIED_INDUSTRY_NAME_RE = re.compile(r"([가-힣][가-힣·ㆍ∙․\s]{1,30}?(?:업|법인|조합|사업자))\s*\(([^()【】「」『』\[\]]{1,40})\)?")
+# 업종 이름 뒤에 기준이 오면 자격이 아니라 기준을 가리킨다: "‘건설폐기물수집․운반업 및 중간처리업의 허가기준’의 장비기준을
+# 충족한 자"(2026-10-07 로컬 확인 — 6728 이 필수 업종이 되어 틀린 미달). "A업 및 B업의 …기준" 처럼 이어 쓴 이름도 같다.
+_STANDARD_AFTER_RE = re.compile(
+    r"^(?:\s*(?:및|와|과|,|·|ㆍ)\s*[가-힣·ㆍ∙․]{1,24}업)*\s*(?:의\s*)?(?:허가|등록|시설|장비|기술|인력)?\s*기준"
+)
+_QUALIFIER_SPLIT_RE = re.compile(r"\s*(?:,|，|및|또는|/)\s*")
+_BRACKET_INDUSTRY_CODE_RE = re.compile(r"업\s*(?:\([^()]{0,20}\))?\s*[\[［]\s*([0-9]{4})\s*[\]］]")
+# "다음 각 호 어느 하나에 해당하는 경우" 아래로 이어지는 하위 조항 표식(㉮ ㉯, ⓐ, (가), 가), ①).
+# "1) 조경식재·시설물공사업 2) 조경공사업" 처럼 숫자 괄호도 하위 항목이다(2026-10-07 표본 j 녹색이음 누리길 — 둘 다 필수가
+# 되어 틀린 미달). 머리 조항에 '중 어느 하나' 가 있을 때만 쓰므로 '모두 갖춘' 목록과 섞이지 않는다.
+# "(지점 투찰 불허)", "(지사 투찰 불가)" — 본점 소재지 요건에 붙는 덧말이다. 요건을 부정하는 말이 아니다(표본 k).
+_BRANCH_REMARK_RE = re.compile(r"\(\s*(?:※\s*)?(?:지점|지사)[^()]{0,20}\)")
+_SUB_ITEM_RE = re.compile(r"^\s*(?:[㉮-㉻]|[ⓐ-ⓩ]|\([가-하]\)|[가-하]\)|[①-⑳]|\(?\d{1,2}\))")
+# 조항을 건넌 대안으로 묶는 것은 업종·품명번호뿐이다. 머리 조항의 소재지·규모 요건은 대안이 아니라 공통 조건이다.
+_ALTERNATIVE_TYPES = {"INDUSTRY", "REGISTRATION_CERTIFICATION"}
+_UMBRELLA_RE = re.compile(r"(?:중|가운데)\s*(?:하나|어느|1\s*개|택)|어느\s*하나|택\s*1|택일|각\s*호의\s*(?:1|어느)")
+_REGION_NARROWING_RE = re.compile(r"(?:동|서|남|북|중)부|영동|영서|권역|도서지역")
+_PROCEDURAL_POLARITIES = {"NOT_REQUIREMENT", "EVALUATION"}
+# 입찰 방식으로 쓴 규모 요건: "소기업 또는 소상공인간 경쟁입찰로 진행합니다", "… 간 제한경쟁입찰입니다".
+# 모델은 이 문장을 절차 안내로 읽지만 참가 업체의 규모를 정한다(2026-10-07 가상 변경 시험에서 1·2차 모두 놓쳤다).
+_SIZE_COMPETITION_RE = re.compile(
+    r"((?:중소기업|중기업|소기업|소상공인)(?:자)?(?:\s*(?:또는|및|,|·|ㆍ)\s*(?:중소기업|중기업|소기업|소상공인)(?:자)?)*)"
+    r"\s*간\s*(?:제한\s*)?경쟁"
+)
+# 열린 조건(등록·인증·면허 이름)으로 받지 않는 이름: 법령·절차 문구와 나라장터 등록 낱말. 모델이 이런 구간을
+# 실행마다 다르게 잘라 와 결과가 흔들렸다("제14조에의한자격요건" / "제14조", "이용자등록", "구매및제조물품").
+_OPEN_NAME_NOISE_RE = re.compile(
+    r"제\s*\d+\s*조|시행\s*(?:령|규칙)|법률|규정|자격\s*요건|입찰\s*참가|이용자\s*등록|나라장터|조달청|"
+    r"국가종합전자조달|전자입찰|구매\s*및\s*제조|제조\s*(?:또는|및)\s*공급|물품으로"
+)
+
+
+# 확인할 항목으로 보여 주기에 뜻이 없는 조각 이름(2026-10-08 g·h·i·j 측정 전체에서 모음). 이런 이름만 나온 조항은
+# '요건으로 정리하지 못한 조항' 으로 남아 모델이 쓴 확인 문장과 함께 보인다.
+_FRAGMENT_NAMES = {"업종", "지도기관", "등록기준", "기술능력", "자격", "요건", "지정", "인가", "기관", "업체"}
+_STATUTE_PREFIX_RE = re.compile(r"^[「『][^」』]+[」』](?:에서|에)?(?:따른|의한|의|따라)?(.*)$")
+_AUTHORITY_RE = re.compile(r"[가-힣]{1,24}?(?:장관|청장|처장|기관장|시장|군수|구청장|도지사|위원장)의?")
+# 인력 조건 중 회사 자격이 아닌 것: 입찰 대리인 재직 요건(절차), 등록기준의 '기술능력'(업종 등록에 딸린 말).
+_STAFF_NOISE_RE = re.compile(r"입찰\s*대리인|^기술\s*능력$")
+# 인력 조건이면 사람·자격을 가리켜야 한다. "생산시설(친어지, 부화지…)", "관리 상태가 양호하고" 는 인력이 아니다.
+_STAFF_PERSON_RE = re.compile(r"기술자|기술인|기사|기능사|사$|원$|인력|전문가|책임자|관리자|감독|명|자격|면허|교수|박사|직원")
+
+
+def open_condition_is_noise(labelled: dict[str, Any]) -> str | None:
+    """등록·인증·면허 밖의 열린 조건을 버릴 이유. 버리지 않으면 None."""
+    if labelled.get("유형") == "인력요건":
+        role = " ".join(str(labelled.get("인력역할_raw") or "").split())
+        if not role or _STAFF_NOISE_RE.search(role):
+            return "STAFF_PROCEDURE"
+        if not _STAFF_PERSON_RE.search(_compact(role)):
+            return "STAFF_NOT_PERSON"
+    return None
+
+
+def open_name_is_noise(name: str, clause: str, candidates: list["Candidate"]) -> str | None:
+    """열린 조건의 이름을 버릴 이유. 버리지 않으면 None."""
+    from bidengine.requirements.legacy_slots import is_generic_registration_name
+
+    compact = _compact(name)
+    if not compact or is_generic_registration_name(name):
+        return "GENERIC_NAME"
+    if _OPEN_NAME_NOISE_RE.search(name) or re.search(r"법(?:\s*시행령|\s*시행규칙)?$", compact) or re.fullmatch(r"[「『].*[」』]", name.strip()):
+        # 법령 이름("건설산업기본법", "「전기공사업법」")은 자격 이름이 아니다.
+        return "STATUTE_OR_PROCEDURE"
+    statute = _STATUTE_PREFIX_RE.match(compact)
+    if statute and (len(statute.group(1)) <= 4 or is_generic_registration_name(statute.group(1))):
+        # "「건설산업기본법」에의한", "「건설산업기본법」에따른종합건설" — 법령 이름 뒤에 남는 것이 없거나 업역 이름뿐이다.
+        return "STATUTE_OR_PROCEDURE"
+    if compact in _FRAGMENT_NAMES or compact.startswith("등록기준"):
+        # "업종", "지도기관", "등록기준(기술능력, 자본금…)" — 무엇을 갖추라는지 이름만으로는 알 수 없는 조각이다.
+        return "FRAGMENT"
+    if _AUTHORITY_RE.search(compact) and not _AUTHORITY_RE.sub("", compact).strip("허가인증신고지정승인인가등록,·및또는"):
+        # "고용노동부장관의지정", "식품의약품안전처장의허가, 인증, 신고" — 누가 내주는지만 있고 무엇인지가 없다.
+        return "AUTHORITY_ONLY"
+    if any(c.kind == "PRODUCT" for c in candidates) and not re.search(r"\d", name) and len(compact) <= 15:
+        # 품명번호 조항의 물품 이름("사격총(세부품명번호 4918169801)") — 품명번호 요건과 같은 요건이다.
+        return "PRODUCT_NAME_DUPLICATE"
+    return None
+
+
+@dataclass(frozen=True)
+class Candidate:
+    id: str
+    kind: str      # REGION | INDUSTRY | PRODUCT | SIZE
+    value: str     # 정규 값: "전북특별자치도 전주시", "1468", "4320140101", "소기업"
+    surface: str   # 원문에서 찾은 표기
+    family: str = ""  # 묶음 업종 이름("산림조합")에서 나온 후보면 그 이름 — 같은 이름의 후보들은 서로 대안이다
+    evidence: str = ""  # "model_match": 모델이 마스터 후보 중에서 고른 코드(industry_match.py) — 추론이다
+
+
+def scan_candidates(text: str, resolver: IndustryNameResolver | None) -> list[Candidate]:
+    """조항에서 닫힌 값 후보를 모두 찾는다. 요건인지는 모르는 채로 — 그 판단은 모델이 한다."""
+    found: list[tuple[str, str, str]] = []
+    plain = strip_decorations(text or "")
+    compact = _compact(text or "")
+
+    sidos, subs = find_regions(plain)
+    used_sidos: set[str] = set()
+    for sub in subs:
+        parents = {SIDO_CANONICAL.get(p, p) for p in SIGUNGU_PARENTS.get(sub, ())}
+        parent = next((s for s in sidos if s in parents), None)
+        if parent:
+            used_sidos.add(parent)
+        found.append(("REGION", f"{parent} {sub}" if parent else sub, sub))
+    for sido in sidos:
+        if sido not in used_sidos:
+            found.append(("REGION", sido, sido))
+
+    codes: dict[str, str] = {}
+    for code in sorted(labelled_industry_codes(text)):
+        codes.setdefault(code, f"업종코드 {code}")
+    for code in _NAMED_INDUSTRY_CODE_RE.findall(compact):
+        codes.setdefault(code, code)
+    for code in _BRACKET_INDUSTRY_CODE_RE.findall(plain):
+        # "폐기물중간처분업(지정폐기물)[1254]" — '업종코드' 낱말 없이 이름 뒤 대괄호에 쓴 업종코드.
+        codes.setdefault(code, f"[{code}]")
+    for match in _INDUSTRY_NAME_SPAN_RE.finditer(plain):
+        if _STANDARD_AFTER_RE.match(plain[match.end():]):
+            continue
+        code = industry_code_for_name(match.group(0), resolver)
+        if code:
+            codes.setdefault(code, match.group(0))
+    for name, code in qualified_industry_names(plain, resolver):
+        codes.setdefault(code, name)
+    for code, surface in codes.items():
+        found.append(("INDUSTRY", code, surface))
+
+    if _PRODUCT_CONTEXT_RE.search(text or ""):
+        for code in dict.fromkeys(_PRODUCT_CODE_RE.findall(compact)):
+            found.append(("PRODUCT", code, code))
+
+    for word in dict.fromkeys(_SIZE_WORD_RE.findall(_size_text(text or ""))):
+        found.append(("SIZE", word, word))
+
+    seen: set[tuple[str, str]] = set()
+    out: list[Candidate] = []
+    for kind, value, surface in found:
+        if (kind, value) in seen:
+            continue
+        seen.add((kind, value))
+        out.append(Candidate(id=f"V{len(out) + 1}", kind=kind, value=value, surface=surface))
+    # 세부명 없이 쓴 묶음 업종 이름("산림조합" → 4119·4120)은 그 세부명 업종들의 대안 후보로 더한다.
+    for name in unresolved_industry_names(text, out, resolver):
+        for code in family_codes(name, resolver):
+            if ("INDUSTRY", code) not in seen:
+                seen.add(("INDUSTRY", code))
+                out.append(Candidate(id=f"V{len(out) + 1}", kind="INDUSTRY", value=code, surface=name, family=name))
+    return out
+
+
+# 낱말 사이 기호는 공고마다 다르다(· ㆍ ․ , /) — 한글·영숫자·마침표가 아닌 글자는 모두 이음 기호로 본다.
+_SIZE_CERTIFICATE_RE = re.compile(r"((?:중[^가-힣]?소기업|중기업|소기업|소상공인|자|및|또는|[^가-힣A-Za-z0-9.。])+)확인서")
+
+
+def certificate_size(text: str) -> str | None:
+    """조항이 요구하는 규모 확인서의 종류: '소기업'(소기업·소상공인 확인서) | '중소기업' | None.
+
+    한 조항에 확인서가 여럿이면 넓은 쪽이 하나라도 있을 때 '중소기업' 이다 — 좁은 쪽으로 단정하지 않는다.
+    """
+    found = [m.group(1) for m in _SIZE_CERTIFICATE_RE.finditer(_compact(text or ""))]
+    kinds = {"중소기업" if re.search(r"중[^가-힣]?소기업|중기업", run) else "소기업" for run in found if re.search(r"소기업|소상공인|중기업", run)}
+    if not kinds:
+        return None
+    return "중소기업" if "중소기업" in kinds else "소기업"
+
+
+def qualified_industry_names(text: str, resolver: IndustryNameResolver | None) -> list[tuple[str, str]]:
+    """괄호 세부명이 붙은 업종 이름을 코드로. 세부명이 나열돼 있으면("(전기, 기계") 하나씩 붙여 찾는다.
+
+    이름 앞에 다른 낱말이 붙어 잡히면("법률에 의한 산림사업법인") 앞 낱말을 하나씩 떼며 찾는다.
+    마스터 이름과 정확히 같을 때만 코드를 준다(IndustryNameResolver 의 약속).
+    """
+    if resolver is None:
+        return []
+    out: list[tuple[str, str]] = []
+    for match in _QUALIFIED_INDUSTRY_NAME_RE.finditer(text or ""):
+        words = match.group(1).split()
+        # "(컴퓨터관련서비스사업, 업종코드: 1468)" 의 코드 부분은 세부명이 아니다.
+        inner = ", ".join(part.strip() for part in re.split(r"[,，]", match.group(2)) if part.strip() and not re.search(r"\d", part))
+        qualifiers = [q for q in _QUALIFIER_SPLIT_RE.split(inner) if q]
+        if not qualifiers:
+            continue
+        for start in range(len(words)):
+            base = " ".join(words[start:])
+            whole = industry_code_for_name(f"{base}({inner})", resolver)
+            parts = [(f"{base}({q})", industry_code_for_name(f"{base}({q})", resolver)) for q in qualifiers] if len(qualifiers) > 1 else []
+            if whole:
+                out.append((f"{base}({inner})", whole))
+                break
+            if parts and all(code for _name, code in parts):
+                out.extend((name, code) for name, code in parts)
+                break
+    return out
+
+
+# 업종처럼 보이는 이름(…업, …법인, …조합, …사업자). 법령 이름("산림조합법", "소방시설공사업법령")과 규모 낱말은 뺀다.
+_INDUSTRY_LIKE_RE = re.compile(
+    r"([가-힣][가-힣·ㆍ∙․]{1,24}(?:업|법인|조합|사업자))(?!\s*법)"
+    r"(?=$|[^가-힣]|(?:을|를|으로|로|과|와|에|의|이|가|은|는|등록|면허|허가)(?![가-힣]*법))"
+)
+_NOT_INDUSTRY_NAMES = {"사업", "기업", "산업", "영업", "작업", "사업자", "용역사업", "본사업", "해당사업", "협동조합", "건설사업자",
+                       "신규사업자", "개인사업자", "법인사업자", "면세사업자", "과세사업자", "간이사업자", "건설업자",
+                       "전문건설업자", "종합건설업자", "공사업", "건설업", "전문공사업", "종합공사업",
+                       "종합건설업", "전문건설업"}
+_BUSINESS_KIND_RE = re.compile(r"서비스|개발|공급|판매|제조|임대|대여|운송|중개|도매|소매|설계|감리|공사|소프트웨어|정보통신")
+_SENTENCE_PIECE_RE = re.compile(r"까지|부터|에둔|에서|하여|으로서|이어야|에의한|에따른")
+_ALTERNATIVE_MARKER_RE = re.compile(r"또는|중\s*(?:하나|어느|1)|이나\s|혹은")
+
+
+def unresolved_industry_names(text: str, candidates: list["Candidate"], resolver: IndustryNameResolver | None) -> list[str]:
+    """조항에 있는 업종 같은 이름 중 코드로 바꾸지 못한 것. 코드 후보의 표기에 들어 있는 이름은 푼 것으로 본다."""
+    plain = strip_decorations(text or "")
+    surfaces = [_compact(c.surface) for c in candidates if c.kind == "INDUSTRY"]
+    surfaces += [_compact(name) for name, _code in qualified_industry_names(plain, resolver)]
+    out: list[str] = []
+    for match in _INDUSTRY_LIKE_RE.finditer(plain):
+        name = match.group(1)
+        compact = _compact(name)
+        if compact in _NOT_INDUSTRY_NAMES or compact.endswith("기업") or _SIZE_WORD_RE.fullmatch(compact):
+            continue
+        if compact.endswith(("사업", "사업자")) and not _BUSINESS_KIND_RE.search(compact):
+            # '…조성사업', '…구축사업', '유사사업' 은 사업(과업) 이름이지 업종이 아니다(2026-10-07 표본 j).
+            continue
+        if _SENTENCE_PIECE_RE.search(compact):
+            # 띄어쓰기가 사라진 PDF 줄에서 문장 덩어리가 이름처럼 잡힌다('…울산광역시에둔사업자', 2026-10-08 표본 k).
+            continue
+        if _STANDARD_AFTER_RE.match(plain[match.end():]):
+            continue
+        if any(compact in surface or surface in compact for surface in surfaces if surface):
+            continue
+        # 이름 바로 뒤 괄호에 찾은 코드가 있다: "종합여행업(업종코드 1 2 6 1)", "폐기물중간처분업[1254]".
+        tail = _compact(plain[match.end():match.end() + 40])
+        if re.match(r"[)\]］]?\s*[(\[［]", tail) and any(c.value in tail[:32] for c in candidates if c.kind == "INDUSTRY"):
+            continue
+        if industry_code_for_name(name, resolver):
+            continue
+        out.append(name)
+    return list(dict.fromkeys(out))
+
+
+_QUALIFIER_AFTER_RE = re.compile(r"\s*\(([^()\d]{1,30})\)")
+
+
+def names_to_match(text: str, candidates: list["Candidate"], resolver: IndustryNameResolver | None) -> list[tuple[str, str, list[tuple[str, str]]]]:
+    """모델에게 물을 (바탕 이름, 물을 이름, 마스터 후보). 코드로 못 바꾼 업종 이름 가운데 글자가 겹치는 마스터 이름이 있는 것.
+
+    이름 바로 뒤에 괄호 세부명이 있으면 붙여서 묻는다 — "폐기물수집·운반업(건설폐기물)" 의 세부명이 업종을 가른다.
+    """
+    plain = strip_decorations(text or "")
+    exact = [c for c in candidates if not c.family and not c.evidence]
+    out = []
+    for name in unresolved_industry_names(text, exact, resolver):
+        asked = name
+        position = plain.find(name)
+        if position >= 0:
+            qualifier = _QUALIFIER_AFTER_RE.match(plain[position + len(name):])
+            if qualifier:
+                asked = f"{name}({qualifier.group(1).strip()})"
+        options = similar_candidates(asked, resolver)
+        if options:
+            out.append((name, asked, options))
+    return out
+
+
+def dismissed_names(text: str, candidates: list["Candidate"], asked: list[tuple[str, str, list[tuple[str, str]]]],
+                    answers: dict[str, str | None], resolver: IndustryNameResolver | None) -> set[str]:
+    """업종처럼 보이지만 나라장터 업종이 아니라고 확인된 이름 — 판정을 막는 가드에서 뺀다(2026-10-10).
+
+      - 마스터에 글자가 겹치는 업종 이름이 하나도 없다("특별법인").
+      - 겹치는 후보를 모델이 보고 '같은 업종 없음' 이라고 답했다(법 이름에서 떨어진 "판매업", "인쇄문화산업").
+    모델 호출이 실패해 답이 없는 이름은 넣지 않는다 — 확인된 것이 아니므로 지금처럼 판정을 막는다.
+    해석기가 비슷한 이름 조회를 지원하지 않으면 아무것도 확인할 수 없으니 빈 집합이다.
+    """
+    if not callable(getattr(resolver, "similar", None)):
+        return set()
+    exact = [c for c in candidates if not c.family and not c.evidence]
+    with_options = {name: (full, options) for name, full, options in asked}
+    out: set[str] = set()
+    for name in unresolved_industry_names(text, exact, resolver):
+        if name not in with_options:
+            out.add(name)
+            continue
+        full, options = with_options[name]
+        key = match_key(text, full, options)
+        if key in answers and answers[key] is None:
+            out.add(name)
+    return out
+
+
+def apply_matches(text: str, candidates: list["Candidate"], asked: list[tuple[str, str, list[tuple[str, str]]]],
+                  answers: dict[str, str | None]) -> list["Candidate"]:
+    """모델이 고른 코드를 후보에 더한다. 그 이름에서 묶음으로 추론해 둔 후보는 뺀다 — 고른 코드가 더 구체적이다."""
+    out = list(candidates)
+    for name, full, options in asked:
+        code = answers.get(match_key(text, full, options))
+        if not code:
+            continue
+        out = [c for c in out if c.family != name]
+        if not any(c.kind == "INDUSTRY" and c.value == code for c in out):
+            out.append(Candidate(id="", kind="INDUSTRY", value=code, surface=full, evidence="model_match"))
+    if out == candidates:
+        return candidates
+    return [Candidate(id=f"V{index}", kind=c.kind, value=c.value, surface=c.surface, family=c.family, evidence=c.evidence)
+            for index, c in enumerate(out, start=1)]
+
+
+def _check_closed_values(text: str, candidates: list["Candidate"], roles: dict[str, tuple[str, str]], reqs: list[dict],
+                         diags: list[dict], open_slots: list[dict], resolver: IndustryNameResolver | None,
+                         dismissed: frozenset[str] = frozenset()) -> tuple[list[dict], list[dict]]:
+    """요구 조항의 닫힌 값이 결과에 다 담겼는지 코드로 대조한다(2026-10-07 구조 보완).
+
+    (가) 코드로 찾은 업종코드·품명번호를 모델이 '관련 없음' 으로 둔 것, 업종처럼 보이는데 코드로 못 바꾼 이름이
+        남아 있으면 확인 필요(공백)로 둔다. 놓친 업종 때문에 '참가 가능' 이 잘못 나가는 것을 막는다.
+    (나) 그 조항에 대안 표지("또는", "중 하나")가 있으면 찾은 업종만으로 필수 요건을 만들지 않는다. 못 찾은 대안만
+        가진 회사가 '불가' 로 나오기 때문이다(틀린 미달이 가장 나쁜 오류).
+    이름으로 담은 열린 조건(등록·면허 이름)이 그 이름을 덮으면 담긴 것으로 본다 — 사용자가 확인할 항목이 된다.
+    """
+    open_names = [_compact(str(slot.get("등록인증_raw") or "")) for slot in open_slots]
+    # dismissed: 나라장터 업종이 아니라고 확인된 이름(dismissed_names) — 놓친 업종이 아니므로 막지 않는다.
+    unresolved = [name for name in unresolved_industry_names(text, candidates, resolver)
+                  if name not in dismissed
+                  and not any(_compact(name) in open_name for open_name in open_names if open_name)]
+    # 원문에 숫자로 적힌 코드만 본다. 묶음 이름에서 추론한 후보를 모델이 관련 없다고 한 것은 놓친 코드가 아니다
+    # ("대기업인 소프트웨어사업자가 참여할 수 있는 사업금액의 하한" 의 소프트웨어사업자 묶음).
+    unused = [c for c in candidates if c.kind in {"INDUSTRY", "PRODUCT"} and not c.family and not c.evidence
+              and roles.get(c.id, ("NOT_RELATED", ""))[0] == "NOT_RELATED"
+              and not any(str(r.get("value")) == c.value or c.value in ((r.get("scope") or {}).get("with_codes") or [])
+                          for r in reqs)]
+    if unresolved and _ALTERNATIVE_MARKER_RE.search(text) and any(r["type"] == "INDUSTRY" for r in reqs):
+        reqs = [r for r in reqs if r["type"] != "INDUSTRY"]
+        diags = [*diags, {"code": "UNMAPPED_INDUSTRY", "raw": text, "reason": "ALTERNATIVE_UNRESOLVED",
+                          "names": unresolved}]
+    elif unresolved:
+        diags = [*diags, {"code": "UNMAPPED_INDUSTRY", "raw": text, "reason": "INDUSTRY_NAME_UNRESOLVED", "names": unresolved}]
+    if unused:
+        diags = [*diags, {"code": "UNMAPPED_INDUSTRY" if unused[0].kind == "INDUSTRY" else "UNMAPPED_REGISTRATION_CERTIFICATION",
+                          "raw": text, "reason": "CANDIDATE_UNUSED", "values": [c.value for c in unused]}]
+    return reqs, diags
+
+
+_KIND_LABEL = {"REGION": "지역", "INDUSTRY": "업종코드", "PRODUCT": "품명번호", "SIZE": "기업규모"}
+
+
+def _schema() -> dict[str, Any]:
+    open_item = CLAUSE_SCHEMA["schema"]["properties"]["clauses"]["items"]["properties"]["requirements"]["items"]
+    return {
+        "name": "closed_first",
+        "schema": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "clauses": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "properties": {
+                            "clause_id": {"type": "string"},
+                            "polarity": {"type": "string", "enum": list(POLARITIES)},
+                            "candidates": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": False,
+                                    "properties": {
+                                        "id": {"type": "string"},
+                                        "role": {"type": "string", "enum": list(ROLES)},
+                                        "group": {"type": "string"},
+                                    },
+                                    "required": ["id", "role", "group"],
+                                },
+                            },
+                            "open_requirements": {"type": "array", "items": open_item},
+                        },
+                        "required": ["clause_id", "polarity", "candidates", "open_requirements"],
+                    },
+                }
+            },
+            "required": ["clauses"],
+        },
+    }
+
+
+SCHEMA = _schema()
+
+SYSTEM_PROMPT = """너는 입찰공고의 참가자격 조항을 읽는 도구다. 조항은 [C001] 같은 id 로 주어지고, 각 조항에는 그것이 놓인 절의 위치와, 코드가 조항에서 찾은 값 후보(지역·업종코드·품명번호·기업규모)가 V1, V2 … 로 붙어 있다.
+
+조항마다 세 가지를 낸다.
+1. polarity: 조항이 업체에 무엇을 요구하는지.
+   - POSITIVE: 업체가 갖추어야 하는 자격을 정한다. 문장 속 '또는'·'다만'·괄호가 서류나 대상 범위를 설명할 뿐이면 POSITIVE 다.
+   - EXCLUSION: 해당하는 업체는 참가할 수 없다고 정한다.
+   - EXCEPTION: 단서·예외 때문에 일부 업체에는 요건이 적용되지 않거나 다른 것으로 갈음된다.
+   - EVALUATION: 참가 자격이 아니라 평가·심사·배점 기준이다.
+   - NOT_REQUIREMENT: 업체의 자격이 아니다(절차·일정·제출 서류, 납품 물품의 조건, 계약 후 과업 수행 조건, 투입 인력 조건).
+   - UNSURE: 분명하지 않다.
+2. candidates: 받은 후보마다 role 을 고른다. 받은 id 를 그대로 쓰고, 받은 후보는 모두 답한다.
+   - REQUIRED: 참가 업체가 갖추어야 하는 값이다(소재지, 등록 업종, 등록 물품, 기업 규모).
+   - ALTERNATIVE: '또는'으로 나열된 대안 중 하나다. 같은 대안 묶음끼리 같은 group 이름(G1, G2 …)을 쓴다.
+   - EXCLUDED: 이 값에 해당하면 참가할 수 없다(예: 대기업 참여 제한).
+   - NOT_RELATED: 요건과 무관하다(납품·수행 장소, 발주기관·학교 이름, 법령 이름 속 낱말, 평가 기준).
+   group 은 ALTERNATIVE 일 때만 쓰고, 나머지는 빈 문자열이다.
+3. open_requirements: 후보로 표현되지 않는 참가 자격만 낸다(실적, 인력, 인증·면허·등록 이름). 지역·업종·품명번호·기업규모는 후보로 이미 받았으므로 여기에 내지 않는다. 각 *_raw 필드는 그 조항 안의 연속된 구간을 그대로 복사한다. 없으면 빈 배열이다.
+
+규칙: 원문을 쓰지 않는다. 확신이 없으면 polarity 를 UNSURE 로 둔다. 받은 clause_id 를 그대로 쓴다."""
+
+
+def _key(section: str, text: str, candidates: list[Candidate] = ()) -> str:
+    """조항 답 기억의 키. 후보 목록(종류:값)을 넣는다 — 모델 답은 후보 번호(V1, V2…)로 역할을 매기므로, 탐색 규칙이
+    바뀌어 후보가 달라진 조항에 예전 답을 쓰면 역할이 엉뚱한 후보에 붙는다. 후보가 같은 조항은 그대로 기억을 쓴다."""
+    listed = ";".join(f"{c.id}={c.kind}:{c.value}" for c in candidates)
+    body = CLOSED_FIRST_VERSION + "\n" + section + "\n" + "".join((text or "").split()) + "\n" + listed
+    return hashlib.sha256(body.encode("utf-8")).hexdigest()[:24]
+
+
+def _entry_body(clause_id: str, section: str, clause: Clause, candidates: list[Candidate]) -> str:
+    listed = "; ".join(f"{c.id} {_KIND_LABEL[c.kind]} {c.value}" + (f" (원문: {c.surface})" if c.surface != c.value else "") for c in candidates)
+    return f"[{clause_id}] 위치: {section or '알 수 없음'} | 후보: {listed or '없음'}\n{clause.text}"
+
+
+# 요건을 덜어 주는 단서: "장비 기준을 충족한 경우에는 A 만으로 입찰이 가능합니다", "B 는 등록하지 않아도".
+_RELAXING_RE = re.compile(r"않아도|아니하여도|가능\s*(?:합니다|함|하다|하며)|갈음|면제|생략")
+_BRANCH_SPLIT_RE = re.compile(r"또는|혹은")
+
+
+def written_code_branches(text: str, candidates: list["Candidate"]) -> list[list["Candidate"]] | None:
+    """한 조항에 코드로 적힌 업종을 '또는' 으로 가른 갈래. 갈래 안의 업종은 모두 필요하고 갈래끼리는 대안이다.
+
+    "중간처분업[1253]과 수집·운반업[6728] 또는 중간처분업[1253]을 등록한 업체" → [[1253, 6728], [1253]].
+    복합 조건으로 볼 근거가 있을 때만 돌려준다: 같은 코드가 두 갈래에 나오거나, 한 갈래에 코드가 둘 이상 있다.
+    코드가 원문에 숫자로 적힌 후보만 본다(이름에서 추론한 코드는 위치를 믿을 수 없다). 아니면 None.
+    """
+    written = [c for c in candidates if c.kind == "INDUSTRY" and not c.family and not c.evidence]
+    if len(written) < 1:
+        return None
+    cuts = [0, *[m.start() for m in _BRANCH_SPLIT_RE.finditer(text)], len(text)]
+    if len(cuts) < 3:
+        return None
+    branches: list[list[Candidate]] = [[] for _ in range(len(cuts) - 1)]
+    for c in written:
+        positions = [m.start() for m in re.finditer(rf"(?<![0-9]){re.escape(c.value)}(?![0-9])", text)]
+        if not positions:
+            return None
+        for position in positions:
+            index = max(i for i, cut in enumerate(cuts[:-1]) if cut <= position)
+            if c not in branches[index]:
+                branches[index].append(c)
+    branches = [branch for branch in branches if branch]
+    if len(branches) < 2:
+        return None
+    repeated = any(sum(c in branch for branch in branches) >= 2 for c in written)
+    if not repeated and not any(len(branch) >= 2 for branch in branches):
+        return None
+    return branches
+
+
+def combine_branches(branches: list[list[dict]]) -> list[dict]:
+    """대안 갈래(갈래 안의 업종은 모두 필요)를 요건으로 푼다(2026-10-10).
+
+      - 모든 갈래에 있는 업종은 필수다.
+      - 공통 업종만으로 된 갈래가 있으면 나머지 업종은 없어도 된다 — 선택(role=optional)으로 남겨 조항이 담겼음을 알린다.
+      - 아니면 갈래마다 남은 업종을 한 요건으로 묶어(scope.with_codes: 모두 보유) 서로 대안으로 둔다.
+    조항별로 읽으면 "A 와 B / 또는 A" 의 B 가 필수가 되어, A 만 가진 자격 있는 회사가 부적합이 된다.
+    """
+    by_code: dict[str, dict] = {}
+    for branch in branches:
+        for item in branch:
+            by_code.setdefault(str(item["value"]), item)
+    sets = [{str(item["value"]) for item in branch} for branch in branches]
+    common = set.intersection(*sets)
+    out = [dict(by_code[code]) for code in sorted(common)]
+    rest = [group - common for group in sets]
+    if not all(rest):
+        out += [{**by_code[code], "role": "optional"} for code in sorted(set().union(*rest))]
+        return out
+    group = "X-" + "|".join("+".join(sorted(part)) for part in sorted(rest, key=sorted))
+    seen: set[frozenset[str]] = set()
+    for part in rest:
+        if frozenset(part) in seen:
+            continue
+        seen.add(frozenset(part))
+        first, *others = sorted(part)
+        item = dict(by_code[first])
+        # 갈래 구조는 코드가 문장을 갈라 읽은 것이다. 틀렸을 수 있으니 안 맞아도 부적합의 근거로 쓰지 않는다.
+        item["scope"] = {**(item.get("scope") or {}), "with_codes": others, "evidence": "compound"}
+        out.append({**item, "group": group})
+    return out
+
+
+def _family_roles(text: str, candidates: list[Candidate], roles: dict[str, tuple[str, str]]) -> dict[str, tuple[str, str]]:
+    """묶음 업종 후보는 서로 대안이다. 조항에 대안 표지('또는')가 있으면 그 조항의 다른 업종 후보도 같은 묶음에 넣는다.
+
+    "산림사업법인(숲가꾸기 및 병해충방제) 또는 산림조합" → 1475 · 4119 · 4120 중 하나. 모델이 묶음 후보 하나만 '필수' 로
+    표시해도 코드가 나머지를 함께 대안으로 만든다 — 하나만 필수가 되면 다른 조합 회사가 '불가' 가 된다.
+    """
+    wanted = {c.id for c in candidates if roles.get(c.id, ("NOT_RELATED", ""))[0] in {"REQUIRED", "ALTERNATIVE"}}
+    families = [c for c in candidates if c.family and c.id in wanted]
+    if not families:
+        return roles
+    group = "F-" + "+".join(sorted({c.family for c in families}))
+    members = {c.id for c in candidates if c.family in {f.family for f in families}}
+    if _ALTERNATIVE_MARKER_RE.search(text):
+        members |= {c.id for c in candidates if c.kind == "INDUSTRY" and c.id in wanted}
+    return {**roles, **{cid: ("ALTERNATIVE", group) for cid in members}}
+
+
+def _closed_requirements(polarity: str, text: str, candidates: list[Candidate], roles: dict[str, tuple[str, str]]) -> tuple[list[dict], list[dict]]:
+    """역할을 받은 후보로 요건(정의)과 진단을 만든다."""
+    reqs: list[dict] = []
+    diags: list[dict] = []
+    competition = _SIZE_COMPETITION_RE.search(_size_text(text))
+    if competition and polarity in {"POSITIVE", "NOT_REQUIREMENT", "UNSURE"}:
+        alias = company_size_alias(competition.group(1))
+        if alias:
+            # 규모 낱말은 닫힌 어휘다 — '○○간 경쟁입찰' 이면 그 규모가 참가 자격이다. 모델의 역할 표시와 상관없이 코드가 정한다.
+            return [{"type": "COMPANY_SIZE", "value": alias, "scope": {"source": "competition_type"}}], diags
+    roles = _family_roles(text, candidates, roles)
+    by_role = {role: [c for c in candidates if roles.get(c.id, ("NOT_RELATED", ""))[0] == role] for role in ROLES}
+
+    if polarity == "EXCLUSION":
+        excluded_sizes = [c.value for c in by_role["EXCLUDED"] if c.kind == "SIZE"]
+        if excluded_sizes and set(excluded_sizes) <= {"대기업", "중견기업"}:
+            reqs.append({"type": "COMPANY_SIZE", "value": " 및 ".join(excluded_sizes), "scope": {"restriction": "EXCLUDE"}})
+        elif is_common_disqualification(text):
+            # 부정당업자·조세포탈처럼 모든 입찰자에게 똑같이 걸리는 결격 — 회사 프로필과 대조할 자격이 아니다(clause 방식과 같은 기준).
+            diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": "COMMON_DISQUALIFICATION"})
+        else:
+            diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": "MODEL_POLARITY_EXCLUSION"})
+        return reqs, diags
+    compound = written_code_branches(text, candidates) if polarity in {"POSITIVE", "EXCEPTION", "UNSURE"} else None
+    if compound and polarity != "POSITIVE" and not _RELAXING_RE.search(text):
+        compound = None   # 요건을 덜어 주는 단서가 아니면(조건을 더하는 예외일 수 있다) 코드가 갈라 읽지 않는다
+    if compound:
+        # "(A 와 B) 또는 A" — 코드가 원문에 숫자로 적혀 있으므로 모델의 역할 표시 대신 갈래로 푼다.
+        handled = {c.id for branch in compound for c in branch}
+        reqs.extend(combine_branches([[{"type": "INDUSTRY", "value": c.value, "scope": {"industry_name": c.surface}} for c in branch]
+                                      for branch in compound]))
+        candidates = [c for c in candidates if c.id not in handled]
+        by_role = {role: [c for c in members if c.id not in handled] for role, members in by_role.items()}
+    if polarity != "POSITIVE":
+        if not candidates and len(_compact(text)) <= 20 and not re.search(r"[.。]|이어야|하여야|한다|합니다", text):
+            # 값도 서술도 없는 절 제목("3. 입찰참가 자격") — 요건이 아니다.
+            diags.append({"code": "CLAUSE_NOT_LABELLED", "raw": text, "reason": "HEADING"})
+        else:
+            diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": f"MODEL_POLARITY_{polarity}"})
+        return reqs, diags
+
+    wanted = by_role["REQUIRED"] + by_role["ALTERNATIVE"]
+    if wanted and _NEGATION_VETO_RE.search(_BRANCH_REMARK_RE.sub(" ", strip_decorations(text))):
+        # 모델은 요구라는데 문장에 부정 낱말이 있다 — 이견이라 확정하지 않는다.
+        diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": "POLARITY_DISAGREEMENT"})
+        return reqs, diags
+
+    sizes = [c for c in wanted if c.kind == "SIZE"]
+    if sizes:
+        alias = company_size_alias(" ".join(c.value for c in sizes))
+        if alias:
+            scope = {}
+            if alias == "중소기업" and certificate_size(text) == "소기업":
+                # "중소기업자로서 … 소기업·소상공인 확인서를 소지" — 낱말은 중소기업인데 요구하는 확인서는 소기업 것이다.
+                # 어느 쪽이 자격인지 엔진이 정하지 않는다. 판정기가 중기업 회사를 충족으로 확정하지 않게 표시만 남긴다.
+                scope["certificate_size"] = "소기업"
+            reqs.append({"type": "COMPANY_SIZE", "value": alias, "scope": scope})
+        else:
+            diags.append({"code": "UNMAPPED_COMPANY_SIZE", "raw": text, "reason": "SIZE_UNION_UNKNOWN"})
+
+    def build(c: Candidate) -> dict | None:
+        if c.kind == "REGION":
+            if _REGION_NARROWING_RE.search(text) and " " not in c.value:
+                diags.append({"code": "UNMAPPED_REGION", "raw": text, "reason": "REGION_NARROWED"})
+                return None
+            return {"type": "REGION", "value": c.value, "scope": {}}
+        if c.kind == "INDUSTRY":
+            scope = {"industry_name": c.surface}
+            if c.family:
+                # 공고에 코드도 정확한 업종명도 없이 묶음 이름에서 추론한 코드다. 미달의 근거로 쓰지 않는다(판정기).
+                scope["evidence"] = "family"
+            elif c.evidence:
+                scope["evidence"] = c.evidence
+            return {"type": "INDUSTRY", "value": c.value, "scope": scope}
+        if c.kind == "PRODUCT":
+            return {"type": "REGISTRATION_CERTIFICATION", "value": c.value, "scope": {"kind": "REGISTRATION", "source_name": c.surface}}
+        return None
+
+    for c in by_role["REQUIRED"]:
+        item = build(c)
+        if item:
+            reqs.append(item)
+    groups: dict[str, list[Candidate]] = {}
+    for c in by_role["ALTERNATIVE"]:
+        if c.kind != "SIZE":
+            groups.setdefault(roles[c.id][1] or "G", []).append(c)
+    for name, members in groups.items():
+        built = [b for b in (build(c) for c in members) if b]
+        if len(built) == 1:
+            reqs.append(built[0])
+        elif built:
+            reqs.extend({**b, "group": name} for b in built)
+    return reqs, diags
+
+
+def _alternative_requirements(slot: dict[str, Any]) -> list[dict]:
+    return [r for r in slot.get("_closed_requirements") or []
+            if not (r.get("scope") or {}).get("restriction") and r.get("type") in _ALTERNATIVE_TYPES]
+
+
+def _combine_cross_branches(branches: list[dict | None], following: list[str]) -> list[dict] | None:
+    """하위 조항(①, ②)마다 코드로 적힌 업종이 여럿일 때 갈래로 푼다. 풀 수 없는 모양이면 None(확인 필요로 둔다).
+
+    하위 조항 바로 뒤에 요건을 덜어 주는 단서(※ … 충족한 경우에는 A 또는 B 와 A 로 입찰이 가능)가 있으면 그 갈래도 더한다 —
+    빼면 단서로 면제되는 업종이 필수로 남는다.
+    """
+    sets: list[list[dict]] = []
+    for slot in branches:
+        reqs = _alternative_requirements(slot) if slot else []
+        if not reqs:
+            continue
+        plain = all(r.get("type") == "INDUSTRY" and not r.get("group") and re.fullmatch(r"[0-9]{4}", str(r.get("value")))
+                    and not (r.get("scope") or {}).get("evidence") for r in reqs)
+        if not plain:
+            return None
+        sets.append([{"type": "INDUSTRY", "value": r["value"], "scope": {"industry_name": (r.get("scope") or {}).get("industry_name", "")}}
+                     for r in reqs])
+    if len(sets) < 2:
+        return None
+    for text in following[:1]:
+        if not (_RELAXING_RE.search(text) and re.match(r"\s*(?:※|단\s*,|다만)", text)):
+            break
+        written = [c for c in scan_candidates(text, None) if c.kind == "INDUSTRY"]
+        parts = written_code_branches(text, written) or ([written] if written else [])
+        sets += [[{"type": "INDUSTRY", "value": c.value, "scope": {"industry_name": c.surface}} for c in part] for part in parts]
+    return combine_branches(sets)
+
+
+def _merge_cross_clause_alternatives(kept: list[Clause], slots: list[dict[str, Any]]) -> None:
+    """'다음 각 호 어느 하나에 해당하는 경우' 아래 하위 조항(㉮ ㉯ …)이 따로 떨어진 조항이면, 그 조항들은 서로 대안이다.
+
+    조항을 하나씩 읽으면 ㉯ 의 업종들이 필수가 되어 ㉮ 를 갖춘 회사가 부적합이 된다(2026-10-06 표본 g 고양 복지회관).
+    갈래마다 요건 단위(요건 하나, 또는 대안 묶음 하나)가 하나면 모두 한 대안 묶음으로 합친다. 한 갈래에 요건이
+    여럿이면("A 와 B 와 C 를 모두") 지금 구조로 '(갈래1) 또는 (갈래2 전부)' 를 담을 수 없으므로 확인 필요로 둔다.
+    """
+    closed = {}
+    for slot in slots:
+        if slot.get("유형") == "_CLOSED":
+            closed.setdefault(_compact(slot.get("raw") or ""), slot)
+    texts = [clause.text for clause in kept]
+    handled: set[str] = set()
+    for index, text in enumerate(texts):
+        if not _UMBRELLA_RE.search(text):
+            continue
+        branch_texts = [text]
+        for follower in texts[index + 1:]:
+            if not _SUB_ITEM_RE.match(follower):
+                break
+            branch_texts.append(follower)
+        if len(branch_texts) < 2:
+            continue
+        keys = [_compact(t) for t in branch_texts]
+        if any(k in handled for k in keys):
+            continue
+        branches = [closed.get(k) for k in keys]
+        units = []
+        for slot in branches:
+            reqs = [r for r in (slot or {}).get("_closed_requirements") or []
+                    if not (r.get("scope") or {}).get("restriction") and r.get("type") in _ALTERNATIVE_TYPES]
+            groups = {r.get("group") for r in reqs if r.get("group")}
+            singles = [r for r in reqs if not r.get("group")]
+            units.append(len(singles) + len(groups))
+        if all(count == 0 for count in units):
+            continue
+        handled.update(keys)
+        # 같은 원문이 다른 문서(HWP·PDF)에도 있으면 함께 고친다.
+        targets = [slot for slot in slots if slot.get("유형") == "_CLOSED" and _compact(slot.get("raw") or "") in set(keys)]
+        if all(count <= 1 for count in units):
+            # 묶음 이름은 대안 값으로 정한다 — 조항 순번으로 정하면 HWP·PDF 에 같은 조항이 두 번 있을 때 묶음이 갈린다.
+            values = sorted({str(r.get("value")) for slot in branches for r in (slot or {}).get("_closed_requirements") or []
+                             if r.get("type") in _ALTERNATIVE_TYPES and not (r.get("scope") or {}).get("restriction")})
+            group = "X-" + "+".join(values)
+            for slot in targets:
+                slot["_closed_requirements"] = [
+                    {**r, "group": group} if not (r.get("scope") or {}).get("restriction") and r.get("type") in _ALTERNATIVE_TYPES else r
+                    for r in slot.get("_closed_requirements") or []
+                ]
+        elif (combined := _combine_cross_branches(branches, texts[index + len(branch_texts):])) is not None:
+            # 갈래마다 업종이 여럿이다("① A 와 B 와 C  ② B 와 C") — 공통 업종은 필수, 나머지는 선택이나 갈래 대안으로 푼다.
+            first = next(_compact(slot["raw"]) for slot in branches if slot and _alternative_requirements(slot))
+            placed: set[int] = set()
+            for slot in targets:
+                slot["_closed_requirements"] = [r for r in slot.get("_closed_requirements") or []
+                                                if r not in _alternative_requirements(slot)]
+                if _compact(slot.get("raw") or "") == first and id(slot) not in placed:
+                    placed.add(id(slot))
+                    slot["_closed_requirements"] = [*slot["_closed_requirements"], *[dict(r) for r in combined]]
+        else:
+            for slot in targets:
+                kept_reqs = [r for r in slot.get("_closed_requirements") or []
+                             if (r.get("scope") or {}).get("restriction") or r.get("type") not in _ALTERNATIVE_TYPES]
+                if len(kept_reqs) != len(slot.get("_closed_requirements") or []):
+                    slot["_closed_requirements"] = kept_reqs
+                    slot["_closed_diagnostics"] = [*(slot.get("_closed_diagnostics") or []),
+                                                   {"code": "UNMAPPED_REQUIREMENT", "raw": slot["raw"], "reason": "CROSS_CLAUSE_ALTERNATIVE"}]
+
+
+def extract_closed_first(
+    chunks: list[dict[str, Any]],
+    *,
+    structured_extract: StructuredExtractor,
+    industry_resolver: IndustryNameResolver | None = None,
+    max_retry: int = 1,
+    clause_selection: str = "hybrid",
+    selection_memory: MutableMapping[str, bool] | None = None,
+    memory: MutableMapping[str, Any] | None = None,
+    votes: int = 1,
+) -> dict[str, Any]:
+    """votes: 조항을 처음 물을 때 같은 질문을 몇 번 보내 다수결로 정할지. 기억에 있는 조항은 묻지 않는다."""
+    kept, target, base, selection_note = select_clauses(
+        chunks, structured_extract=structured_extract, max_retry=max_retry,
+        clause_selection=clause_selection, selection_memory=selection_memory,
+    )
+    paths = section_paths(chunks)
+    known: MutableMapping[str, Any] = memory if memory is not None else {}
+    notice_text = _notice_haystack(target)
+
+    # 코드로 못 바꾼 업종 이름은 모델이 마스터 후보 중에서 고른다(공고 하나에 한 번, 그런 이름이 있을 때만).
+    scanned = [(clause, scan_candidates(clause.text, industry_resolver)) for clause in kept]
+    to_match = [(clause, candidates, names_to_match(clause.text, candidates, industry_resolver)) for clause, candidates in scanned]
+    matched = match_industry_names(
+        [(clause.text, full, options) for clause, _candidates, asked in to_match for _name, full, options in asked],
+        structured_extract=structured_extract, memory=known, max_retry=max_retry,
+    ) if any(asked for _clause, _candidates, asked in to_match) else {}
+
+    prepared = []
+    dismissed_by_key: dict[str, frozenset[str]] = {}
+    for clause, candidates, asked in to_match:
+        section = paths.get(str(clause.chunk_id), "")
+        dismissed = frozenset(dismissed_names(clause.text, candidates, asked, matched, industry_resolver))
+        candidates = apply_matches(clause.text, candidates, asked, matched)
+        key = _key(section, clause.text, candidates)
+        dismissed_by_key[key] = dismissed
+        prepared.append((clause, section, candidates, key))
+
+    pending = [item for item in prepared if item[3] not in known]
+    answers: dict[str, dict] = {}
+    last_error = ""
+    failed = False
+    batch: list = []
+    size = 0
+
+    def flush() -> None:
+        nonlocal batch, size, last_error, failed
+        if not batch:
+            return
+        ids = {f"C{index:03d}": item for index, item in enumerate(batch, start=1)}
+        body = "\n\n".join(_entry_body(cid, item[1], item[0], item[2]) for cid, item in ids.items())
+        samples: list[dict[str, dict]] = []
+        for _vote in range(max(1, votes)):
+            result = None
+            for _attempt in range(max_retry + 1):
+                try:
+                    result = structured_extract(SYSTEM_PROMPT, body, SCHEMA)
+                    break
+                except Exception as error:  # noqa: BLE001 - 호출 실패는 결과 상태로 알린다
+                    last_error = f"구조화 추출 호출 실패: {type(error).__name__}"
+            if result is None:
+                continue
+            parsed: dict[str, dict] = {}
+            for entry in (result.get("clauses") or []) if isinstance(result, dict) else []:
+                item = ids.get(str(entry.get("clause_id") or ""))
+                if item is not None:
+                    parsed[item[3]] = {
+                        "polarity": entry.get("polarity") if entry.get("polarity") in POLARITIES else "UNSURE",
+                        "roles": {str(c.get("id")): [c.get("role") if c.get("role") in ROLES else "NOT_RELATED", str(c.get("group") or "")]
+                                  for c in entry.get("candidates") or []},
+                        "open": [dict(x) for x in entry.get("open_requirements") or []],
+                    }
+            for cid, item in ids.items():  # 응답에 없는 조항은 '요건 아님'
+                parsed.setdefault(item[3], {"polarity": "NOT_REQUIREMENT", "roles": {}, "open": []})
+            samples.append(parsed)
+        if not samples:
+            failed = True
+        else:
+            # 조항마다 다수결: 극성과 후보 역할(묶음 이름은 무시)이 같은 답끼리 세어 가장 많은 답을 쓴다. 같으면 먼저 받은 답.
+            for _cid, item in ids.items():
+                options = [sample[item[3]] for sample in samples]
+                signatures = [(o["polarity"], tuple(sorted((k, v[0]) for k, v in o["roles"].items()))) for o in options]
+                best = max(range(len(options)), key=lambda i: (signatures.count(signatures[i]), -i))
+                answers[item[3]] = options[best]
+        batch, size = [], 0
+
+    for item in pending:
+        length = len(item[0].text) + 60 * (len(item[2]) + 1)
+        if batch and size + length > MAX_BODY_CHARS:
+            flush()
+        batch.append(item)
+        size += length
+    flush()
+    if failed and not answers and pending:
+        return {**base, "slots": [], "dropped_requirements": [], "status": "failed", "notes": last_error,
+                "candidate_count": 0, "clause_texts": [c.text for c in kept]}
+
+    slots: list[dict[str, Any]] = []
+    rejected: list[dict[str, str]] = []
+    candidates_total = 0
+    for clause, section, candidates, key in prepared:
+        answer = known[key] if key in known else answers.get(key)
+        if answer is None:  # 호출 실패로 답이 없는 조항
+            slots.append({"유형": "_CLOSED", "raw": clause.text, "_closed_requirements": [],
+                          "_closed_diagnostics": [{"code": "UNMAPPED_REQUIREMENT", "raw": clause.text, "reason": "MODEL_POLARITY_UNSURE"}],
+                          "_clause_id": clause.clause_id, "_source_chunk_id": clause.chunk_id, "_source_blocks": list(clause.source_blocks)})
+            continue
+        polarity = answer["polarity"]
+        roles = {cid: (role, group) for cid, (role, group) in answer["roles"].items()}
+        source = {"_clause_id": clause.clause_id, "_source_chunk_id": clause.chunk_id, "_source_blocks": list(clause.source_blocks),
+                  "_section_path": section, "근거조항": None}
+        if _PARTY_CLAUSE_RE.search(clause.text) and not _PARTY_PROCEDURE_RE.search(clause.text):
+            slots.append({"유형": "_CLOSED", "raw": clause.text, "_closed_requirements": [],
+                          "_closed_diagnostics": [{"code": "UNMAPPED_REQUIREMENT", "raw": clause.text, "reason": "COMPOSITE_PARTY_RULE"}], **source})
+            continue
+        reqs, diags = _closed_requirements(polarity, clause.text, candidates, roles)
+
+        clause_rejected = False
+        open_slots = []
+        kept_open: list[dict] = []
+        closed_values = {c.value for c in candidates}
+        for labelled in answer["open"] if polarity == "POSITIVE" else []:
+            if labelled.get("유형") in {"지역요건", "업종요건", "기업규모요건"}:
+                continue
+            name = str(labelled.get("등록인증_raw") or "")
+            if name and any(v in _compact(name) for v in closed_values if v.isdigit()):
+                kept_open.append(labelled)
+                continue  # 후보로 이미 담은 번호
+            if labelled.get("유형") in {"등록요건", "인증요건", "면허요건"}:
+                noise = open_name_is_noise(name, clause.text, candidates)
+                industry_values = {c.value for c in candidates if c.kind == "INDUSTRY"}
+                if not noise and industry_values and industry_code_for_name(name, industry_resolver) in industry_values:
+                    noise = "INDUSTRY_DUPLICATE"   # "전기공사업의 등록" — 같은 조항 업종 요건과 같은 요건
+                if not noise and "직접생산" in _compact(name) and any(c.kind == "PRODUCT" for c in candidates):
+                    noise = "PRODUCT_DUPLICATE"    # 품명번호 요건의 증명서 이름
+                if noise:
+                    kept_open.append(labelled)
+                    diags.append({"code": "CLAUSE_NOT_LABELLED", "raw": clause.text, "reason": f"OPEN_NAME_{noise}"})
+                    continue
+            else:
+                # 등록 이름이 있으면 유형이 '기타요건' 이어도 이름 규칙을 거친다("고용노동부장관의 지정").
+                noise = (open_name_is_noise(name, clause.text, candidates) if name else None) or open_condition_is_noise(labelled)
+                if noise:
+                    kept_open.append(labelled)
+                    diags.append({"code": "CLAUSE_NOT_LABELLED", "raw": clause.text, "reason": f"OPEN_NAME_{noise}"})
+                    continue
+            slot = {**dict(labelled), "raw": clause.text, **source, "_clause_polarity": "POSITIVE"}
+            candidates_total += 1
+            valid, reason, _chunk = validate_extracted_slot(slot, target, notice_text=notice_text)
+            if not valid:
+                clause_rejected = True
+                rejected.append({"raw": clause.text, "reason_code": _rejection_reason_code(reason)})
+                continue
+            kept_open.append(labelled)
+            open_slots.append(slot)
+
+        if polarity == "POSITIVE" and not reqs and not open_slots and diags and all(
+            d.get("code") == "CLAUSE_NOT_LABELLED" and str(d.get("reason") or "").startswith("OPEN_NAME_") for d in diags
+        ):
+            # 열린 조건의 이름만 소음으로 버렸고 이 조항에서 나온 요건이 하나도 없다. 이름은 버려도 조항은 '요건으로 정리하지
+            # 못한 조항' 으로 남겨야 사용자가 확인한다 — '…부산지방고용노동청 관할 지도기관으로 등록된 자'(이름에 '제74조'),
+            # '…규격적합확인서를 받은 업체' 가 소리 없이 사라졌다(2026-10-07 표본 j).
+            diags = []
+        if polarity == "POSITIVE":
+            reqs, diags = _check_closed_values(clause.text, candidates, roles, reqs, diags, open_slots, industry_resolver,
+                                               dismissed_by_key.get(key, frozenset()))
+
+        if not reqs and not diags and not open_slots and polarity == "POSITIVE":
+            # 요구라는데 담을 값이 없다 — 공통 결격·법령 절차면 제외로, 아니면 표현 못 한 요건(공백)으로 남긴다.
+            if is_common_disqualification(clause.text):
+                diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": clause.text, "reason": "COMMON_DISQUALIFICATION"})
+            elif "LEGAL_PROCEDURAL_RULE" in guard_reasons(clause.text):
+                diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": clause.text, "reason": "LEGAL_PROCEDURAL_RULE"})
+            else:
+                diags.append({"code": "UNMAPPED_REQUIREMENT", "raw": clause.text})
+        if reqs or diags:
+            slots.append({"유형": "_CLOSED", "raw": clause.text, "_closed_requirements": reqs, "_closed_diagnostics": diags, **source})
+        slots.extend(open_slots)
+        candidates_total += len(reqs)
+        if key not in known and key in answers:
+            # 답을 기억한다. 검증에서 탈락한 열린 조건만 빼고 — 탈락한 답을 통째로 기억하지 않으면 그 조항은 다음
+            # 분석에서 다시 묻게 되어 다른 답을 받는다(일관성이 깨진다). 탈락한 슬롯은 어차피 요건이 되지 않는다.
+            known[key] = {**answers[key], "open": kept_open} if clause_rejected else answers[key]
+
+    _merge_cross_clause_alternatives(kept, slots)
+
+    notes = [selection_note] if selection_note else []
+    if rejected:
+        notes.append(f"검증 탈락 {len(rejected)}건")
+    if base["input_truncated"]:
+        notes.append("입력 길이 제한으로 뒤쪽 조항을 분석하지 못했습니다.")
+    return {
+        **base,
+        "slots": slots,
+        "dropped_requirements": rejected,
+        "status": "partial" if rejected or base["input_truncated"] or failed else "ok",
+        "notes": " ".join(notes) + (f" {last_error}" if failed else ""),
+        "candidate_count": candidates_total,
+        "clause_texts": [clause.text for clause in kept],
+        "labels_reused": len(prepared) - len(pending),
+    }

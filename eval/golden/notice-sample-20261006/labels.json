@@ -1,0 +1,678 @@
+{
+  "status": "draft",
+  "labelled_on": "2026-10-06",
+  "note": "2026-10-06 수집 공고 12건. 코드·시험판을 돌리기 전에 원문만 읽고 만든 초안이다. 이전 표본(20261001)과 겹치는 공고는 없다.",
+  "policy": {
+    "core": "회사 프로필로 판정하는 참가자격 요건. 유형과 값이 모두 맞아야 찾은 것으로 본다. values 가 여럿이면 대안(하나만 갖추면 됨)이다.",
+    "confirm": "공동수급 불허·단독 이행처럼 충족/미충족으로 단정하면 안 되는 조건. 조항을 찾아 '확인 필요'로 남겼으면 맞다.",
+    "excluded.common": "나라장터 참가등록, 부정당업자 제재·조세포탈 해당 없음 등 거의 모든 공고에 있는 항목. 채점하지 않는다.",
+    "excluded.conditional": "'적용되는 경우' 처럼 조건이 붙은 문장. 채점하지 않는다.",
+    "excluded.subjective": "'이행할 수 있는 업체' 처럼 프로필로 판정할 수 없는 서술. 요건으로 뽑으면 오답이다.",
+    "excluded.not_requirement": "요건이 아닌 안내 문장. 요건으로 뽑으면 오답이다.",
+    "excluded.product": "납품 물품에 대한 조건. 회사 자격으로 뽑으면 오답이다.",
+    "core.exclusion": "exclusion=true 인 core 는 배제 조건이다. 배제로 담겨야(scope.restriction=EXCLUDE) 찾은 것이고, 같은 값을 요구로 확정하면 뜻이 뒤집힌 확정(inverted)이다.",
+    "excluded.detail": "core 요건에 딸린 세부(실적의 인정 분야 등). 따로 요건으로 나와도 오답으로 세지 않는다."
+  },
+  "notices": {
+    "R26BK01755996-000": {
+      "title": "매산초 교사동 내진보강공사 건설폐기물처리용역",
+      "core": [
+        {
+          "id": "N1a",
+          "type": "INDUSTRY",
+          "values": [
+            "1253"
+          ],
+          "source": "가. 건설폐기물 중간처리업(업종코드: 1253)과 수집·운반업(6728)을 동시에 허가 득한 업체 — 1253 은 무조건 필요"
+        },
+        {
+          "id": "N1b",
+          "type": "REGION",
+          "values": [
+            "수원",
+            "용인",
+            "화성",
+            "안산",
+            "의왕"
+          ],
+          "source": "라. 본점 소재지를 수원시, 용인시, 화성시, 안산시, 의왕시에 둔 업체 (시 단위, 대안)"
+        }
+      ],
+      "confirm": [
+        {
+          "id": "N1c",
+          "phrase": "장비기준을 충족한 경우",
+          "source": "※ 단, 1253 등록자로서 장비기준을 충족하면 6728 없이도 가능 — 6728 은 예외가 붙은 조건"
+        },
+        {
+          "id": "N1d",
+          "phrase": "분담이행방식",
+          "source": "나. 6728 업체는 1253 업체와 분담이행 공동계약 가능"
+        }
+      ],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "체납"
+        },
+        {
+          "reason": "not_requirement",
+          "phrase": "우선조달계약 제외"
+        }
+      ]
+    },
+    "R26BK01756010-000": {
+      "title": "제조현장 산업안전 AI 솔루션 학습용 데이터 가공·정제 용역",
+      "core": [
+        {
+          "id": "N2a",
+          "type": "INDUSTRY",
+          "values": [
+            "1468"
+          ],
+          "source": "▶ 소프트웨어사업자(컴퓨터관련서비스사업, 업종코드: 1468)"
+        },
+        {
+          "id": "N2b",
+          "type": "REGISTRATION_CERTIFICATION",
+          "values": [
+            "8111159801"
+          ],
+          "source": "▶ 물품분류번호 8111159801 (패키지소프트웨어개발및도입서비스) — 모두 갖춘 자"
+        },
+        {
+          "id": "N2c",
+          "type": "REGISTRATION_CERTIFICATION",
+          "values": [
+            "8111159901"
+          ],
+          "source": "▶ 물품분류번호 8111159901 (정보시스템개발서비스) — 모두 갖춘 자"
+        },
+        {
+          "id": "N2d",
+          "type": "EXPERIENCE_FIELD",
+          "values": [
+            "AI 학습용 데이터"
+          ],
+          "source": "최근 3년 이내 AI 학습용 데이터 구축·가공 또는 영상 어노테이션 관련 용역 수행 실적"
+        }
+      ],
+      "confirm": [
+        {
+          "id": "N2e",
+          "phrase": "공동수급",
+          "source": "본 사업은 단독이행만 허용하며, 공동수급(컨소시엄)은 불허함"
+        }
+      ],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "체납"
+        },
+        {
+          "reason": "not_requirement",
+          "phrase": "KS Q ISO 2859"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "개인정보 처리 체계"
+        }
+      ]
+    },
+    "R26BK01756071-000": {
+      "title": "고급 분자 분석 및 통합 바이오마커 분석 용역",
+      "core": [],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "체납"
+        },
+        {
+          "reason": "common",
+          "phrase": "경쟁 입찰 참가 자격을 갖춘"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰 참가 제한을 받지"
+        }
+      ]
+    },
+    "R26BK01755413-000": {
+      "title": "2026년 소공인 스마트제조지원 사업 상시 회계검증 용역",
+      "core": [
+        {
+          "id": "N4a",
+          "type": "INDUSTRY",
+          "values": [
+            "1200"
+          ],
+          "source": "회계법인업종코드(업종코드:1200)로 입찰참가자격을 등록한 기업"
+        }
+      ],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "체납"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "자본잠식"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "보증보험"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "수행역량"
+        },
+        {
+          "reason": "common",
+          "phrase": "보조금법"
+        }
+      ]
+    },
+    "R26BK01756126-000": {
+      "title": "공동자원화시설 개보수사업(계분 바이오차 생산)",
+      "core": [
+        {
+          "id": "N5a",
+          "type": "REGISTRATION_CERTIFICATION",
+          "values": [
+            "4110240402"
+          ],
+          "source": "다. 열분해장치(세부품명번호 4110240402)를 제조 또는 공급물품으로 입찰참가 등록한 업체"
+        }
+      ],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "체납"
+        },
+        {
+          "reason": "common",
+          "phrase": "제한기간 중에"
+        }
+      ]
+    },
+    "R26BK01756150-000": {
+      "title": "수도용 폴리에틸렌 피복강관 제작구매",
+      "core": [
+        {
+          "id": "N6a",
+          "type": "REGISTRATION_CERTIFICATION",
+          "values": [
+            "4014218902"
+          ],
+          "source": "나. G2B 분류번호 10자리 4014218902(폴리에틸렌피복강관)를 제조물품으로 등록한 제조업체 (직접생산확인도 같은 번호)"
+        },
+        {
+          "id": "N6b",
+          "type": "COMPANY_SIZE",
+          "values": [
+            "중소기업"
+          ],
+          "source": "다. 중소기업자로서 중소기업확인서를 소지"
+        },
+        {
+          "id": "N6c",
+          "type": "REGISTRATION_CERTIFICATION",
+          "values": [
+            "KC"
+          ],
+          "source": "라. 해당제품의 KC 인증(수도용 자재 위생안전기준)을 획득한 생산업체"
+        }
+      ],
+      "confirm": [
+        {
+          "id": "N6d",
+          "phrase": "단독이행만 허용",
+          "source": "바. 본 사업은 단독이행만 허용합니다."
+        }
+      ],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "체납"
+        },
+        {
+          "reason": "not_requirement",
+          "phrase": "유효기간 내에 있어야"
+        },
+        {
+          "reason": "common",
+          "phrase": "미자격자"
+        }
+      ]
+    },
+    "R26BK01746068-000": {
+      "title": "분자동역학 전산모사 해석 컴퓨터 2set 구매",
+      "core": [
+        {
+          "id": "N7a",
+          "type": "REGISTRATION_CERTIFICATION",
+          "values": [
+            "4321150102"
+          ],
+          "source": "⑧ 직접생산확인증명서 컴퓨터서버(4321150102) 및 특수목적컴퓨터(4321159401)를 모두 소지"
+        },
+        {
+          "id": "N7b",
+          "type": "REGISTRATION_CERTIFICATION",
+          "values": [
+            "4321159401"
+          ],
+          "source": "⑧ 위와 같음 — 모두 소지"
+        },
+        {
+          "id": "N7c",
+          "type": "INDUSTRY",
+          "values": [
+            "0036"
+          ],
+          "source": "규격서 10. 계약 상대자는 정보통신공사업(업종코드: 0036) 등록"
+        }
+      ],
+      "confirm": [
+        {
+          "id": "N7d",
+          "phrase": "공동계약 불가",
+          "source": "규격서 4. 계약 조건: 공동계약 불가, 하도급 불가"
+        }
+      ],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "체납"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "납품할 수 있는"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "기술지원확약서"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "검토확인서"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "이의가 없음"
+        }
+      ]
+    },
+    "R26BK01756157-000": {
+      "title": "보령시 생활폐기물 매립시설 증설공사 관급자재(쇄석자갈) 구입",
+      "core": [
+        {
+          "id": "N8a",
+          "type": "REGION",
+          "values": [
+            "보령"
+          ],
+          "source": "가. 본점 소재지 충청남도 보령시에 둔 업체 (시 단위)"
+        },
+        {
+          "id": "N8b",
+          "type": "REGISTRATION_CERTIFICATION",
+          "values": [
+            "1111161101"
+          ],
+          "source": "다. 자갈(G2B 물품분류번호 10자리 : 1111161101)를 제조 또는 공급물품으로 입찰참가 등록"
+        },
+        {
+          "id": "N8c",
+          "type": "COMPANY_SIZE",
+          "values": [
+            "소기업"
+          ],
+          "source": "마. 소기업, 소상공인으로 확인서를 소지한 자"
+        }
+      ],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "체납"
+        },
+        {
+          "reason": "not_requirement",
+          "phrase": "KS F"
+        },
+        {
+          "reason": "subjective",
+          "phrase": "차질없이 납품"
+        }
+      ]
+    },
+    "R26BK01756043-000": {
+      "title": "장평, 장동지구 농어촌 생활용수 개발사업 전기공사",
+      "core": [
+        {
+          "id": "N9a",
+          "type": "INDUSTRY",
+          "values": [
+            "0037"
+          ],
+          "source": "가. 전기공사업법에 따른 전기공사업(0037)을 등록한 업체"
+        },
+        {
+          "id": "N9b",
+          "type": "REGION",
+          "values": [
+            "장흥"
+          ],
+          "source": "가. 본점소재지가 「전남광주통합특별시 장흥군」에 있는 업체 (군 단위)"
+        }
+      ],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "체납"
+        },
+        {
+          "reason": "common",
+          "phrase": "지문"
+        }
+      ]
+    },
+    "R26BK01753185-001": {
+      "title": "혼합시멘트 저장용 멀티 챔버 사일로 설치공사[전기공사]",
+      "core": [
+        {
+          "id": "N10a",
+          "type": "INDUSTRY",
+          "values": [
+            "0037"
+          ],
+          "source": "3.1. 「전기공사업법」 제4조에 따른 전기공사업을 등록한 업체 (5.5.3. 전기공사업[업종코드 0037])"
+        }
+      ],
+      "confirm": [
+        {
+          "id": "N10b",
+          "phrase": "공동계약을 허용하지",
+          "source": "2.6. 본 공사는 공동계약을 허용하지 않으며 단독으로 입찰에 참가"
+        }
+      ],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "체납"
+        },
+        {
+          "reason": "not_requirement",
+          "phrase": "직접구매대상"
+        },
+        {
+          "reason": "common",
+          "phrase": "청렴계약이행서약서"
+        }
+      ]
+    },
+    "R26BK01756169-000": {
+      "title": "2026년 어린나무가꾸기사업(수식지구)",
+      "core": [
+        {
+          "id": "N11a",
+          "type": "INDUSTRY",
+          "values": [
+            "1475"
+          ],
+          "source": "나. 산림사업법인(숲가꾸기 및 병해충 방제)을 등록 — 업종 1475"
+        },
+        {
+          "id": "N11b",
+          "type": "REGION",
+          "values": [
+            "봉화"
+          ],
+          "source": "나. 주된 영업소 소재지가 봉화군 (군 단위)"
+        }
+      ],
+      "confirm": [],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "체납"
+        },
+        {
+          "reason": "common",
+          "phrase": "지문"
+        },
+        {
+          "reason": "common",
+          "phrase": "이용자 등록"
+        }
+      ]
+    },
+    "R26BK01756046-000": {
+      "title": "AI 연산용 GPU 가속기",
+      "core": [
+        {
+          "id": "N12a",
+          "type": "REGISTRATION_CERTIFICATION",
+          "values": [
+            "4320140101"
+          ],
+          "source": "나. 그래픽용어댑터(세부품명번호 10자리 4320140101)로 입찰참가자격을 등록한 자"
+        }
+      ],
+      "confirm": [
+        {
+          "id": "N12b",
+          "phrase": "공동수급 및 하도급 불허",
+          "source": "4. 공동수급 등 : 공동수급 및 하도급 불허"
+        }
+      ],
+      "excluded": [
+        {
+          "reason": "common",
+          "phrase": "부정당"
+        },
+        {
+          "reason": "common",
+          "phrase": "조세포탈"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격 등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "입찰참가자격등록"
+        },
+        {
+          "reason": "common",
+          "phrase": "체납"
+        },
+        {
+          "reason": "common",
+          "phrase": "부정당업체"
+        }
+      ]
+    }
+  }
+}

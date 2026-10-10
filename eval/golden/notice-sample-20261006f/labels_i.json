@@ -1,0 +1,1198 @@
+{
+ "status": "draft",
+ "labelled_on": "2026-10-07",
+ "note": "정확도 재측정용 12건: 새 공고 6건(정답 초안, 측정 전 작성) + 기존 정답 6건(g·h 에서 그대로 옮김). random_pick_i.json.",
+ "policy": {
+  "core": "회사 프로필로 판정하는 참가자격 요건. 유형과 값이 모두 맞아야 찾은 것으로 본다. values 가 여럿이면 대안(하나만 갖추면 됨)이다.",
+  "confirm": "공동수급 불허·단독 이행처럼 충족/미충족으로 단정하면 안 되는 조건. 조항을 찾아 '확인 필요'로 남겼으면 맞다.",
+  "excluded.common": "나라장터 참가등록, 부정당업자 제재·조세포탈 해당 없음 등 거의 모든 공고에 있는 항목. 채점하지 않는다.",
+  "excluded.conditional": "'적용되는 경우' 처럼 조건이 붙은 문장. 채점하지 않는다.",
+  "excluded.subjective": "'이행할 수 있는 업체' 처럼 프로필로 판정할 수 없는 서술. 요건으로 뽑으면 오답이다.",
+  "excluded.not_requirement": "요건이 아닌 안내 문장. 요건으로 뽑으면 오답이다.",
+  "excluded.product": "납품 물품에 대한 조건. 회사 자격으로 뽑으면 오답이다.",
+  "core.exclusion": "exclusion=true 인 core 는 배제 조건이다. 배제로 담겨야(scope.restriction=EXCLUDE) 찾은 것이고, 같은 값을 요구로 확정하면 뜻이 뒤집힌 확정(inverted)이다.",
+  "excluded.detail": "core 요건에 딸린 세부(실적의 인정 분야 등). 따로 요건으로 나와도 오답으로 세지 않는다.",
+  "excluded.evaluation": "평가·심사의 배점 항목. 참가 자격이 아니다. 요건으로 뽑으면 오답이다.",
+  "ideal_profile": "그 공고의 참가 자격을 모두 갖춘 가상 회사. 이 회사에 '미달' 이 하나라도 나오면 틀린 미달이다."
+ },
+ "notices": {
+  "R26BK01748481-000": {
+   "title": "2026년 조림지 풀베기사업(고달고달지구)",
+   "core": [
+    {
+     "id": "I1a",
+     "type": "REGION",
+     "values": [
+      "곡성"
+     ],
+     "source": "가. 본점소재지가 곡성군 내"
+    },
+    {
+     "id": "I1b",
+     "type": "INDUSTRY",
+     "values": [
+      "1475",
+      "산림조합"
+     ],
+     "source": "가. 「산림사업법인(숲가꾸기 및 병해충방제)」또는 「산림조합」 — 대안"
+    }
+   ],
+   "confirm": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "common",
+     "phrase": "수의계약에 참"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748481",
+    "region_name": "전라남도 곡성군",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "1475",
+      "name": "산림사업법인(숲가꾸기 및 병해충방제)",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   },
+   "origin": "new"
+  },
+  "R26BK01748936-000": {
+   "title": "현내면 사랑해 어촌활력 생활SOC 복합화사업 신축공사(통신공사)",
+   "core": [
+    {
+     "id": "I2a",
+     "type": "INDUSTRY",
+     "values": [
+      "0036"
+     ],
+     "source": "가. 「정보통신공사업법」에 의한 정보통신공사업 면허를 등록한 자",
+     "names": [
+      "정보통신공사업"
+     ]
+    },
+    {
+     "id": "I2b",
+     "type": "REGION",
+     "values": [
+      "고성"
+     ],
+     "source": "나. 주된 영업소의 소재지가 고성군 내"
+    }
+   ],
+   "confirm": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "not_requirement",
+     "phrase": "지문인식"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748936",
+    "region_name": "강원특별자치도 고성군",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "0036",
+      "name": "정보통신공사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   },
+   "origin": "new"
+  },
+  "R26BK01748050-001": {
+   "title": "새만금 방풍림 조성공사(김제공구) 지급자재(우드칩) 구매",
+   "core": [
+    {
+     "id": "I3a",
+     "type": "REGISTRATION_CERTIFICATION",
+     "values": [
+      "1510169701"
+     ],
+     "source": "➀ 목재칩(세부품명번호 1510169701)을 입찰참가 등록"
+    }
+   ],
+   "confirm": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "evaluation",
+     "phrase": "납품실적"
+    },
+    {
+     "reason": "evaluation",
+     "phrase": "납품 완료한 실적"
+    },
+    {
+     "reason": "subjective",
+     "phrase": "납품·공급이 가능한"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748050",
+    "region_name": "전북특별자치도 김제시",
+    "company_size": "SMALL",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [
+     {
+      "ref": "c1",
+      "name": "목재칩 물품 등록",
+      "certification_code": "1510169701",
+      "issuer_name": null,
+      "issued_at": "2026-01-02",
+      "expires_at": "2028-12-31"
+     }
+    ],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   },
+   "origin": "new"
+  },
+  "R26BK01748814-000": {
+   "title": "2026년 삼척초등학교 학교도서관 감성디자인 공사",
+   "core": [
+    {
+     "id": "I4a",
+     "type": "REGION",
+     "values": [
+      "삼척"
+     ],
+     "source": "가. 본점 소재지를 계속하여 [강원특별자치도 삼척시]에"
+    },
+    {
+     "id": "I4b",
+     "type": "INDUSTRY",
+     "values": [
+      "4990"
+     ],
+     "source": "나. 전문공사업 중 [실내건축공사업]을 등록한 자",
+     "names": [
+      "실내건축공사업"
+     ]
+    }
+   ],
+   "confirm": [
+    {
+     "id": "I4c",
+     "phrase": "공동도급이 허용되지",
+     "source": "라. 본 공사는 공동도급이 허용되지 않습니다."
+    }
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "not_requirement",
+     "phrase": "지문인식"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748814",
+    "region_name": "강원특별자치도 삼척시",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "4990",
+      "name": "실내건축공사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   },
+   "origin": "new"
+  },
+  "R26BK01746848-000": {
+   "title": "2026년 빅데이터 활용체계 고도화 사업",
+   "core": [
+    {
+     "id": "I5a",
+     "type": "INDUSTRY",
+     "values": [
+      "1468"
+     ],
+     "source": "-[소프트웨어사업자(컴퓨터관련서비스사업)(1468)와 정보통신공사업(0036)] 업종을 등록 — 둘 다"
+    },
+    {
+     "id": "I5b",
+     "type": "INDUSTRY",
+     "values": [
+      "0036"
+     ],
+     "source": "-[… 1468 와 정보통신공사업(0036)] 업종을 등록 — 둘 다"
+    }
+   ],
+   "confirm": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "conditional",
+     "phrase": "상호출자제한"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-746848",
+    "region_name": "서울특별시 송파구",
+    "company_size": "MEDIUM",
+    "industries": [
+     {
+      "code": "1468",
+      "name": "소프트웨어사업자(컴퓨터관련서비스사업)",
+      "verified": true
+     },
+     {
+      "code": "0036",
+      "name": "정보통신공사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   },
+   "origin": "new"
+  },
+  "R26BK01748338-000": {
+   "title": "국도2호선 반성철도육교(상,하) 시설물 보수공사",
+   "core": [
+    {
+     "id": "I6a",
+     "type": "INDUSTRY",
+     "values": [
+      "4989"
+     ],
+     "source": "나. 지반조성·포장공사업(주력분야: 포장공사) 등록",
+     "names": [
+      "지반조성"
+     ]
+    },
+    {
+     "id": "I6b",
+     "type": "REGION",
+     "values": [
+      "경상남도"
+     ],
+     "source": "다. 본점 소재지를 계속하여 경상남도에 둔 자"
+    }
+   ],
+   "confirm": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "detail",
+     "phrase": "주력분야"
+    },
+    {
+     "reason": "evaluation",
+     "phrase": "시공경험 및 경영상태"
+    },
+    {
+     "reason": "not_requirement",
+     "phrase": "등록기준(기술능력"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748338",
+    "region_name": "경상남도 진주시",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "4989",
+      "name": "지반조성ㆍ포장공사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   },
+   "origin": "new"
+  },
+  "R26BK01749012-000": {
+   "title": "논리회로실험장치(RFSoC ZCU208)",
+   "core": [
+    {
+     "id": "G7a",
+     "type": "REGISTRATION_CERTIFICATION",
+     "values": [
+      "6010640201"
+     ],
+     "source": "마. 논리회로실험장치(6010640201) 공급·제조물품 등록"
+    }
+   ],
+   "confirm": [
+    {
+     "id": "G7b",
+     "phrase": "공동계약(공동이행방식, 분담이행방식) 및 하도급이 불가",
+     "source": "바. 공동계약 및 하도급 불가"
+    }
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "common",
+     "phrase": "청산, 합병"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-749012",
+    "region_name": "서울특별시 노원구",
+    "company_size": "SMALL",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [
+     {
+      "ref": "c1",
+      "name": "논리회로실험장치 물품 등록",
+      "certification_code": "6010640201",
+      "issuer_name": null,
+      "issued_at": "2026-01-02",
+      "expires_at": "2028-12-31"
+     }
+    ],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   },
+   "origin": "existing:labels_g.json"
+  },
+  "R26BK01748965-000": {
+   "title": "2026년 아산시 슬레이트(2차) 운반·처리 용역(1권역)",
+   "core": [
+    {
+     "id": "G6a",
+     "type": "INDUSTRY",
+     "values": [
+      "1254"
+     ],
+     "source": "① 또는 ② (또는 장비 기준 예외) — 폐기물중간처분업(지정폐기물)[1254] 은 어느 경우든 필요"
+    }
+   ],
+   "confirm": [
+    {
+     "id": "G6b",
+     "phrase": "공동계약(분담",
+     "source": "면허보완을 위하여 공동계약(분담 이행)이 가능"
+    }
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "conditional",
+     "phrase": "1389"
+    },
+    {
+     "reason": "conditional",
+     "phrase": "1229"
+    },
+    {
+     "reason": "common",
+     "phrase": "수의계약 배제사유"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748965",
+    "region_name": "충청남도 아산시",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "1254",
+      "name": "폐기물중간처분업(지정폐기물)",
+      "verified": true
+     },
+     {
+      "code": "1229",
+      "name": "폐기물수집·운반업(지정폐기물)",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   },
+   "origin": "existing:labels_g.json"
+  },
+  "R26BK01748730-000": {
+   "title": "저지곶자왈 생태탐방시설 조성사업",
+   "core": [
+    {
+     "id": "G2a",
+     "type": "INDUSTRY",
+     "values": [
+      "4996"
+     ],
+     "source": "나. 상·하수도설비공사업 등록",
+     "names": [
+      "하수도설비"
+     ]
+    },
+    {
+     "id": "G2b",
+     "type": "REGION",
+     "values": [
+      "제주"
+     ],
+     "source": "나. 제주특별자치도에 주된 영업소"
+    }
+   ],
+   "confirm": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748730",
+    "region_name": "제주특별자치도 제주시",
+    "company_size": "MICRO",
+    "industries": [
+     {
+      "code": "4996",
+      "name": "상ㆍ하수도설비공사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   },
+   "origin": "existing:labels_g.json"
+  },
+  "R26BK01748255-000": {
+   "title": "2026년 서울특별시 의료장비 통합구매(서울의료원, 연성비디오내시경영상시스템)",
+   "core": [
+    {
+     "id": "G1a",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "소기업"
+     ],
+     "source": "소기업 또는 소상공인간 경쟁입찰"
+    }
+   ],
+   "confirm": [
+    {
+     "id": "G1b",
+     "phrase": "공동수급 불가",
+     "source": "사. 공동수급 불가, 단독 이행만 허용"
+    }
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "conditional",
+     "phrase": "의료기기인 경우에 한함"
+    },
+    {
+     "reason": "conditional",
+     "phrase": "허가 대상인 경우에 한함"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748255",
+    "region_name": "서울특별시 송파구",
+    "company_size": "MICRO",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   },
+   "origin": "existing:labels_g.json"
+  },
+  "R26BK01748907-000": {
+   "title": "[재공고] 2026년 학교 업무용 소프트웨어(MS) 사용권 구매",
+   "core": [
+    {
+     "id": "H3a",
+     "type": "INDUSTRY",
+     "values": [
+      "1468",
+      "1426"
+     ],
+     "source": "1) 소프트웨어사업자[컴퓨터관련서비스사업(1468) 또는 패키지소프트웨어 개발·공급사업(1426)]"
+    },
+    {
+     "id": "H3b",
+     "type": "REGISTRATION_CERTIFICATION",
+     "values": [
+      "4323151301"
+     ],
+     "source": "2) 사무용소프트웨어(4323151301) 입찰참가 자격 등록"
+    },
+    {
+     "id": "H3c",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "대기업"
+     ],
+     "source": "다. 대기업 및 중견기업인 소프트웨어 사업자는 참여할 수 없음",
+     "names": [
+      "중견기업"
+     ],
+     "exclusion": true
+    }
+   ],
+   "confirm": [
+    {
+     "id": "H3d",
+     "phrase": "하도급 및 공동수급을 허용하지",
+     "source": "다. 청렴서약제가 적용되며, 하도급 및 공동수급을 허용하지 않습니다."
+    },
+    {
+     "id": "H3e",
+     "phrase": "MS OVS-ES",
+     "source": "3) MS OVS-ES 공식 총판사의 파트너사로 라이선스 공급이 가능한 업체 — 코드 없는 자격"
+    }
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "conditional",
+     "phrase": "상호출자제한"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748907",
+    "region_name": "경상북도 포항시",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "1468",
+      "name": "소프트웨어사업자(컴퓨터관련서비스사업)",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [
+     {
+      "ref": "c1",
+      "name": "사무용소프트웨어 물품 등록",
+      "certification_code": "4323151301",
+      "issuer_name": null,
+      "issued_at": "2026-01-02",
+      "expires_at": "2028-12-31"
+     }
+    ],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   },
+   "origin": "existing:labels_h.json"
+  },
+  "R26BK01746762-000": {
+   "title": "[한남대학교 산학협력단][재공고]철도 안전훈련 실수패턴 분석 AI 적용환경 구축 및 시스템 연동 용역",
+   "core": [
+    {
+     "id": "H7a",
+     "type": "INDUSTRY",
+     "values": [
+      "1468"
+     ],
+     "source": "가. 소프트웨어사업자(1468) 업종을 등록한 업체",
+     "names": [
+      "컴퓨터관련서비스"
+     ]
+    },
+    {
+     "id": "H7b",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "소기업"
+     ],
+     "source": "다. 소기업·소상공인 확인서(소기업확인서)"
+    },
+    {
+     "id": "H7c",
+     "type": "REGISTRATION_CERTIFICATION",
+     "values": [
+      "8111179901"
+     ],
+     "source": "마. 직접생산확인증명서(정보인프라구축서비스, 8111179901)"
+    },
+    {
+     "id": "H7d",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "대기업"
+     ],
+     "source": "라. 대기업 및 중견기업의 입찰 참여를 제한",
+     "names": [
+      "중견기업"
+     ],
+     "exclusion": true
+    }
+   ],
+   "confirm": [
+    {
+     "id": "H7e",
+     "phrase": "공동수급 : 불가",
+     "source": "마. 공동수급 : 불가"
+    }
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "common",
+     "phrase": "제8조의2"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-746762",
+    "region_name": "대전광역시 대덕구",
+    "company_size": "MICRO",
+    "industries": [
+     {
+      "code": "1468",
+      "name": "소프트웨어사업자(컴퓨터관련서비스사업)",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [
+     {
+      "ref": "c1",
+      "name": "직접생산확인 정보인프라구축서비스",
+      "certification_code": "8111179901",
+      "issuer_name": null,
+      "issued_at": "2026-01-02",
+      "expires_at": "2028-12-31"
+     }
+    ],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   },
+   "origin": "existing:labels_h.json"
+  }
+ }
+}

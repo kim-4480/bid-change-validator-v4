@@ -1,6 +1,8 @@
 """맥락 가드: 조항의 극성(모델)과 닫힌 값의 개수(코드)로 낱말 가드를 다시 판단한다 (2026-10-02)."""
 from __future__ import annotations
 
+import pytest
+
 from bidengine.judgment.context_guard import decide
 from bidengine.labeling.clause_polarity import POLARITY_KEY, attach_clause_polarity
 from bidengine.requirements.legacy_slots import adapt_legacy_slot, sido_names, value_name_alternatives
@@ -157,3 +159,222 @@ def test_failed_call_or_missing_answer_is_unsure():
     slots = [{"유형": "지역요건", "raw": REGION_CLAUSE}]
     attach_clause_polarity(slots, structured_extract=lambda *_: {"clauses": []}, memory={})
     assert slots[0][POLARITY_KEY] == "UNSURE"
+
+
+def test_city_or_county_requirement_is_not_widened_to_its_province():
+    """시·군 한정 요건을 시·도로 넓혀 확정하면 자격 없는 회사에 '충족' 이 나간다(2026-10-06 표본)."""
+    raw = "가. 전기공사업(0037)을 등록한 업체로 본점소재지가「전남광주통합특별시 장흥군」에 있는 업체이어야 합니다."
+    for span in ("전남광주통합특별시 장흥군", "전남광주통합특별시"):   # 모델이 시·도만 짚어도 원문대로 좁힌다
+        requirements, _ = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": span}, "POSITIVE")
+        assert [(r.type, r.value) for r in requirements] == [("REGION", "전남광주통합특별시 장흥군")]
+
+    cities = "라. 본점 소재지를 수원시, 용인시, 화성시, 안산시, 의왕시에 둔 업체이어야 합니다."
+    requirements, _ = _adapt({"유형": "지역요건", "raw": cities, "지역_raw": "수원시, 용인시, 화성시, 안산시, 의왕시"}, "POSITIVE")
+    assert [(r.value, r.group_operator) for r in requirements] == [
+        (name, "ANY_OF") for name in ("수원시", "용인시", "화성시", "안산시", "의왕시")
+    ]
+
+    province = "본점 소재지가 강원도에 있는 업체"
+    requirements, _ = _adapt({"유형": "지역요건", "raw": province, "지역_raw": "강원도"}, "POSITIVE")
+    assert [r.value for r in requirements] == ["강원특별자치도"]       # 시·도뿐일 때만 정식 이름으로
+    narrower = "본점 소재지가 경기도 남부에 있는 업체"
+    requirements, _ = _adapt({"유형": "지역요건", "raw": narrower, "지역_raw": "경기도 남부"}, "POSITIVE")
+    assert [r.value for r in requirements] == []  # 좁히는 말이 있으면 확정하지 않는다 — 이름 판정은 경기도 전체가 된다
+
+
+def test_a_province_only_profile_cannot_satisfy_a_city_requirement():
+    from bidengine.judgment.rules import _region_relation
+
+    assert _region_relation("충청남도", "충청남도 보령시") == "too_coarse"    # 예전에는 문자열 포함으로 match
+    assert _region_relation("충청남도 보령시", "충청남도 보령시") == "match"
+    assert _region_relation("충청남도 보령시", "충청남도") == "match"
+    assert _region_relation("경상북도 봉화군", "봉화군") == "match"
+    assert _region_relation("충청남도 천안시", "충청남도 보령시") == "none"
+    assert _region_relation("서울특별시", "서울특별시 소재") == "match"       # 꾸밈말만 다른 같은 지역
+
+
+def test_particles_are_removed_before_reading_region_names():
+    raw = "다. 주된 영업소의 소재지가 전남광주통합특별시의 북구, 서구, 남구, 동구, 광산구로 된 업체에 한합니다."
+    span = "전남광주통합특별시의 북구, 서구, 남구, 동구, 광산구"
+    requirements, _ = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": span}, "POSITIVE")
+    assert [r.value for r in requirements] == [f"전남광주통합특별시 {name}" for name in ("북구", "서구", "남구", "동구", "광산구")]
+
+
+def test_region_value_without_any_region_name_is_not_confirmed():
+    """지명이 없는 값은 어떤 회사와도 일치하지 않아 모든 회사를 미달로 만든다(2026-10-06 표본)."""
+    for span in ("국내에 본사와 생산공장을 갖추어야", "지역제한", "해당 시․도의 관할구역 안"):
+        requirements, diagnostics = _adapt({"유형": "지역요건", "raw": f"나. {span} 합니다.", "지역_raw": span}, "POSITIVE")
+        assert requirements == []
+        assert diagnostics[0]["reason"] == "NO_REGION_NAME"
+
+
+def test_regions_are_judged_by_name():
+    from bidengine.judgment.rules import _region_relation
+
+    assert _region_relation("광주광역시 북구", "전남광주통합특별시 북구") == "match"     # 통합 전 시·도 이름의 회사
+    assert _region_relation("대구광역시 북구", "전남광주통합특별시 북구") == "none"      # 같은 이름의 다른 북구
+    assert _region_relation("강원도 춘천시", "강원특별자치도") == "match"
+    assert _region_relation("충청남도", "충청남도 보령시") == "too_coarse"
+
+
+@pytest.mark.parametrize("text", [
+    "본점 소재지가 전주시인 업체", "전주시이며", "전주시이고", "전주시이어야", "전주시일 것", "전주시만", "전주시여야",
+])
+def test_copula_and_auxiliary_particles_after_a_sub_region_are_removed(text):
+    from bidengine.normalization.regions import find_regions
+
+    assert find_regions(text)[1] == ["전주시"]
+
+
+def test_a_sub_region_followed_by_a_copula_becomes_a_region_requirement():
+    raw = "가. 견적제출 공고일 전일부터 법인등기부상 본점 소재지가 전주시인 업체로서 계약체결일까지 유지되어야 합니다."
+    requirements, _ = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": "전주시인 업체"}, "POSITIVE")
+    assert [r.value for r in requirements] and all("전주시" in r.value for r in requirements)
+
+
+def test_a_common_disqualification_clause_with_a_sub_region_is_not_common():
+    from bidengine.requirements.legacy_slots import is_common_disqualification
+
+    raw = ("가. 지방자치단체를 당사자로 하는 계약에 관한 법률 시행령 제13조의 자격을 갖추고, 동법 시행령 제92조에 해당되지 "
+           "않으며, 견적제출 공고일 전일부터 법인등기부상 본점 소재지가 전주시인 업체로서 계약체결일까지 유지되어야 합니다.")
+    assert not is_common_disqualification(raw)
+    assert is_common_disqualification("나. 부정당업자로 제재 중인 자는 참가할 수 없습니다.")
+
+
+def test_a_positive_region_clause_citing_statutes_is_not_procedural():
+    raw = ("가. 지방자치단체를 당사자로 하는 계약에 관한 법률 시행령 제13조 및 같은법 시행규칙 제14조의 자격을 갖추고, "
+           "동법 시행령 제92조에 해당되지 않으며, 견적제출 공고일 전일부터 법인등기부상 본점 소재지가 전주시인 업체로서 "
+           "견적제출일까지 당해 자격이 계속 유지되어야 합니다.")
+    requirements, _ = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": "전주시"}, "POSITIVE")
+    assert [r.type for r in requirements] == ["REGION"] and "전주시" in requirements[0].value
+    # 지역 이름이 없는 값이면 예전처럼 절차 문구다
+    requirements, diagnostics = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": "해당 지역"}, "POSITIVE")
+    assert requirements == []
+
+
+@pytest.mark.parametrize(("raw", "span", "expected"), [
+    ("② 본점 소재지를 90일 이상 계속하여 경상남도에 둔 자(낙찰자는 계약체결일까지 유지)이어야 합니다.",
+     "90일 이상 계속하여 경상남도에 둔 자(낙찰자는 계약체결일까지 유지)", ["경상남도"]),
+    ("라. 입찰 공고일 현재 주된 사업소(본사)가 서울특별시인 업체(지사투찰 불가)",
+     "주된 사업소(본사)가 서울특별시인 업체(지사투찰 불가)", ["서울특별시"]),
+    ("3) 본 공사는 지역제한(경상남도) 대상 공사입니다.", "지역제한(경상남도)", ["경상남도"]),
+    # 시·도 안을 좁히는 말이 있으면 확정하지 않는다(넓혀 확정하지 않는다)
+    ("본점 소재지가 경상남도 남부에 있는 업체", "경상남도 남부", []),
+    ("본점이 강원특별자치도 영동지역에 있는 업체", "강원특별자치도 영동지역", []),
+])
+def test_region_value_is_the_region_name_not_the_sentence(raw, span, expected):
+    requirements, _ = _adapt({"유형": "지역요건", "raw": raw, "지역_raw": span}, "POSITIVE")
+    assert [r.value for r in requirements] == expected
+
+
+def _adapt_master(slot, polarity="POSITIVE"):
+    from bideval.master_vocabulary import CsvIndustryNameResolver
+
+    return adapt_legacy_slot({**slot, POLARITY_KEY: polarity}, notice_version_id="v", key_prefix="REQ-001",
+                             industry_resolver=CsvIndustryNameResolver())
+
+
+@pytest.mark.parametrize(("slot_type", "field", "value"), [
+    ("업종요건", "업종_raw", "전문공사업 중 「철근·콘크리트공사업」"),
+    ("면허요건", "등록인증_raw", "「철근·콘크리트공사업」면허를 보유"),
+    ("등록요건", "등록인증_raw", "철근·콘크리트공사업"),
+])
+def test_an_industry_name_in_the_master_becomes_one_industry_code(slot_type, field, value):
+    """같은 업종이 실행마다 업종/면허/등록, 세 가지 표기로 나왔다. 사전에 있는 이름이면 코드 하나로 모은다."""
+    raw = "가. 건설산업기본법에 의한 전문공사업 중 「철근·콘크리트공사업」면허를 보유한 업체이어야 합니다."
+    requirements, _ = _adapt_master({"유형": slot_type, "raw": raw, field: value})
+    assert [(r.type, r.value) for r in requirements] == [("INDUSTRY", "4994")]
+
+
+def test_product_number_only_in_the_clause_becomes_the_value():
+    raw = "③ 직접생산확인증명서 [세부품명: 정보시스템개발서비스, 세부품명번호 10자리: 8111159901]를 소지한 자"
+    requirements, _ = _adapt_master({"유형": "인증요건", "raw": raw, "등록인증_raw": "직접생산확인증명서"})
+    assert [(r.type, r.value) for r in requirements] == [("REGISTRATION_CERTIFICATION", "8111159901")]
+
+
+def test_two_product_numbers_joined_by_and_are_two_requirements():
+    raw = "- 전기히트펌프(세부품명번호: 4010180601) 및 히트펌프용실내기(세부품명번호: 4010178701)를 제조 또는 공급물품으로 입찰참가 등록한 자"
+    name = "전기히트펌프(세부품명번호: 4010180601) 및 히트펌프용실내기(세부품명번호: 4010178701)"
+    requirements, _ = _adapt_master({"유형": "등록요건", "raw": raw, "등록인증_raw": name})
+    assert sorted(r.value for r in requirements) == ["4010178701", "4010180601"]
+    assert len({r.requirement_key for r in requirements}) == 2
+    assert all(r.group_operator == "ALL_OF" for r in requirements)
+
+
+@pytest.mark.parametrize(("slot", "reason"), [
+    ({"유형": "업종요건", "업종_raw": "주력분야가 기계설비공사)로 등록된 자에 한하여 입찰참가가 가능합니다."}, "MAIN_FIELD_DETAIL"),
+    ({"유형": "등록요건", "등록인증_raw": "주력분야가 기계설비공사"}, "MAIN_FIELD_DETAIL"),
+    ({"유형": "면허요건", "등록인증_raw": "주력분야 철근·콘크리트공사 면허"}, "MAIN_FIELD_DETAIL"),
+    ({"유형": "등록요건", "등록인증_raw": "조달청에 입찰참가자격이 등록된"}, None),
+    ({"유형": "인증요건", "등록인증_raw": "제안서 제출이 가능합니다."}, "SENTENCE_VALUE"),
+])
+def test_fragments_and_sentences_are_not_requirement_values(slot, reason):
+    raw = "※ 주력분야가 기계설비공사로 등록된 자에 한하여 입찰참가가 가능합니다."
+    requirements, diagnostics = _adapt_master({"raw": raw, **slot})
+    assert requirements == []
+    if reason:
+        assert reason in {d.get("reason") for d in diagnostics}
+
+
+@pytest.mark.parametrize(("raw", "expected"), [
+    ("라. 입찰 공고일 현재 주된 사업소(본사)가 서울특별시인 업체(지사투찰 불가)", ["서울특별시"]),
+    ("가. 본점 소재지가 전주시인 업체이어야 합니다.", ["전주시"]),
+    ("가. 본점 소재지가 서울특별시 또는 경기도인 업체", []),        # 여럿이면 관계를 몰라 되살리지 않는다
+    ("마. 청렴계약 이행서약서를 제출한 업체", []),                  # 소재지 조항이 아니다
+])
+def test_a_location_clause_labelled_as_other_still_becomes_a_region(raw, expected):
+    requirements, _ = _adapt({"유형": "기타요건", "raw": raw}, "POSITIVE")
+    assert [r.value for r in requirements if r.type == "REGION"] == expected
+
+
+@pytest.mark.parametrize(("slot", "expected"), [
+    # 나라장터 등록 규정 인용이 있어도 품명번호가 있으면 요건이다(2026-10-06 네 번째 표본, 공고 두 건이 요건 0건)
+    ({"유형": "등록요건", "등록인증_raw": "그래픽용어댑터(4320140101)",
+      "raw": "나. 국가종합전자조달시스템(나라장터) 입찰참가자격등록규정에 의하여 입찰 참가 자격등록 마감일시까지 그래픽용어댑터(4320140101)로 입찰 참가를 등록한 업체"},
+     [("REGISTRATION_CERTIFICATION", "4320140101")]),
+    ({"유형": "등록요건", "등록인증_raw": "세부품명번호 10자리(3010990201 혼합골재)",
+      "raw": "나. 국가종합전자조달시스템 입찰참가자격 등록규정에 의하여 입찰마감일 전일까지 나라장터(G2B)에 세부품명번호 10자리(3010990201 혼합골재)를 제조 물품으로 입찰 참가등록한 업체"},
+     [("REGISTRATION_CERTIFICATION", "3010990201")]),
+    # 확인서 발급 '규정에 따라' 가 있어도 기업 규모 요건이다
+    ({"유형": "기업규모요건", "기업규모_raw": "소기업 또는 소상공인",
+      "raw": "다. 중소기업 기본법 제2조 2항에 따른 소기업 또는 소상공인기본법 2조에 따른 소상공인으로서 중소기업 범위 및 확인에 관한 규정에 따라 발급된 소기업․소상공인 확인서를 소지한 업체"},
+     [("COMPANY_SIZE", "소기업")]),
+    # 업종 이름에 등록업체 꼬리·주력분야 괄호가 붙어도 업종 사전으로 찾는다
+    ({"유형": "등록요건", "등록인증_raw": "전기공사업 등록업체",
+      "raw": "가. 전기공사업법의 규정에 따른 전기공사업 등록업체로서, 주된 영업소재지가 서울특별시 소재한 업체이어야 합니다."},
+     [("INDUSTRY", "0037")]),
+    # 나라장터 등록은 공통 항목이다 — "조달청" 은 등록 이름이 아니다
+    ({"유형": "등록요건", "등록인증_raw": "조달청에 등록한 업체만",
+      "raw": "마. 본 입찰은 조달청에 등록한 업체만 입찰에 참여할 수 있으며 입찰서는 반드시 국가종합전자조달시스템을 이용하여 제출합니다."},
+     []),
+])
+def test_closed_values_survive_statute_wording_and_generic_words_are_dropped(slot, expected):
+    requirements, _ = _adapt_master(slot)
+    assert [(r.type, r.value) for r in requirements] == expected
+
+
+def test_medium_enterprise_word_widens_the_size_union():
+    """'중기업·소기업 또는 소상공인' 은 중소기업이다. 중기업을 모르면 소기업으로 좁혀 중기업 회사가 미달이 된다."""
+    raw = ("다. ｢중소기업기본법｣ 제2조에 따른 중기업·소기업 또는 ｢소상공인 보호 및 지원에 관한 법률｣ 제2조에 따른 "
+           "소상공인으로서 ｢중소기업 범위 및 확인에 관한 규정｣에 따라 발급된 중기업·소기업·소상공인 확인서를 소지한 자이어야 합니다.")
+    requirements, _ = _adapt_master({"유형": "기업규모요건", "raw": raw, "기업규모_raw": "중기업·소기업 또는 소상공인"})
+    assert [(r.type, r.value) for r in requirements] == [("COMPANY_SIZE", "중소기업")]
+
+
+def test_sejong_si_is_a_region_name():
+    raw = "가. 입찰공고일 전일부터 법인등기부상 본점소재지를 세종시에 둔 자이어야 합니다."
+    requirements, _ = _adapt_master({"유형": "지역요건", "raw": raw, "지역_raw": "세종시"})
+    assert [r.value for r in requirements] == ["세종특별자치시"]
+
+
+def test_spaced_industry_codes_inside_alternative_names_are_read():
+    """띄어 쓴 PDF 판: '종합여행업 [ 업종코드 1 2 6 1 ] 또는 …' 의 대안마다 업종코드가 읽혀야 한다."""
+    raw = ("제 2 조에 의한 종합여행업 [ 업종코드 1 2 6 1 ] 또는 국내외여행업 [ 업종코드 1 2 6 2 ] 또는국내여행업 "
+           "[ 업종코드 1 2 6 3 ] 으로 등록한 자이어야 합니다 .")
+    from bidengine.requirements.legacy_slots import industry_code_for_name
+
+    assert industry_code_for_name("종합여행업[업종코드 1 2 6 1]", None) == "1261"
+    requirements, _ = _adapt_master({"유형": "등록요건", "raw": raw,
+                                     "등록인증_raw": "종합여행업 [ 업종코드 1 2 6 1 ] 또는 국내외여행업 [ 업종코드 1 2 6 2 ] 또는국내여행업 [ 업종코드 1 2 6 3 ]"})
+    assert sorted((r.type, r.value) for r in requirements) == [("INDUSTRY", "1261"), ("INDUSTRY", "1262"), ("INDUSTRY", "1263")]
+    assert {r.group_operator for r in requirements} == {"ANY_OF"}

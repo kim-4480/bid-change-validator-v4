@@ -1,0 +1,19 @@
+FROM public.ecr.aws/docker/library/node:22-bookworm-slim AS build
+
+RUN corepack enable && corepack prepare pnpm@10.34.6 --activate
+WORKDIR /web
+COPY apps/web/package.json apps/web/pnpm-lock.yaml apps/web/pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY apps/web/ ./
+
+ARG NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+ENV BIDCHECK_NODE_TARGET=1
+RUN pnpm build
+
+FROM public.ecr.aws/docker/library/node:22-bookworm-slim
+WORKDIR /web
+COPY --from=build /web /web
+ENV NODE_ENV=production PORT=3000 HOST=0.0.0.0
+EXPOSE 3000
+CMD ["./node_modules/.bin/vinext", "start"]

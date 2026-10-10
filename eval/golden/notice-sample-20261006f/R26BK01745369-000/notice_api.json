@@ -1,0 +1,50 @@
+{
+ "notice_no": "R26BK01745369",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "출판사",
+   "code": "1517",
+   "raw": {
+    "bidNtceNo": "R26BK01745369",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "출판사/1517",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:57:05",
+    "bsnsDivNm": "용역"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "2",
+   "name": "인쇄사",
+   "code": "1518",
+   "raw": {
+    "bidNtceNo": "R26BK01745369",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "2",
+    "lcnsLmtNm": "인쇄사/1518",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:57:05",
+    "bsnsDivNm": "용역"
+   }
+  }
+ ],
+ "regions": [],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "prdctClsfcLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "제한경쟁"
+ },
+ "errors": []
+}

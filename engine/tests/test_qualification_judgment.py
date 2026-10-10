@@ -46,21 +46,23 @@ def test_golden_baseline_keeps_missing_registration_unknown():
     assert by_key["REQ-STAFF"].status == "SATISFIED"
     assert by_key["REQ-PERFORMANCE"].status == "SATISFIED"
     assert by_key["REQ-REGISTRATION"].status == "UNKNOWN"
-    assert result.overall_status == "insufficient_data"
+    assert result.overall_status == "needs_review"
 
 
 def test_changed_performance_threshold_becomes_unsatisfied_when_profile_is_complete():
     requirement = _requirement("REQ-PERFORMANCE", "PERFORMANCE_AMOUNT", operator=">=", value=600_000_000, period_months=36, scope={"client_requirement": "공공기관", "aggregation": "UNSPECIFIED"})
     result = judge_requirements([requirement], _profile(completeness=ProfileCompleteness(staff_roles=True, performances=True)), preflight_case_id="case-1", reference_date=REFERENCE_DATE)
     assert result.judgments[0].status == "UNSATISFIED"
-    assert result.overall_status == "ineligible"
+    # 실적은 확인 항목이다(2026-10-07). 미달로 확정돼도 '부적합' 을 확정하지 않고 '적합' 도 주지 않는다.
+    assert result.overall_status == "needs_review"
 
 
 def test_changed_performance_threshold_stays_unknown_when_profile_is_incomplete():
     requirement = _requirement("REQ-PERFORMANCE", "PERFORMANCE_AMOUNT", operator=">=", value=600_000_000, period_months=36)
+    # 확인 항목만 있는 공고에서 확인 항목이 '확인 필요' 면, 닫힌 값 기준 제한은 없다 — 확인할 항목으로 보여 준다.
     result = judge_requirements([requirement], _profile(completeness=ProfileCompleteness(performances=False)), preflight_case_id="case-1", reference_date=REFERENCE_DATE)
     assert result.judgments[0].status == "UNKNOWN"
-    assert result.overall_status == "insufficient_data"
+    assert result.overall_status == "needs_review"  # 핵심 요건이 없으면 충족을 확정하지 않는다.
 
 
 def test_none_company_size_means_unknown_not_large_company_mismatch():
@@ -75,14 +77,19 @@ def test_none_company_size_means_unknown_not_large_company_mismatch():
     )
 
     assert result.judgments[0].status == "UNKNOWN"
-    assert result.overall_status == "insufficient_data"
+    assert result.overall_status == "needs_review"
 
 
 def test_complete_missing_certification_is_unsatisfied():
-    requirement = _requirement("REQ-CERT", "REGISTRATION_CERTIFICATION", value="정보통신공사업")
+    """번호로 요구한 등록이 목록에 없으면 미달이다. 이름으로 요구한 것은 표기가 갈려 확인 필요다."""
+    requirement = _requirement("REQ-CERT", "REGISTRATION_CERTIFICATION", value="4321150102")
     result = judge_requirements([requirement], _profile(completeness=ProfileCompleteness(certifications=True)), preflight_case_id="case-1", reference_date=REFERENCE_DATE)
     assert result.judgments[0].status == "UNSATISFIED"
-    assert result.overall_status == "ineligible"
+    assert result.overall_status == "core_unmet"
+
+    named = _requirement("REQ-CERT", "REGISTRATION_CERTIFICATION", value="정보통신공사업")
+    result = judge_requirements([named], _profile(completeness=ProfileCompleteness(certifications=True)), preflight_case_id="case-1", reference_date=REFERENCE_DATE)
+    assert result.judgments[0].status == "UNKNOWN"
 
 
 def test_present_valid_certification_is_satisfied_even_before_collection_is_complete():
@@ -156,15 +163,15 @@ def test_any_of_group_does_not_make_one_failed_alternative_ineligible():
         _requirement("REQ-ALT-SEOUL", "REGION", value="서울특별시", group_key="REQ-ALT", group_operator="ANY_OF"),
         _requirement("REQ-ALT-BUSAN", "REGION", value="부산광역시", group_key="REQ-ALT", group_operator="ANY_OF"),
     ]
-    result = judge_requirements(requirements, _profile(), preflight_case_id="case-1", reference_date=REFERENCE_DATE)
-    assert result.overall_status == "eligible"
+    result = judge_requirements(requirements, _profile(), preflight_case_id="case-1", reference_date=REFERENCE_DATE, coverage_complete=True)
+    assert result.overall_status == "core_met"
 
 
 def test_industry_identifiers_require_exact_match():
     from bidengine.judgment.rules import ProfileIndustryFact
     profile = _profile().model_copy(update={"industries": [ProfileIndustryFact(code="11426", name="다른 업종")]})
     req = _requirement("industry", "INDUSTRY", value="1426")
-    assert judge_requirements([req], profile, preflight_case_id="c", reference_date=REFERENCE_DATE).overall_status == "ineligible"
+    assert judge_requirements([req], profile, preflight_case_id="c", reference_date=REFERENCE_DATE).overall_status == "core_unmet"
 
 
 def test_composite_clause_abstains_even_with_matching_company_certification():
@@ -175,7 +182,7 @@ def test_composite_clause_abstains_even_with_matching_company_certification():
 
 def test_partial_policy_keeps_any_of_logic_and_never_promotes_to_eligible():
     reqs = [_requirement("a", "REGION", value="서울특별시", group_key="either", group_operator="ANY_OF"), _requirement("b", "REGION", value="부산광역시", group_key="either", group_operator="ANY_OF")]
-    assert judge_requirements(reqs, _profile(), preflight_case_id="c", reference_date=REFERENCE_DATE, analysis_status="PARTIAL").overall_status == "insufficient_data"
+    assert judge_requirements(reqs, _profile(), preflight_case_id="c", reference_date=REFERENCE_DATE, analysis_status="PARTIAL").overall_status == "needs_review"
 
 
 def test_performance_amount_cannot_use_unrelated_field_or_future_work():
@@ -185,10 +192,12 @@ def test_performance_amount_cannot_use_unrelated_field_or_future_work():
     # 미달로 단정하지도 않는다.
     result = judge_requirements([req], profile, preflight_case_id="c", reference_date=REFERENCE_DATE)
     assert result.judgments[0].status == "UNKNOWN"
-    assert result.overall_status == "insufficient_data"
+    assert result.overall_status == "needs_review"  # 핵심 요건이 없는 공고는 충족을 확정하지 않는다.
     future = profile.performances[0].model_copy(update={"completed_at": date(2027, 1, 1), "fields": ["해외진출"]})
     profile = profile.model_copy(update={"performances": [future]})
-    assert judge_requirements([req], profile, preflight_case_id="c", reference_date=REFERENCE_DATE).overall_status == "ineligible"
+    future_result = judge_requirements([req], profile, preflight_case_id="c", reference_date=REFERENCE_DATE)
+    assert future_result.judgments[0].status == "UNSATISFIED"
+    assert future_result.overall_status == "needs_review"  # 확인 항목 미달은 '적합' 도 '부적합' 도 아니다
 
 
 def test_judgment_exposes_human_readable_reason() -> None:

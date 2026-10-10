@@ -24,6 +24,7 @@ from .document_extraction import copy_extraction
 from .notice_change_history import upsert_notice_change_history
 from .notice_facts import upsert_g2b_notice_facts
 from .notice_history_backfill import enqueue_notice_history_backfill
+from .notice_processing import enqueue_version_job
 from .json_safety import sanitize_json_value
 
 
@@ -84,8 +85,10 @@ def _payload_hash(item: dict[str, Any]) -> str:
 
 def _documents(item: dict[str, Any]) -> list[dict[str, Any]]:
     documents: list[dict[str, Any]] = []
+    seen_urls: set[str] = set()
     standard_url = _text(item.get("stdNtceDocUrl"))
     if standard_url:
+        seen_urls.add(standard_url)
         documents.append(
             {
                 "document_order": 0,
@@ -97,8 +100,9 @@ def _documents(item: dict[str, Any]) -> list[dict[str, Any]]:
     for order in range(1, 11):
         url_field = f"ntceSpecDocUrl{order}"
         url = _text(item.get(url_field))
-        if not url:
+        if not url or url in seen_urls:
             continue
+        seen_urls.add(url)
         documents.append(
             {
                 "document_order": order,
@@ -364,16 +368,44 @@ def _resequence_notice_versions(db: Session, *, notice_id) -> None:
         return
 
     ordered = sorted(versions, key=_notice_order_sort_key)
+
+    # Do not let the ORM combine current demotion/promotion and number swaps in
+    # one executemany flush. PostgreSQL checks both unique constraints while
+    # each row is updated, so a valid final state can still fail transiently.
+    # First empty the partial-current index, then move every number outside the
+    # final 1..N range before assigning the final sequence.
+    db.execute(
+        update(BidNoticeVersion)
+        .where(BidNoticeVersion.notice_id == notice_id)
+        .values(is_current=False)
+        .execution_options(synchronize_session=False)
+    )
+
     offset = max(version.version_number for version in ordered) + len(ordered) + 1
     db.execute(
         update(BidNoticeVersion)
         .where(BidNoticeVersion.notice_id == notice_id)
         .values(version_number=BidNoticeVersion.version_number + offset)
+        .execution_options(synchronize_session=False)
     )
+
     for number, version in enumerate(ordered, start=1):
-        version.version_number = number
-        version.is_current = number == len(ordered)
+        db.execute(
+            update(BidNoticeVersion)
+            .where(BidNoticeVersion.id == version.id)
+            .values(version_number=number)
+            .execution_options(synchronize_session=False)
+        )
+
+    db.execute(
+        update(BidNoticeVersion)
+        .where(BidNoticeVersion.id == ordered[-1].id)
+        .values(is_current=True)
+        .execution_options(synchronize_session=False)
+    )
     db.flush()
+    for version in versions:
+        db.expire(version, ["version_number", "is_current"])
 
 
 def run_notice_sync(
@@ -430,6 +462,8 @@ def run_notice_sync(
                         document_downloader=document_downloader,
                     )
                     count_result(result)
+                    if result in {"CREATED", "NEW_VERSION"}:
+                        enqueue_version_job(db, version_id=version.id, stage="EXTRACT")
                     queue_previous_notice(item)
                     if (
                         result == "CREATED"
@@ -446,6 +480,9 @@ def run_notice_sync(
                 )
 
         page_number = 1
+        listed_page_count = 0
+        listed_item_count = 0
+        expected_list_total = 0
         notice_number_items: list[tuple[dict[str, Any], str]] = []
         while page_number <= request.max_pages:
             page = client.fetch_page(
@@ -458,6 +495,9 @@ def run_notice_sync(
                 bid_notice_no=request.bid_notice_no,
             )
             run.api_calls += 1
+            listed_page_count += 1
+            listed_item_count += len(page.items)
+            expected_list_total = max(expected_list_total, page.total_count)
             for item in page.items:
                 if request.inquiry_type == NoticeInquiryType.NOTICE_NUMBER:
                     notice_number_items.append((item, page.endpoint))
@@ -467,6 +507,25 @@ def run_notice_sync(
             if not page.items or page_number * request.page_size >= page.total_count:
                 break
             page_number += 1
+
+        # Periodic runs use completed windows as discovery checkpoints.
+        # A truncated listing must never advance either inquiry cursor.
+        incomplete_listing_error = None
+        if (
+            request.inquiry_type
+            in {NoticeInquiryType.REGISTERED, NoticeInquiryType.CHANGED}
+            and listed_item_count < expected_list_total
+        ):
+            error_code = (
+                f"{request.inquiry_type.value}_PAGE_LIMIT"
+                if listed_page_count >= request.max_pages
+                and listed_page_count * request.page_size < expected_list_total
+                else f"{request.inquiry_type.value}_INCOMPLETE"
+            )
+            incomplete_listing_error = (
+                f"{error_code}: received {listed_item_count} of "
+                f"{expected_list_total} listed items"
+            )
 
         if notice_number_items:
             def notice_order(values: tuple[dict[str, Any], str]) -> tuple[int, str]:
@@ -587,10 +646,17 @@ def run_notice_sync(
         # Partial polling runs keep successfully isolated items, but must not
         # advance the next polling checkpoint.  Only COMPLETED runs are used by
         # the worker when calculating its next window.
-        run.status = "FAILED" if item_errors else "COMPLETED"
+        run.status = (
+            "FAILED" if item_errors or incomplete_listing_error else "COMPLETED"
+        )
         if item_errors:
             run.error_message = (
                 f"{len(item_errors)}개 항목 저장 실패: " + " | ".join(item_errors[:10])
+            )[:2000]
+        if incomplete_listing_error:
+            run.error_message = (
+                incomplete_listing_error
+                + (f" | {run.error_message}" if run.error_message else "")
             )[:2000]
         run.completed_at = datetime.now(KST)
         db.commit()

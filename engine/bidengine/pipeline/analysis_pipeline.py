@@ -16,6 +16,8 @@ callers may still override the normalizer in tests or experiments.
 
 from __future__ import annotations
 
+import re
+
 import os
 from collections.abc import MutableMapping
 
@@ -24,7 +26,10 @@ from typing import Any
 
 from pydantic import BaseModel, Field, model_validator
 
+from bidengine.labeling.gap_summary import GAP_SUMMARY_VERSION, context_before, summary_key
+from bidengine.labeling.gap_summary import summarize_gaps as summarize_gaps_with_model
 from bidengine.pipeline.analysis_result import RequirementAnalysisResult, build_requirement_analysis_result
+from bidengine.pipeline.memory import namespaced
 from bidengine.document.backend_blocks import canonical_source_blocks
 from bidengine.requirements.canonicalize import canonicalize_validated_slots
 from bidengine.document.chunking import chunk_source_blocks
@@ -33,11 +38,13 @@ from bidengine.labeling.code_salvage import exception_guarded_codes, salvage_mis
 from bidengine.judgment.clause_safety import GUARD_ASSESSED, GUARD_REASON_EXCEPTION
 from bidengine.labeling.clause_labeling import extract_clause_slots
 from bidengine.labeling.clause_polarity import attach_clause_polarity
-from bidengine.labeling.requirement_extraction import StructuredExtractor, extract_legacy_slots
+from bidengine.labeling.requirement_extraction import StructuredExtractor, extract_legacy_slots, section_paths
 from bidengine.ports import IndustryNameResolver
 
 ValueNormalizer = Callable[[str], dict[str, Any]]
 
+
+from bidengine.pipeline.notice_limits import NoticeLimits, mark_accepted_licences, merge_notice_limits  # noqa: E402
 
 class QualificationDocumentInput(BaseModel):
     """Minimal Backend -> AI document input used by the orchestration layer."""
@@ -122,8 +129,27 @@ def analyze_qualification_documents(
     polarity_memory: MutableMapping[str, str] | None = None,
     clause_selection: str | None = None,
     selection_memory: MutableMapping[str, bool] | None = None,
+    labeling_memory: MutableMapping[str, list[dict[str, Any]]] | None = None,
+    memory_namespace: str | None = None,
+    label_votes: int | None = None,
+    gap_summary_memory: MutableMapping[str, Any] | None = None,
+    summarize_gaps: bool = True,
+    legacy_retrieval_mode: str = "section",
+    dense_ranked_ids: list[str] | None = None,
+    notice_limits: "NoticeLimits | None" = None,
 ) -> RequirementAnalysisResult:
-    """Run one qualification Requirement analysis without touching Backend state."""
+    """Run one qualification Requirement analysis without touching Backend state.
+
+    memory_namespace: 기억을 나누는 이름(대개 모델 이름). 주면 기억 열쇠가 "모델|프롬프트 판|" 으로 갈린다.
+    """
+    from bidengine.labeling.clause_labeling import LABEL_PROMPT_VERSION
+    from bidengine.labeling.clause_polarity import POLARITY_PROMPT_VERSION
+    from bidengine.labeling.clause_selection import SELECTION_PROMPT_VERSION
+    from bidengine.pipeline.memory import namespaced
+
+    labeling_memory = namespaced(labeling_memory, memory_namespace, LABEL_PROMPT_VERSION)
+    polarity_memory = namespaced(polarity_memory, memory_namespace, POLARITY_PROMPT_VERSION)
+    selection_memory = namespaced(selection_memory, memory_namespace, SELECTION_PROMPT_VERSION)
     document_ids = [document.document_id for document in analysis_input.documents]
     chunks = _build_global_chunks(analysis_input.documents, max_chunk_chars=max_chunk_chars)
 
@@ -142,9 +168,25 @@ def analyze_qualification_documents(
     # "legacy": 자격 절 본문을 통째로 주고 모델이 경계와 원문까지 정한다(현재 기본값).
     # 지정하지 않으면 BIDENGINE_EXTRACTION_MODE 를 본다. 전환은 배포 설정으로 한다.
     mode = extraction_mode or os.getenv("BIDENGINE_EXTRACTION_MODE", "legacy")
-    if mode not in {"legacy", "clause"}:
+    if mode not in {"legacy", "clause", "closed_first"}:
         raise ValueError(f"알 수 없는 추출 방식: {mode}")
-    if mode == "clause":
+    if mode == "closed_first":
+        # 닫힌 값 먼저(B안): 닫힌 값은 코드가 사전으로 찾고, 모델은 조항마다 한 번 극성·값의 역할·열린 조건만 낸다.
+        from bidengine.labeling.closed_first import CLOSED_FIRST_VERSION, extract_closed_first
+
+        extraction = extract_closed_first(
+            chunks,
+            structured_extract=structured_extract,
+            industry_resolver=industry_resolver,
+            max_retry=max_retry,
+            clause_selection=clause_selection or os.getenv("BIDENGINE_CLAUSE_SELECTION", "hybrid").strip().lower(),
+            selection_memory=selection_memory,
+            memory=namespaced(labeling_memory, memory_namespace or "default", CLOSED_FIRST_VERSION)
+            if labeling_memory is not None else None,
+            # 첫 분석 다수결 횟수. 모델이 같은 입력에 다른 답을 내므로(luna) 처음 묻는 조항만 여러 번 물어 다수 답을 기억한다.
+            votes=label_votes if label_votes is not None else int(os.getenv("BIDENGINE_LABEL_VOTES", "1") or 1),
+        )
+    elif mode == "clause":
         # 조항 선택 방식: code(제목·키워드) | hybrid(코드 ∪ 모델) | model(모델만). 지정하지 않으면
         # BIDENGINE_CLAUSE_SELECTION 을 본다(기본 code). clause 방식에서만 쓴다.
         extraction = extract_clause_slots(
@@ -153,12 +195,15 @@ def analyze_qualification_documents(
             max_retry=max_retry,
             clause_selection=clause_selection or os.getenv("BIDENGINE_CLAUSE_SELECTION", "code").strip().lower(),
             selection_memory=selection_memory,
+            labeling_memory=labeling_memory,
         )
     else:
         extraction = extract_legacy_slots(
             chunks,
             structured_extract=structured_extract,
             max_retry=max_retry,
+            retrieval_mode=legacy_retrieval_mode,
+            dense_ranked_ids=dense_ranked_ids,
         )
 
     normalized_slots = _normalize_extracted_slots(
@@ -171,8 +216,11 @@ def analyze_qualification_documents(
     use_polarity = (
         polarity_guard if polarity_guard is not None
         else os.getenv("BIDENGINE_POLARITY_GUARD", "off").strip().lower() == "on"
-    )
+    ) and mode != "closed_first"  # closed_first 는 극성을 같은 호출에서 받는다
+    paths = section_paths(chunks) if use_polarity else {}
     if use_polarity:
+        for slot in normalized_slots:
+            slot["_section_path"] = paths.get(str(slot.get("_source_chunk_id")), "")
         attach_clause_polarity(
             normalized_slots, structured_extract=structured_extract, memory=polarity_memory, max_retry=max_retry
         )
@@ -197,7 +245,7 @@ def analyze_qualification_documents(
                     {"code": "UNMAPPED_REQUIREMENT", "raw": text, "reason": "COMPOSITE_PARTY_RULE"}
                 )
 
-    if chunks:
+    if chunks and mode != "closed_first":  # closed_first 는 업종코드를 처음부터 원문에서 읽는다
         # 모델이 빠뜨린 업종코드 조항을 원문에서 채운다. 같은 공고를 반복해 돌리면 어떤
         # 실행에서는 업종 조항이 안 올라오거나, 올라와도 매핑이 못 푼다 — 원문의 숫자는
         # 그대로인데. 기준은 **요건으로 도달한 코드**다. 코드가 확신할 수 있는 것은 코드가
@@ -216,6 +264,8 @@ def analyze_qualification_documents(
         if salvaged:
             salvaged = _normalize_extracted_slots(salvaged, normalize_value=normalize_value)
             if use_polarity:
+                for slot in salvaged:
+                    slot["_section_path"] = paths.get(str(slot.get("_source_chunk_id")), "")
                 attach_clause_polarity(
                     salvaged, structured_extract=structured_extract, memory=polarity_memory, max_retry=max_retry
                 )
@@ -260,7 +310,54 @@ def analyze_qualification_documents(
                     for item in exempted
                 ])
 
-    return build_requirement_analysis_result(
+    if mode in {"clause", "closed_first"}:
+        # 조항마다 결과가 하나는 남아야 한다. 모델이 라벨을 붙이지 않은 조항은 '모델이 요건 아님으로 봄' 으로
+        # 기록한다 — 법령 문구로 분류된 전주시 조항처럼 흔적 없이 사라지는 일을 막는다.
+        def _compact(text: object) -> str:
+            return "".join(str(text or "").split())
+
+        accounted = {_compact(item.raw) for item in canonicalized["requirements"]}
+        accounted |= {_compact(item.get("raw")) for item in canonicalized["diagnostics"] if isinstance(item, dict)}
+        accounted |= {_compact(item.get("raw")) for item in extraction.get("dropped_requirements") or []}
+        for text in extraction.get("clause_texts") or []:
+            if _compact(text) and _compact(text) not in accounted:
+                accounted.add(_compact(text))
+                canonicalized["diagnostics"].append(
+                    {"code": "CLAUSE_NOT_LABELLED", "raw": text, "reason": "MODEL_NO_REQUIREMENT"}
+                )
+
+    canonicalized["requirements"] = mark_general_contractor_allowed(
+        list(canonicalized["requirements"]),
+        [item.raw for item in canonicalized["requirements"]]
+        + [str(item.get("raw") or "") for item in canonicalized["diagnostics"] if isinstance(item, dict)]
+        + list(extraction.get("clause_texts") or []),
+    )
+    canonicalized["requirements"], narrower = drop_narrower_copy_sizes(list(canonicalized["requirements"]))
+    canonicalized["diagnostics"].extend(
+        {"code": "CLAUSE_NOT_LABELLED", "raw": item.raw, "reason": "SIZE_COPY_NARROWER"} for item in narrower
+    )
+    kept, dropped = drop_checklist_duplicates(list(canonicalized["requirements"]))
+    kept, fragments = drop_checklist_fragments(kept)
+    if dropped or fragments:
+        canonicalized["requirements"] = kept
+        canonicalized["diagnostics"].extend(
+            {"code": "CLAUSE_NOT_LABELLED", "raw": item.raw, "reason": "CHECKLIST_DUPLICATE"} for item in dropped
+        )
+        # 조각 이름만 남은 조항은 '요건으로 정리하지 못한 조항' 으로 — 사용자가 확인 문장과 원문으로 본다.
+        kept_raws = {"".join((item.raw or "").split()) for item in kept}
+        for item in fragments:
+            orphan = "".join((item.raw or "").split()) not in kept_raws
+            canonicalized["diagnostics"].append(
+                {"code": "UNMAPPED_REQUIREMENT", "raw": item.raw} if orphan
+                else {"code": "CLAUSE_NOT_LABELLED", "raw": item.raw, "reason": "CHECKLIST_FRAGMENT"}
+            )
+    # 나라장터가 구조화해 둔 면허제한·참가가능지역으로 문서에서 뽑은 요건을 보강한다(notice_limits.py).
+    canonicalized["requirements"], limit_diagnostics = merge_notice_limits(
+        list(canonicalized["requirements"]), notice_limits, notice_version_id=analysis_input.notice_version_id,
+    )
+    canonicalized["diagnostics"].extend(limit_diagnostics)
+    canonicalized["requirements"] = mark_accepted_licences(list(canonicalized["requirements"]), industry_resolver)
+    result = build_requirement_analysis_result(
         notice_id=analysis_input.notice_id,
         notice_version_id=analysis_input.notice_version_id,
         document_ids=document_ids,
@@ -275,3 +372,160 @@ def analyze_qualification_documents(
         input_truncated=bool(extraction.get("input_truncated")),
         candidate_count=int(extraction.get("candidate_count") or 0),
     )
+    if notice_limits is not None and notice_limits.no_restriction_stated:
+        result = result.model_copy(update={"coverage": result.coverage.model_copy(update={"no_restriction_stated": True})})
+    result = with_document_notes(result, chunks)
+    if summarize_gaps:
+        result = _with_gap_summaries(
+            result, chunks, structured_extract=structured_extract,
+            memory=namespaced(gap_summary_memory, memory_namespace or "default", GAP_SUMMARY_VERSION),
+        )
+    return result
+
+
+_LEADING_MARKER_RE = re.compile(r"^[○●◦·\-*※\s]+|[^0-9A-Za-z가-힣]")
+_PRODUCT_CERTIFICATE_NAMES = {"직접생산확인증명서", "직접생산확인서", "직접생산확인"}
+
+
+def drop_checklist_duplicates(requirements: list) -> tuple[list, list]:
+    """확인할 항목(이름·실적 요건) 중 같은 것을 하나만 남긴다. (남길 것, 뺄 것).
+
+    - HWP·PDF 에 같은 조항이 있어 OCR 차이만 나는 값("단일 급식장 기준…" / "단일 급식당 기준…")은 하나만.
+    - 품명번호(10자리) 요건이 있는 공고에서 이름만 '직접생산확인증명서' 인 등록 요건은 그 요건과 같은 것이다.
+    판정 대상(닫힌 값) 요건은 건드리지 않는다.
+    """
+    from difflib import SequenceMatcher
+
+    from bidengine.judgment.rules import requirement_tier
+
+    has_product = any(r.type == "REGISTRATION_CERTIFICATION" and re.fullmatch(r"[0-9]{10}", str(r.value)) for r in requirements)
+    kept, dropped, seen = [], [], []
+    for requirement in requirements:
+        if requirement_tier(requirement) == "VERDICT" or not isinstance(requirement.value, str):
+            kept.append(requirement)
+            continue
+        norm = _LEADING_MARKER_RE.sub("", requirement.value)
+        if has_product and requirement.type == "REGISTRATION_CERTIFICATION" and norm in _PRODUCT_CERTIFICATE_NAMES:
+            dropped.append(requirement)
+            continue
+        if any(kind == requirement.type and (norm == other or (min(len(norm), len(other)) >= 8
+               and SequenceMatcher(None, norm, other).ratio() >= 0.9)) for kind, other in seen):
+            dropped.append(requirement)
+            continue
+        seen.append((requirement.type, norm))
+        kept.append(requirement)
+    return kept, dropped
+
+
+_MUTUAL_MARKET_ALLOWED_RE = re.compile(r"상호\s*시장\s*진출[^.。]{0,30}?허용(?!\s*하지|\s*되지|\s*않)")
+_MUTUAL_MARKET_DENIED_RE = re.compile(r"상호\s*시장\s*진출[^.。]{0,30}?(?:허용\s*하지|허용\s*되지|불허|허용\s*않)")
+
+
+def mark_general_contractor_allowed(requirements: list, texts: list[str]) -> list:
+    """공고가 건설업역 상호시장 진출을 허용하면(종합건설업자도 전문공사 참여) 전문공사업 요건(49xx)에 표시를 단다.
+
+    판정은 이 표시가 있으면 전문공사업이 없어도 종합공사업을 가진 회사를 '미달' 이 아니라 '확인 필요' 로 둔다. 어느 종합
+    공사업이 그 전문공사를 대신하는지는 시행령 범위라 엔진이 확정하지 않는다. 허용하지 않는다는 문장이 있으면 달지 않는다.
+    """
+    joined = "\n".join(" ".join((text or "").split()) for text in texts)
+    if not _MUTUAL_MARKET_ALLOWED_RE.search(joined) or _MUTUAL_MARKET_DENIED_RE.search(joined):
+        return requirements
+    return [
+        r.model_copy(update={"scope": {**(r.scope or {}), "general_contractor_allowed": True}})
+        if r.type == "INDUSTRY" and re.fullmatch(r"49[0-9]{2}", str(r.value)) else r
+        for r in requirements
+    ]
+
+
+def drop_narrower_copy_sizes(requirements: list) -> tuple[list, list]:
+    """같은 조항의 사본(HWP·PDF)에서 규모가 다르게 나오면 넓은 쪽만 남긴다. (남길 것, 뺄 것).
+
+    '중기업, 소기업 또는 소상공인으로서 … 소기업 또는 소상공인 확인서' 가 한 사본에서는 중소기업, 다른 사본에서는 소기업으로
+    나와 둘 다 남으면 중기업 회사가 미달이 된다(2026-10-08 표본 k). 다른 조항의 규모 요건은 건드리지 않는다(둘 다 지켜야 한다).
+    배제(EXCLUDE) 요건은 건드리지 않는다.
+    """
+    from bidengine.judgment.rules import _COMPANY_SIZE_ALIASES, _company_size_set
+
+    def allowed(value: str) -> set[str]:
+        return _COMPANY_SIZE_ALIASES.get(value) or _company_size_set(value) or set()
+
+    def head(raw: str) -> str:
+        return re.sub(r"[^0-9A-Za-z가-힣]", "", raw or "")[:40]
+
+    sizes = [r for r in requirements if r.type == "COMPANY_SIZE" and (r.scope or {}).get("restriction") != "EXCLUDE"]
+    dropped = []
+    for r in sizes:
+        wider = [o for o in sizes if o is not r and head(o.raw) == head(r.raw) and allowed(str(r.value)) < allowed(str(o.value))]
+        if wider:
+            dropped.append(r)
+    return [r for r in requirements if all(r is not d for d in dropped)], dropped
+
+
+def drop_checklist_fragments(requirements: list) -> tuple[list, list]:
+    """확인할 항목 중 이름이 조각인 것("업종", "고용노동부장관의지정")을 뺀다. (남길 것, 뺄 것).
+
+    모델이 올린 이름은 온전해도 등록 요건으로 바꾸는 단계에서 조각이 남을 수 있어(2026-10-08 표본 j) 마지막 결과에
+    이름 규칙(closed_first.open_name_is_noise)을 한 번 더 댄다. 판정 대상 요건은 건드리지 않는다.
+    """
+    from bidengine.judgment.rules import requirement_tier
+    from bidengine.labeling.closed_first import open_name_is_noise
+
+    kept, dropped = [], []
+    for requirement in requirements:
+        if (requirement_tier(requirement) != "VERDICT" and requirement.type == "REGISTRATION_CERTIFICATION"
+                and isinstance(requirement.value, str) and open_name_is_noise(requirement.value, requirement.raw or "", [])):
+            dropped.append(requirement)
+        else:
+            kept.append(requirement)
+    return kept, dropped
+
+
+# 공동수급·하도급 허용 여부 문장. 자격 조항으로 선택되지 않아도(입찰 방식 절에 있는 경우가 많다) 참고 정보로 모은다.
+_JOINT_NOTE_RE = re.compile(r"(?:공동\s*(?:수급|도급|계약|이행)|하도급)[^\n.。]{0,40}?(?:허용|불가|불허|가능|않|금지)")
+# 허용 여부가 아니라 계약 이행 중의 의무(청렴 서약, 하도급 대금·직불, 불법 하도급 금지)를 말하는 문장은 참고 정보가 아니다.
+_NOTE_EXCLUDE_RE = re.compile(r"위반|서약|대금|직불|지급|일괄\s*하도급|재하도급|무면허|선금|하수급")
+_NOTE_SPLIT_RE = re.compile(r"\n|(?<=다\.)\s|(?<=함\.)\s|(?<=음\.)\s")
+
+
+def with_document_notes(result: RequirementAnalysisResult, chunks: list[dict[str, Any]]) -> RequirementAnalysisResult:
+    """문서 전체에서 공동수급·하도급 허용 여부 문장을 찾아 참고 정보(coverage.ignored, GAP_JOINT_CONTRACT_NOTE)에 더한다.
+
+    '라. 공동도급은 허용하지 않습니다.' 가 견적·입찰 방식 절에 있어 자격 조항으로 뽑히지 않으면 참고 정보에서 빠졌다
+    (2026-10-08 표본 j). 참고 정보일 뿐이라 판정·요건은 바꾸지 않는다. 같은 문장(띄어쓰기 무시)은 한 번만.
+    """
+    from bidengine.pipeline.analysis_result import CoverageGap
+
+    coverage = result.coverage
+    if coverage is None:
+        return result
+    compact = lambda text: "".join((text or "").split())
+    known = [compact(gap.raw) for gap in coverage.ignored if gap.reason == "GAP_JOINT_CONTRACT_NOTE"]
+    added: list = []
+    for chunk in chunks:
+        for line in _NOTE_SPLIT_RE.split(str(chunk.get("text") or "")):
+            line = " ".join(line.split())
+            if not line or len(line) > 140 or not _JOINT_NOTE_RE.search(line) or _NOTE_EXCLUDE_RE.search(line):
+                continue
+            key = compact(line)
+            if any(key in other or other in key for other in known):
+                continue
+            known.append(key)
+            added.append(CoverageGap(kind="IGNORED", raw=line, reason="GAP_JOINT_CONTRACT_NOTE"))
+    if not added:
+        return result
+    return result.model_copy(update={"coverage": coverage.model_copy(update={"ignored": [*coverage.ignored, *added]})})
+
+
+def _with_gap_summaries(result: RequirementAnalysisResult, chunks: list[dict[str, Any]], *, structured_extract: StructuredExtractor,
+                        memory: MutableMapping[str, Any] | None) -> RequirementAnalysisResult:
+    """요건으로 정리하지 못한 조항에 종류와 확인할 내용 한 문장을 붙인다(gap_summary). 판정은 바꾸지 않는다."""
+    coverage = result.coverage
+    if coverage is None or not any(gap.raw for gap in coverage.gaps):
+        return result
+    items = [{"raw": gap.raw, "context": context_before(gap.raw, chunks)} for gap in coverage.gaps if gap.raw]
+    found = summarize_gaps_with_model(items, structured_extract=structured_extract, memory=memory)
+    gaps = []
+    for gap in coverage.gaps:
+        hit = found.get(summary_key(gap.raw, context_before(gap.raw, chunks))) if gap.raw else None
+        gaps.append(gap.model_copy(update=hit) if hit else gap)
+    return result.model_copy(update={"coverage": coverage.model_copy(update={"gaps": gaps})})

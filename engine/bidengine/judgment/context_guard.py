@@ -38,10 +38,15 @@ class ContextDecision:
     basis: str | None = None   # KEEP 일 때 무엇으로 정했나: "code"(걸린 사유 없음) | "model_polarity"(가드를 풂)
 
 
-def decide(text: str, polarity: str | None, *, exclusion_representable: bool = False) -> ContextDecision:
+def decide(
+    text: str, polarity: str | None, *, exclusion_representable: bool = False, closed_value: bool = False
+) -> ContextDecision:
     """text: 가드가 보는 글(조항 원문, 필요하면 등록 이름 필드를 덧붙인 것).
 
     exclusion_representable: 이 슬롯의 배제를 구조로 담을 수 있는가(기업 규모의 참여 제한).
+    closed_value: 값이 닫힌 어휘로 확인됐는가(값 구간에 사전에 있는 지역 이름). 업종코드가 있을 때처럼
+    법령 인용 낱말("법률", "시행규칙")의 절차 가드를 풀어도 된다 — "…법률 시행령 제13조의 자격을 갖추고,
+    … 본점 소재지가 전주시인 업체" 의 전주시 요건이 절차 문구로 소리 없이 사라졌다(2026-10-06 세 번째 표본).
     """
     if polarity is None:
         return ContextDecision("DEFAULT")
@@ -51,6 +56,8 @@ def decide(text: str, polarity: str | None, *, exclusion_representable: bool = F
         # 사람이 볼 자리에서 사라진다(2026-10-03 표본 R26BK01736181 "공동수급 및 하도급을 불허").
         return ContextDecision("DEFAULT")
     hard = [reason for reason in reasons if reason not in SOFT_REASONS]
+    if closed_value and polarity == "POSITIVE":
+        hard = [reason for reason in hard if reason != "LEGAL_PROCEDURAL_RULE"]
     if polarity == "EXCLUSION" and exclusion_representable and not hard:
         return ContextDecision("KEEP", basis="model_polarity")
     if polarity != "POSITIVE":

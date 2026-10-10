@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ChevronDown, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CopilotNavigationLink } from './navigation-link';
@@ -67,12 +67,41 @@ function PanelHeader({ caseId, close }: { caseId: string; close: () => void }) {
   </header>;
 }
 
+const consentKey = (kind: 'semantic' | 'document') => `bidcheck.copilot.consent.${kind}`;
+const consentListeners = new Set<() => void>();
+// 저장소를 못 쓰는 브라우저에서도 이번 방문 동안은 고른 값이 유지되게 한다.
+const consentMemory = new Map<string, boolean>();
+
+function readConsent(kind: 'semantic' | 'document') {
+  const key = consentKey(kind);
+  if (consentMemory.has(key)) return consentMemory.get(key)!;
+  try { return window.localStorage.getItem(key) === 'true'; } catch { return false; }
+}
+
+function subscribeConsent(listener: () => void) {
+  consentListeners.add(listener);
+  window.addEventListener('storage', listener);
+  return () => { consentListeners.delete(listener); window.removeEventListener('storage', listener); };
+}
+
+/** 동의 체크박스 값. 처음에는 꺼져 있고, 사용자가 바꾼 값만 이 브라우저에 남긴다. */
+function useRememberedConsent(kind: 'semantic' | 'document') {
+  const value = useSyncExternalStore(subscribeConsent, () => readConsent(kind), () => false);
+  const update = (next: boolean) => {
+    consentMemory.set(consentKey(kind), next);
+    try { window.localStorage.setItem(consentKey(kind), String(next)); } catch { /* 저장소 차단 — 이번 방문에만 유지 */ }
+    consentListeners.forEach(listener => listener());
+  };
+  return [value, update] as const;
+}
+
 function PanelBody({ caseId, page }: { caseId: string; page: typeof pages[keyof typeof pages] }) {
   const { store, state } = useCopilot(caseId);
   const [question, setQuestion] = useState('');
-  const [semanticProcessing, setSemanticProcessing] = useState(false);
-  const [documentProcessing, setDocumentProcessing] = useState(false);
-  const [jobsOpen, setJobsOpen] = useState(true);
+  // AI 처리 동의는 사용자가 직접 켠다. 한 번 고른 값은 이 브라우저에 기억해, 패널을 열 때마다 다시 켜지 않아도 된다.
+  const [semanticProcessing, setSemanticProcessing] = useRememberedConsent('semantic');
+  const [documentProcessing, setDocumentProcessing] = useRememberedConsent('document');
+  const [jobsOpen, setJobsOpen] = useState({ page, open: true });
   const [catalogState, setCatalogState] = useState<{ caseId: string; catalog: GuidedJobCatalog | null; error: string }>({ caseId: '', catalog: null, error: '' });
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => { end.current?.scrollIntoView({ block: 'nearest' }); }, [state.turns, state.busy]);
@@ -86,26 +115,28 @@ function PanelBody({ caseId, page }: { caseId: string; page: typeof pages[keyof 
   }, [caseId]);
   const catalog = catalogState.caseId === caseId ? catalogState.catalog : null;
   const catalogError = catalogState.caseId === caseId ? catalogState.error : '';
-  const ask = (text: string, intent?: CopilotIntent, guided?: { jobId: string; questionId: string }) => {
+  // SPA navigation keeps the panel mounted; each destination starts with its
+  // guided questions visible, as it did after a document navigation.
+  const jobsExpanded = jobsOpen.page === page ? jobsOpen.open : true;
+  const ask = (text: string, intent?: CopilotIntent, guided?: { jobId: string; questionId: string }, free = false) => {
     if (!caseId || state.busy || !text.trim()) return;
-    setJobsOpen(false);
-    void store.ask(caseId, text.trim(), intent, page, semanticProcessing, documentProcessing, guided);
+    setJobsOpen({ page, open: false });
+    void store.ask(caseId, text.trim(), intent, page, semanticProcessing, documentProcessing, guided, free);
   };
   const noJudgment = noJudgmentCodes.includes(state.errorCode);
   const empty = !state.turns.length;
-  const jobsExpanded = jobsOpen;
   return <>
     <div className={`copilot-content${empty ? ' copilot-content-empty' : ''}`}>
       {empty && <div className="copilot-empty" data-state="EMPTY">
         <CopilotMascot size={64} />
-        <h3>{caseId ? '확인할 업무를 선택해 주세요' : '검토할 공고를 먼저 선택해 주세요'}</h3>
-        <p>검증된 질문 순서에 따라 저장된 결과와 공고문 근거를 설명해 드려요.</p>
+        <h3>{caseId ? '이 공고에 대해 물어보세요' : '검토할 공고를 먼저 선택해 주세요'}</h3>
+        <p>저장된 판정 결과와 공고문을 근거로 답해 드려요. 아래 입력창에 자유롭게 질문하거나 추천 질문을 고를 수 있어요.</p>
       </div>}
       {caseId && <div className="copilot-processing-options" aria-label="AI 처리 옵션">
         <label className="copilot-semantic-toggle" htmlFor="copilot-semantic-processing" aria-label="AI 상세 설명 사용">
           <input id="copilot-semantic-processing" type="checkbox" checked={semanticProcessing} disabled={state.busy}
             onChange={event => setSemanticProcessing(event.target.checked)} />
-          <span><strong>AI 상세 설명 사용</strong><small>켜면 질문·관련 대화·현재 판정 결과·요건 상태와 판정에 필요한 회사 프로필 정보를 AI 처리에 사용합니다. AI는 참가 가능 여부를 새로 판정하거나 저장하지 않습니다. 대화는 서버 재시작 시 초기화됩니다.</small></span>
+          <span><strong>AI 상세 설명 사용</strong><small>켜면 질문·관련 대화·현재 판정 결과·요건 상태와 판정에 필요한 회사 프로필 정보를 AI 처리에 사용합니다. AI는 핵심 요건 판정을 새로 만들거나 법적 참가 가능 여부를 보증하지 않습니다. 대화는 서버 재시작 시 초기화됩니다.</small></span>
         </label>
         <label className="copilot-semantic-toggle" htmlFor="copilot-document-processing" aria-label="공고문 근거 답변 사용">
           <input id="copilot-document-processing" type="checkbox" checked={documentProcessing} disabled={state.busy}
@@ -114,7 +145,7 @@ function PanelBody({ caseId, page }: { caseId: string; page: typeof pages[keyof 
         </label>
       </div>}
       {caseId && catalog && <section className="copilot-jobs" aria-label="검증된 업무 질문">
-        <button type="button" className="copilot-jobs-toggle" aria-expanded={jobsExpanded} onClick={() => setJobsOpen(value => !value)}>
+        <button type="button" className="copilot-jobs-toggle" aria-expanded={jobsExpanded} onClick={() => setJobsOpen({ page, open: !jobsExpanded })}>
           <span><ChevronDown size={16} aria-hidden="true" />추천 질문 6개</span>
           <span>{jobsExpanded ? '접기' : '보기'}</span>
         </button>
@@ -171,7 +202,7 @@ function PanelBody({ caseId, page }: { caseId: string; page: typeof pages[keyof 
     <form className="copilot-input" onSubmit={event => {
       event.preventDefault();
       if (!question.trim() || state.busy || !caseId) return;
-      ask(question);
+      ask(question, undefined, undefined, true);
       setQuestion('');
     }}>
       <div className="copilot-input-row">
@@ -231,7 +262,7 @@ function Answer({ response, caseId, onSelect }: { response: CopilotChatResponse;
       </div>}
       {p.limitations.map((text, i) => <p className="copilot-limitation" key={i}>{text}</p>)}
       {p.next_action && <p>{p.next_action.label}</p>}
-    </> : <p>{response.answer}</p>}
+    </> : <p className="copilot-free-answer">{response.answer}</p>}
     {response.sources.length > 0 && <details><summary>원문 근거 {response.sources.length}건</summary>
       {response.sources.map(source => <div className="copilot-source" key={source.ref}>
         <SourceChip source={source} caseId={caseId} analysisRunId={analysisRunId} />

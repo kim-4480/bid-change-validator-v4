@@ -91,3 +91,16 @@ def test_openai_adapter_rejects_refusal_and_invalid_json():
     )
     with pytest.raises(RuntimeError, match="invalid JSON"):
         invalid_extractor("system", "user", {"schema": {"type": "object"}})
+
+
+def test_reasoning_effort_is_sent_only_when_configured():
+    """추론을 끄면(reasoning_effort=none) luna 가 temperature 0 을 받는다. 지정하지 않으면 보내지 않는다."""
+    schema = {"name": "t", "schema": {"type": "object", "properties": {"requirements": {"type": "array"}},
+                                      "required": ["requirements"], "additionalProperties": False}}
+    off = _FakeClient(_response())
+    OpenAIStructuredExtractor(api_key="k", model="m", client_factory=lambda _k: off, reasoning_effort="none")("s", "u", schema)
+    assert off.chat.completions.calls[0]["reasoning_effort"] == "none"
+    assert off.chat.completions.calls[0]["temperature"] == 0.0
+    default = _FakeClient(_response())
+    OpenAIStructuredExtractor(api_key="k", model="m", client_factory=lambda _k: default)("s", "u", schema)
+    assert "reasoning_effort" not in default.chat.completions.calls[0]

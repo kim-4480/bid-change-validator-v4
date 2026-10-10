@@ -78,6 +78,7 @@ class OpenAIStructuredExtractor:
         client_factory: ClientFactory | None = None,
         temperature: float | None = None,
         seed: int | None = None,
+        reasoning_effort: str | None = None,
     ) -> None:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.model = model or os.getenv("OPENAI_MODEL_DEFAULT") or "gpt-5.6-luna"
@@ -91,6 +92,9 @@ class OpenAIStructuredExtractor:
             if seed is None
             else seed
         )
+        # 추론형 모델(gpt-6-luna·sol)은 추론을 켠 채로는 temperature 를 기본값(1)밖에 받지 않는다. 추론 강도를
+        # "none" 으로 주면 temperature 0 을 받는다(2026-10-07 확인). 지정하지 않으면 보내지 않는다(예전 동작).
+        self.reasoning_effort = reasoning_effort or (os.getenv("OPENAI_REASONING_EFFORT") or "").strip() or None
         self._client_factory = client_factory or _default_client_factory
         self._client: Any | None = None
         # 모델이 이 파라미터를 안 받으면 한 번 걸러내고 기억한다. 아래 __call__ 참고.
@@ -125,7 +129,7 @@ class OpenAIStructuredExtractor:
                 dropped = next(
                     (
                         name
-                        for name in ("temperature", "seed")
+                        for name in ("temperature", "seed", "reasoning_effort")
                         if name in request and name in message
                     ),
                     None,
@@ -164,6 +168,8 @@ class OpenAIStructuredExtractor:
                 },
             },
         }
+        if self.reasoning_effort and "reasoning_effort" not in self._unsupported:
+            request["reasoning_effort"] = self.reasoning_effort
         if self.temperature is not None and "temperature" not in self._unsupported:
             request["temperature"] = self.temperature
         if self.seed is not None and "seed" not in self._unsupported:

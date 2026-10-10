@@ -4,14 +4,14 @@
   "review_status": "DRAFT_NOT_APPROVED",
   "note": "기대값은 독립 검토자 승인 전 초안. 이 파일의 숫자는 '팀 표준 판정값'이 아니라 회귀 기준선이다.",
   "baseline": {
-    "code_reference": "31ec928",
-    "measured_on": "2026-09-13",
+    "code_reference": "dead16d",
+    "measured_on": "2026-10-06",
     "case_count": 40,
     "row_count": 138,
-    "match": 110,
-    "safe_abstention": 28,
+    "match": 105,
+    "safe_abstention": 33,
     "wrong_determinate": 0,
-    "overall_match": 37
+    "overall_match": 35
   },
   "history": [
     {
@@ -31,11 +31,20 @@
       "wrong_determinate": 0,
       "overall_match": 37,
       "note": "#128 안전 가드 장식 벗기기 후"
+    },
+    {
+      "code_reference": "dead16d",
+      "date": "2026-10-06",
+      "match": 105,
+      "safe_abstention": 33,
+      "wrong_determinate": 0,
+      "overall_match": 35,
+      "note": "정책 변경(사용자 승인): 업종을 이름으로 요구했는데 회사 업종 이름과 글자가 안 맞으면 미달이 아니라 확인 필요. 일치→안전 보류로 옮긴 5행(J10·CH06 패키지소프트웨어개발·공급사업, J22 종합여행업, J24 건설엔지니어링업 2건)은 요건·회사 모두 코드 없이 이름만 있다. J24 는 업종 사전상 '건설엔지니어링업(종합)' 이 '설계·사업관리' 를 포함해 초안 기대값(미달) 자체가 의심스럽다. 잘못된 확정은 0 그대로."
     }
   ],
   "gate": {
     "wrong_determinate_must_be": 0,
-    "match_must_be_at_least": 110
+    "match_must_be_at_least": 105
   },
   "fixture_history": [
     {

@@ -1,10 +1,15 @@
+import { mayCacheGet, sharedRead, invalidateSharedData, clearSharedData } from '@/lib/shared-query-cache';
 import { apiFetch, ApiError, type PreflightCase } from '@/lib/api';
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, useCache = true): Promise<T> {
+  if (useCache && (!init?.method || init.method.toUpperCase() === 'GET') && mayCacheGet(path)) {
+    return sharedRead(path, () => request<T>(path, init, false));
+  }
   const headers = new Headers(init?.headers);
   if (init?.body && !(init.body instanceof FormData)) headers.set('Content-Type', 'application/json');
   const response = await apiFetch(path, { ...init, headers });
   if (!response.ok) {
+    if (response.status === 401) clearSharedData();
     const payload = (await response.json().catch(() => null)) as {
       error?: { message?: string; code?: string };
     } | null;
@@ -14,7 +19,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       payload?.error?.code ?? 'HTTP_ERROR',
     );
   }
-  return response.json() as Promise<T>;
+  const data = await response.json() as T;
+  if (init?.method && !['GET', 'HEAD'].includes(init.method.toUpperCase())) invalidateSharedData();
+  return data;
 }
 
 export type CompanySize = 'MICRO' | 'SMALL' | 'MEDIUM' | 'MID_SIZED' | 'LARGE' | 'NONE';
@@ -102,6 +109,8 @@ export type QualificationAnalysisSummary = {
   version_number: number;
   contract_version: string;
   status: 'SUCCEEDED' | 'PARTIAL' | 'FAILED';
+  input_fingerprint: string | null;
+  is_stale: boolean;
   requirement_count: number;
   evidence_count: number;
   created_at: string;
@@ -135,12 +144,43 @@ export type AnalysisDiagnostic = {
   evidence_keys: string[];
 };
 
+/** 엔진이 요건으로 담지 못한 조항(확인할 항목) 또는 참고 정보. */
+export type CoverageGap = {
+  kind: string;
+  raw: string;
+  reason: string | null;
+  blocks_verdict?: boolean | null;
+  /** 조항 종류(LICENSE_PERMIT 등). 모델 설명이 원문 검사를 통과했을 때만 있다. */
+  category?: string | null;
+  /** 사용자가 확인할 내용 한 문장. 없으면 원문만 보여 준다. */
+  summary?: string | null;
+};
+
+/** 분석이 공고를 얼마나 덮었는지. 2026-10-07 이전 분석에는 없다(null). */
+export type AnalysisCoverage = {
+  verdict_complete: boolean;
+  complete: boolean;
+  /** 사용자가 원문을 보고 확인할 조항 — 핵심 자격 판정을 막지 않는다. */
+  checklist_gaps: CoverageGap[];
+  /** 공동수급·하도급 허용 여부처럼 회사 자격이 아닌 입찰 방식 안내. */
+  notes: CoverageGap[];
+  gaps: CoverageGap[];
+  /** 엔진이 요건이 아니라고 걸러 낸 조항(제목, 평가 항목, 공통 결격, 사업 설명 등). 사용자가 확인할 것이 아니다. */
+  ignored?: CoverageGap[];
+};
+
+/** VERDICT: 종합 판정에 쓰는 핵심 자격(업종코드·소재지·규모·품명번호). CHECKLIST: 사용자가 확인할 항목. */
+export type RequirementTier = 'VERDICT' | 'CHECKLIST';
+
 export type QualificationAnalysisRun = QualificationAnalysisSummary & {
   notice_id: string;
   analysis_kind: string;
   target_chunk_ids: string[];
   diagnostics: AnalysisDiagnostic[];
   dropped_requirements: DroppedRequirement[];
+  coverage?: AnalysisCoverage | null;
+  verdict_complete?: boolean | null;
+  requirement_tiers?: Record<string, RequirementTier>;
   requirements: CanonicalRequirement[];
   evidence: Array<{
     evidence_key: string;
@@ -185,7 +225,7 @@ export type QualificationJudgmentRun = {
   analysis_run_id: string;
   company_id: string;
   notice_version_id: string;
-  overall_status: 'eligible' | 'ineligible' | 'insufficient_data';
+  overall_status: 'core_met' | 'core_unmet' | 'needs_review';
   rule_version: string;
   reference_date: string;
   analysis_status: string;
@@ -199,7 +239,7 @@ export type QualificationJudgmentSummary = {
   analysis_run_id: string;
   company_id: string;
   notice_version_id: string;
-  overall_status: 'eligible' | 'ineligible' | 'insufficient_data';
+  overall_status: 'core_met' | 'core_unmet' | 'needs_review';
   rule_version: string;
   reference_date: string;
   analysis_status: string;
@@ -316,9 +356,24 @@ export function listQualificationAnalyses(noticeId: string, versionNumber: numbe
   );
 }
 
-export function runQualificationAnalysis(noticeId: string, versionNumber: number) {
+export type QualificationAnalysisRequest = {
+  notice_version_id: string;
+  job_id: string;
+  job_status: string;
+  approved: boolean;
+  documents_ready: boolean;
+};
+
+export function requestQualificationAnalysis(noticeId: string, versionNumber: number) {
+  return request<QualificationAnalysisRequest>(
+    `/api/v1/notices/${noticeId}/versions/${versionNumber}/qualification-analysis/request`,
+    { method: 'POST' },
+  );
+}
+
+export function runQualificationAnalysis(noticeId: string, versionNumber: number, force = false) {
   return request<QualificationAnalysisRun>(
-    `/api/v1/notices/${noticeId}/versions/${versionNumber}/qualification-analysis`,
+    `/api/v1/notices/${noticeId}/versions/${versionNumber}/qualification-analysis${force ? '?force=true' : ''}`,
     { method: 'POST' },
   );
 }

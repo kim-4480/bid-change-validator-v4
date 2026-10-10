@@ -91,3 +91,42 @@ def test_descriptive_industry_name_span_does_not_make_a_change():
     before = _alt("A", "1169", raw=clause).model_copy(update={"scope": {"industry_name": "학술·연구용역(업종코드:1169)", "guard": "assessed"}})
     after = _alt("B", "1169", raw=clause).model_copy(update={"scope": {"industry_name": "학술·연구용역(업종코드:1169)으로 경쟁입찰 참가자격을 등록한 자", "guard": "assessed"}})
     assert [c.change_type for c in diff_requirements([before], [after])] == ["UNCHANGED"]
+
+
+def test_same_documents_never_report_a_change():
+    """문서가 같은 두 차수(일정·공고번호만 바뀐 변경공고)는 분석 결과가 달라도 변경이 아니다."""
+    from bidengine.diff.requirement_diff import diff_same_documents, documents_fingerprint
+
+    baseline = [_req("A", req_type="INDUSTRY", value="1468", raw="업종코드 1468 등록"),
+                _req("B", req_type="INDUSTRY", value="9901", raw="업종코드 9901 등록")]
+    current = [_req("A", req_type="INDUSTRY", value="1468", raw="업종코드 1468 등록"),
+               _req("C", req_type="INDUSTRY", value="0037", raw="전기공사업 등록")]
+    changes = diff_same_documents(baseline, current)
+    assert {c.change_type for c in changes} == {"UNCHANGED"}
+    assert {c.current_key for c in changes} == {"A", "C"}
+    assert documents_fingerprint(["a", "b"]) == documents_fingerprint(["a", "b"])
+    assert documents_fingerprint(["a", None]) is None
+
+
+def _assessed(key, value, raw, req_type="INDUSTRY"):
+    return _req(key, req_type=req_type, value=value, raw=raw).model_copy(update={"scope": {"guard": "assessed"}})
+
+
+def test_assessed_requirement_with_same_value_is_unchanged_when_only_the_clause_text_changes():
+    """한 조항의 지역만 바꿨다 — 같은 조항의 업종은 값이 그대로라 변경이 아니다(가상 변경 시험)."""
+    before = [_assessed("REQ-001-C01", "0037", "전기공사업 등록 업체로서 제주특별자치도내에 본점")]
+    after = [_assessed("REQ-001-C01", "0037", "전기공사업 등록 업체로서 서울특별시내에 본점")]
+    assert [c.change_type for c in diff_requirements(before, after)] == ["UNCHANGED"]
+    # 가드 평가를 거치지 않은 요건은 판정이 원문을 다시 읽으므로 원문이 바뀌면 여전히 수정이다
+    plain = diff_requirements([_req("A", req_type="INDUSTRY", value="0037", raw="가. 0037 업체")],
+                              [_req("A", req_type="INDUSTRY", value="0037", raw="가. 0037 업체 또는 0036 업체")])
+    assert [c.change_type for c in plain] == ["MODIFIED"]
+
+
+def test_same_requirement_is_matched_even_when_its_clause_was_rewritten():
+    """앞에 조건이 끼어 조항 원문과 순번이 바뀌어도, 판정 내용이 같은 요건은 '삭제 + 추가' 가 아니다."""
+    before = [_assessed("REQ-005-C01", "6010640201", "마. 논리회로실험장치(세부품명번호 6010640201)로 등록한 자", "REGISTRATION_CERTIFICATION")]
+    after = [_assessed("REQ-005-C01", "서울특별시", "마. 본점 소재지가 서울특별시에 있는 업체", "REGION"),
+             _assessed("REQ-006-C01", "6010640201", "마. 본점 소재지가 서울특별시에 있는 업체이어야 합니다. 바. 논리회로실험장치(세부품명번호 6010640201)로 등록한 자", "REGISTRATION_CERTIFICATION")]
+    kinds = sorted((c.change_type, (c.current or c.baseline).type) for c in diff_requirements(before, after))
+    assert kinds == [("ADDED", "REGION"), ("UNCHANGED", "REGISTRATION_CERTIFICATION")]

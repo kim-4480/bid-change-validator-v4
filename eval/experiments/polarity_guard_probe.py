@@ -44,8 +44,16 @@ CONFIG = {
     "clause_polarity": (True, "code"),
     "hybrid_polarity": (True, "hybrid"),
     "model_polarity": (True, "model"),
+    # B안: 닫힌 값은 코드가, 모델은 조항당 한 번 극성·역할·열린 조건(극성 호출 없음)
+    "closed_first": (False, "hybrid"),
 }
+# 방식마다 추출 방식(extraction_mode). 표에 없으면 clause.
+EXTRACTION = {"closed_first": "closed_first"}
 MODES = tuple(CONFIG)
+
+
+# 조항 라벨 기억. --no-labeling-memory 로 끈다(전후 비교용).
+USE_LABELING_MEMORY = True
 
 
 class FirstAnswerMemory(dict):
@@ -59,6 +67,9 @@ class FirstAnswerMemory(dict):
         with self._lock:
             if key not in self:
                 super().__setitem__(key, value)
+
+
+LABELING_MEMORY = FirstAnswerMemory()
 
 
 class RetryingExtractor:
@@ -112,11 +123,13 @@ def _extract(version: SampleVersion, mode: str, model: str, run: int, memory: Fi
             ),
             structured_extract=RetryingExtractor(model),
             industry_resolver=CsvIndustryNameResolver(),
-            extraction_mode="clause",
+            extraction_mode=EXTRACTION.get(mode, "clause"),
             polarity_guard=polarity_guard,
             polarity_memory=memory if polarity_guard else None,
             clause_selection=clause_selection,
             selection_memory=selection_memory,
+            labeling_memory=LABELING_MEMORY if USE_LABELING_MEMORY else None,
+            memory_namespace=model,
         )
     except Exception as error:  # noqa: BLE001
         return {"version": version.label, "mode": mode, "model": model, "run": run, "error": repr(error)[:300]}
@@ -143,7 +156,11 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--reuse", action="store_true", help="--out 의 호출 결과로 다시 계산만 한다")
+    parser.add_argument("--only-labelled", action="store_true", help="정답이 붙은 차수만 돌린다")
+    parser.add_argument("--no-labeling-memory", action="store_true", help="조항 라벨을 기억하지 않는다(실행마다 새로 묻는다)")
     args = parser.parse_args()
+    global USE_LABELING_MEMORY
+    USE_LABELING_MEMORY = not args.no_labeling_memory
 
     notices, changed = load_sample(args.sample)
     versions = {v.label: v for v in notices}
@@ -151,7 +168,10 @@ def main() -> None:
         versions.update({v.label: v for v in chain})
     for version in _labelled_unselected(args.sample, args.labels, set(versions)):
         versions[version.label] = version
-    changed_labels = [[v.label for v in chain] for chain in changed]
+    if args.only_labelled and args.labels is not None:
+        labelled = set(json.loads(args.labels.read_text(encoding="utf-8"))["notices"])
+        versions = {label: version for label, version in versions.items() if label in labelled}
+    changed_labels = [[v.label for v in chain if v.label in versions] for chain in changed]
 
     memory = FirstAnswerMemory()
     selection_memory = FirstAnswerMemory()

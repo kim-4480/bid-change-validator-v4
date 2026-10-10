@@ -1,0 +1,1194 @@
+{
+ "status": "draft",
+ "labelled_on": "2026-10-06",
+ "note": "2026-10-06 여섯 번째 수집(최근 7일 120건)에서, 정답을 쓴 공고·이미 읽은 공고·그와 같은 양식을 뺀 112건 중 seed=20261006 으로 무작위로 뽑은 12건(random_pick.json). 시험판·모델을 돌리기 전에 원문을 읽고 만든 초안이며, 평가·심사 절도 함께 보고 평가 항목은 excluded.evaluation 으로 적었다. 공고마다 모든 자격을 갖춘 가상 회사(ideal_profile)를 붙였다.",
+ "policy": {
+  "core": "회사 프로필로 판정하는 참가자격 요건. 유형과 값이 모두 맞아야 찾은 것으로 본다. values 가 여럿이면 대안(하나만 갖추면 됨)이다.",
+  "confirm": "공동수급 불허·단독 이행처럼 충족/미충족으로 단정하면 안 되는 조건. 조항을 찾아 '확인 필요'로 남겼으면 맞다.",
+  "excluded.common": "나라장터 참가등록, 부정당업자 제재·조세포탈 해당 없음 등 거의 모든 공고에 있는 항목. 채점하지 않는다.",
+  "excluded.conditional": "'적용되는 경우' 처럼 조건이 붙은 문장. 채점하지 않는다.",
+  "excluded.subjective": "'이행할 수 있는 업체' 처럼 프로필로 판정할 수 없는 서술. 요건으로 뽑으면 오답이다.",
+  "excluded.not_requirement": "요건이 아닌 안내 문장. 요건으로 뽑으면 오답이다.",
+  "excluded.product": "납품 물품에 대한 조건. 회사 자격으로 뽑으면 오답이다.",
+  "core.exclusion": "exclusion=true 인 core 는 배제 조건이다. 배제로 담겨야(scope.restriction=EXCLUDE) 찾은 것이고, 같은 값을 요구로 확정하면 뜻이 뒤집힌 확정(inverted)이다.",
+  "excluded.detail": "core 요건에 딸린 세부(실적의 인정 분야 등). 따로 요건으로 나와도 오답으로 세지 않는다.",
+  "excluded.evaluation": "평가·심사의 배점 항목. 참가 자격이 아니다. 요건으로 뽑으면 오답이다.",
+  "ideal_profile": "그 공고의 참가 자격을 모두 갖춘 가상 회사. 이 회사에 '미달' 이 하나라도 나오면 틀린 미달이다."
+ },
+ "notices": {
+  "R26BK01748876-000": {
+   "title": "다중원소 스퍼터 증착기",
+   "core": [
+    {
+     "id": "F1a",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "중소기업"
+     ],
+     "source": "라. 중기업 또는 소기업이거나 소상공인 — 중·소기업·소상공인 확인서"
+    },
+    {
+     "id": "F1b",
+     "type": "REGISTRATION_CERTIFICATION",
+     "values": [
+      "2399039801"
+     ],
+     "source": "마. 진공증착기(2399039801) 제조물품 등록 + 직접생산확인"
+    }
+   ],
+   "confirm": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "common",
+     "phrase": "이해충돌"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748876",
+    "region_name": "대전광역시 유성구",
+    "company_size": "SMALL",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [
+     {
+      "ref": "c1",
+      "name": "진공증착기 제조 등록·직접생산확인",
+      "certification_code": "2399039801",
+      "issuer_name": null,
+      "issued_at": "2026-01-02",
+      "expires_at": "2028-12-31"
+     }
+    ],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01745219-000": {
+   "title": "[수원과학대학교 앵커사업단] 2026학년도 산학협력대전 ‘BIMA EXPO’ 용역",
+   "core": [
+    {
+     "id": "F2a",
+     "type": "REGISTRATION_CERTIFICATION",
+     "values": [
+      "7215409902"
+     ],
+     "source": "전시홍보관설치및디자인서비스(7215409902) 직접생산확인증명서"
+    },
+    {
+     "id": "F2b",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "중소기업"
+     ],
+     "source": "중소기업자 또는 소상공인 — 중소기업·소상공인 확인서"
+    },
+    {
+     "id": "F2c",
+     "type": "PERFORMANCE_AMOUNT",
+     "values": [
+      "40000000"
+     ],
+     "source": "최근 3년 이내 국내대학 졸업전시 제작 설치 용역 단일 4천만 원 이상",
+     "period_months": 36
+    },
+    {
+     "id": "F2d",
+     "type": "EXPERIENCE_FIELD",
+     "values": [
+      "졸업전시"
+     ],
+     "source": "국내대학 졸업전시 제작 설치 용역 실적"
+    },
+    {
+     "id": "F2e",
+     "type": "REGION",
+     "values": [
+      "서울",
+      "경기",
+      "인천"
+     ],
+     "source": "본점 소재지를 서울특별시, 경기도 또는 인천광역시"
+    }
+   ],
+   "confirm": [
+    {
+     "id": "F2f",
+     "phrase": "공동수급 및 하도급은 허용하지",
+     "source": "공동수급 및 하도급은 허용하지 않습니다"
+    }
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "not_requirement",
+     "phrase": "직접 방문하여 제출"
+    },
+    {
+     "reason": "subjective",
+     "phrase": "가격을 제시할 수 있는"
+    },
+    {
+     "reason": "evaluation",
+     "phrase": "5천만원 이상인 사업실적"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-745219",
+    "region_name": "경기도 수원시",
+    "company_size": "SMALL",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [
+     {
+      "ref": "p1",
+      "name": "OO대학교 졸업전시 제작 설치 용역",
+      "client_name": "OO대학교",
+      "amount": 60000000,
+      "started_at": "2025-09-01",
+      "completed_at": "2025-11-30",
+      "completed_year": 2025,
+      "fields": [
+       "대학 졸업전시 제작 설치",
+       "졸업전시"
+      ]
+     }
+    ],
+    "certifications": [
+     {
+      "ref": "c1",
+      "name": "전시홍보관설치및디자인서비스 직접생산확인",
+      "certification_code": "7215409902",
+      "issuer_name": null,
+      "issued_at": "2026-01-02",
+      "expires_at": "2028-12-31"
+     }
+    ],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748960-000": {
+   "title": "2026년 관내 도로 노면 재포장 단가계약 폐기물처리용역 3차 시청권역",
+   "core": [
+    {
+     "id": "F3a",
+     "type": "REGION",
+     "values": [
+      "남양주시"
+     ],
+     "source": "가. 본점 소재지가 남양주시 내"
+    },
+    {
+     "id": "F3b",
+     "type": "INDUSTRY",
+     "values": [
+      "1253"
+     ],
+     "source": "① 수집·운반업(6728)과 중간처리업(1253) 동시 등록(※ 장비기준 충족 중간처리업체는 단독 가능) — 1253 은 필수"
+    }
+   ],
+   "confirm": [
+    {
+     "id": "F3c",
+     "phrase": "분담이행방식만 허용",
+     "source": "공동수급체 구성원은 2개 업체 이내(단독 또는 분담이행방식만 허용)"
+    }
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "conditional",
+     "phrase": "6728"
+    },
+    {
+     "reason": "detail",
+     "phrase": "장비를 충족한"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748960",
+    "region_name": "경기도 남양주시",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "1253",
+      "name": "건설폐기물 중간처리업",
+      "verified": true
+     },
+     {
+      "code": "6728",
+      "name": "건설폐기물 수집·운반업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748470-000": {
+   "title": "[조영제] iopamidol 61.24g(0.6124g/mL) 외 2건",
+   "core": [
+    {
+     "id": "F4a",
+     "type": "REGION",
+     "values": [
+      "강원"
+     ],
+     "source": "(3) 본점 소재지가 납품지가 소재하는 도(강원도)"
+    },
+    {
+     "id": "F4b",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "소기업"
+     ],
+     "source": "(4) 소기업(소상공인) 확인서"
+    }
+   ],
+   "confirm": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "not_requirement",
+     "phrase": "이지메디컴"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748470",
+    "region_name": "강원특별자치도 원주시",
+    "company_size": "MICRO",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748886-000": {
+   "title": "여수 석보 외부탐방로 및 배수로 조성 공사",
+   "core": [
+    {
+     "id": "F5a",
+     "type": "INDUSTRY",
+     "values": [
+      "0042"
+     ],
+     "source": "나. 종합국가유산수리업(보수단청업) 면허",
+     "names": [
+      "보수단청"
+     ]
+    },
+    {
+     "id": "F5b",
+     "type": "REGION",
+     "values": [
+      "전라남도",
+      "전남광주통합특별시"
+     ],
+     "source": "다. 본점소재지를 종전의 전라남도에 둔 자"
+    }
+   ],
+   "confirm": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "evaluation",
+     "phrase": "시공경험평가"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748886",
+    "region_name": "전라남도 여수시",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "0042",
+      "name": "종합국가유산수리업(보수단청업)",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748045-000": {
+   "title": "대구교육팔공산수련원 본관 및 야영지 계단 보수 등 공사",
+   "core": [
+    {
+     "id": "F6a",
+     "type": "INDUSTRY",
+     "values": [
+      "0002",
+      "0003"
+     ],
+     "source": "가. 건축공사업 또는 토목건축공사업 등록",
+     "names": [
+      "건축공사업",
+      "토목건축공사업"
+     ]
+    },
+    {
+     "id": "F6b",
+     "type": "REGION",
+     "values": [
+      "대구"
+     ],
+     "source": "가. 본점 소재지를 대구광역시"
+    }
+   ],
+   "confirm": [
+    {
+     "id": "F6c",
+     "phrase": "공동도급이 허용되지",
+     "source": "라. 공동도급이 허용되지 않습니다."
+    }
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "detail",
+     "phrase": "등록기준"
+    },
+    {
+     "reason": "evaluation",
+     "phrase": "적격심사"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748045",
+    "region_name": "대구광역시 동구",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "0002",
+      "name": "건축공사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01749004-000": {
+   "title": "2027학년도 물금중학교 2학년 문화체험여행 위탁 용역",
+   "core": [
+    {
+     "id": "F7a",
+     "type": "INDUSTRY",
+     "values": [
+      "1261",
+      "1262",
+      "1263"
+     ],
+     "source": "가. 종합여행업(1261) 또는 국내외여행업(1262) 또는 국내여행업(1263)"
+    },
+    {
+     "id": "F7b",
+     "type": "REGION",
+     "values": [
+      "경상남도"
+     ],
+     "source": "나. 본점 소재지를 경상남도"
+    },
+    {
+     "id": "F7c",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "중소기업"
+     ],
+     "source": "다. 중기업·소기업 또는 소상공인"
+    }
+   ],
+   "confirm": [
+    {
+     "id": "F7d",
+     "phrase": "공동도급이 허용되지",
+     "source": "해당 용역은 공동도급이 허용되지 않습니다."
+    }
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "evaluation",
+     "phrase": "숙박형 문화체험여행"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-749004",
+    "region_name": "경상남도 양산시",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "1262",
+      "name": "국내외여행업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748908-000": {
+   "title": "2026년 탄소중립설비투자지원사업 풀로터리인쇄기 구매의건",
+   "core": [],
+   "confirm": [],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "evaluation",
+     "phrase": "관련실적"
+    },
+    {
+     "reason": "evaluation",
+     "phrase": "기술인력 역량"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748908",
+    "region_name": "서울특별시 영등포구",
+    "company_size": "SMALL",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748143-000": {
+   "title": "2027학년도 양지고등학교 교복 학교주관 구매",
+   "core": [
+    {
+     "id": "F9a",
+     "type": "REGION",
+     "values": [
+      "세종"
+     ],
+     "source": "가. 본점소재지를 세종시에 둔 자"
+    },
+    {
+     "id": "F9b",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "소기업"
+     ],
+     "source": "다. 소기업 또는 소상공인 확인서"
+    }
+   ],
+   "confirm": [
+    {
+     "id": "F9c",
+     "phrase": "공동도급이 허용되지",
+     "source": "본 입찰은 공동도급이 허용되지 않습니다."
+    }
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "subjective",
+     "phrase": "교복제작 경험과 능력"
+    },
+    {
+     "reason": "evaluation",
+     "phrase": "교복 납품 실적"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748143",
+    "region_name": "세종특별자치시",
+    "company_size": "MICRO",
+    "industries": [
+     {
+      "code": "9999",
+      "name": "교복 제조·판매",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [
+     {
+      "ref": "p1",
+      "name": "OO고 교복 제조·납품",
+      "client_name": "OO고등학교",
+      "amount": 30000000,
+      "started_at": "2025-01-01",
+      "completed_at": "2025-03-31",
+      "completed_year": 2025,
+      "fields": [
+       "교복 제조",
+       "교복"
+      ]
+     }
+    ],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748892-000": {
+   "title": "천왕차량기지  검수고 화장실 개량 기계공사",
+   "core": [
+    {
+     "id": "F10a",
+     "type": "INDUSTRY",
+     "values": [
+      "6202"
+     ],
+     "source": "기계설비·가스공사업(주력분야: 기계설비공사) 면허",
+     "names": [
+      "기계설비"
+     ]
+    },
+    {
+     "id": "F10b",
+     "type": "REGION",
+     "values": [
+      "서울"
+     ],
+     "source": "본점 소재지가 [서울특별시]"
+    }
+   ],
+   "confirm": [
+    {
+     "id": "F10c",
+     "phrase": "단독이행",
+     "source": "제한입찰(지역제한), 단독이행"
+    }
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "detail",
+     "phrase": "주력분야"
+    },
+    {
+     "reason": "evaluation",
+     "phrase": "시공경험"
+    },
+    {
+     "reason": "evaluation",
+     "phrase": "경영상태"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748892",
+    "region_name": "서울특별시 양천구",
+    "company_size": "SMALL",
+    "industries": [
+     {
+      "code": "6202",
+      "name": "기계설비ㆍ가스공사업",
+      "verified": true
+     }
+    ],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748939-000": {
+   "title": "ORC PLC 제어반 외",
+   "core": [
+    {
+     "id": "F11a",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "중소기업"
+     ],
+     "source": "④ 중·소기업 또는 소상공인 — 소기업·소상공인 확인서",
+     "also_accept": [
+      "소기업"
+     ]
+    }
+   ],
+   "confirm": [
+    {
+     "id": "F11b",
+     "phrase": "공동계약 및 재하도급 불가",
+     "source": "기타 : 공동계약 및 재하도급 불가"
+    }
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "not_requirement",
+     "phrase": "제안서 등 입찰등록"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748939",
+    "region_name": "경상북도 포항시",
+    "company_size": "SMALL",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  },
+  "R26BK01748968-000": {
+   "title": "(재공고) 하이브리드 전기추진시스템 아이언버드 시험용 이동형 충방전 시스템 제작",
+   "core": [
+    {
+     "id": "F12a",
+     "type": "COMPANY_SIZE",
+     "values": [
+      "소기업"
+     ],
+     "source": "③ 소기업자 또는 소상공인 — 소기업·소상공인 확인서"
+    }
+   ],
+   "confirm": [
+    {
+     "id": "F12b",
+     "phrase": "공동계약(공동이행방식, 분담이행방식)이 불가",
+     "source": "⑦ 공동계약이 불가함"
+    }
+   ],
+   "excluded": [
+    {
+     "reason": "common",
+     "phrase": "부정당"
+    },
+    {
+     "reason": "common",
+     "phrase": "조세포탈"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "입찰참가자격등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자 등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "이용자등록"
+    },
+    {
+     "reason": "common",
+     "phrase": "휴업"
+    },
+    {
+     "reason": "common",
+     "phrase": "지문"
+    },
+    {
+     "reason": "detail",
+     "phrase": "특별법인"
+    },
+    {
+     "reason": "evaluation",
+     "phrase": "전력 제어장비"
+    }
+   ],
+   "ideal_profile": {
+    "company_id": "ideal-748968",
+    "region_name": "경상남도 창원시",
+    "company_size": "MICRO",
+    "industries": [],
+    "staff": {
+     "total_count": 30,
+     "roles": []
+    },
+    "performances": [],
+    "certifications": [],
+    "extensions": {},
+    "completeness": {
+     "region": true,
+     "company_size": true,
+     "industries": true,
+     "staff_total": true,
+     "staff_roles": true,
+     "performances": true,
+     "certifications": true
+    }
+   }
+  }
+ }
+}

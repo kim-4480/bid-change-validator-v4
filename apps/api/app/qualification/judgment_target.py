@@ -14,9 +14,10 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from bidengine.judgment.rules import RULE_VERSION, judge_requirements
+from .analysis import no_restriction_stated
 from ..analysis_models import QualificationAnalysisRun
 from ..judgment_models import CompanyQualificationProfileCompleteness, QualificationJudgmentRecord, QualificationJudgmentRun
-from .analysis import analysis_run_response
+from .analysis import analysis_run_response, is_qualification_analysis_run_stale
 from .judgment import (
     load_judgment_analysis,
     QualificationJudgmentError,
@@ -24,6 +25,7 @@ from .judgment import (
     _load_company,
     _record_to_completeness,
     build_company_profile_snapshot,
+    grounded_keys_for_analysis,
     load_qualification_judgment_run,
     run_qualification_judgment,
 )
@@ -65,6 +67,11 @@ def run_targeted_qualification_judgment(
             "QUALIFICATION_ANALYSIS_FAILED",
             "실패한 자격요건 분석 결과로는 판정할 수 없습니다.",
         )
+    if is_qualification_analysis_run_stale(analysis_run):
+        raise QualificationJudgmentError(
+            "QUALIFICATION_ANALYSIS_STALE",
+            "문서가 재추출되어 자격요건을 다시 분석해야 합니다.",
+        )
 
     company = _load_company(db, case.company_id)
     completeness = _record_to_completeness(
@@ -79,6 +86,8 @@ def run_targeted_qualification_judgment(
         preflight_case_id=str(case.id),
         reference_date=actual_reference_date,
         analysis_status=analysis_run.status,
+        coverage_complete=analysis.verdict_complete, no_restriction_stated=no_restriction_stated(analysis),
+        grounded_requirement_keys=grounded_keys_for_analysis(analysis_run, analysis),
     )
     overall_status = evaluation.overall_status
 

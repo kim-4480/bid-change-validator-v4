@@ -1,0 +1,33 @@
+{
+ "notice_no": "R26BK01747601",
+ "order": "001",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "화물자동차운송사업(일반)",
+   "code": "7603",
+   "raw": {
+    "bidNtceNo": "R26BK01747601",
+    "bidNtceOrd": "001",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "화물자동차운송사업(일반)/7603",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:53:48",
+    "bsnsDivNm": "용역"
+   }
+  }
+ ],
+ "regions": [],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "prdctClsfcLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "제한경쟁"
+ },
+ "errors": []
+}

@@ -14,7 +14,7 @@ from bidengine.contracts import (
 )
 from bidengine.pipeline.analysis_result import AnalysisDiagnostic, DroppedRequirement
 from ..ask_back_schemas import QualificationQuestionRead
-from bidengine.judgment.rules import OverallQualificationStatus, ProfileCompleteness
+from bidengine.judgment.rules import OverallQualificationStatus, ProfileCompleteness, normalize_overall_status
 
 
 class ProductProvenance(BaseModel):
@@ -55,6 +55,11 @@ class QualificationSummary(BaseModel):
     judgment_counts: dict[JudgmentStatus, int]
     judgments: list[RequirementJudgmentSummary]
     analysis_scope: AnalysisScope | None = None
+
+    @field_validator("overall_status", mode="before")
+    @classmethod
+    def legacy_verdict_needs_review(cls, value: str) -> OverallQualificationStatus:
+        return normalize_overall_status(value)
 
 
 class RequirementEvidenceResult(BaseModel):
@@ -135,3 +140,9 @@ class ConfirmAction(BaseModel):
         if value is not True:
             raise ValueError("confirmed must be the boolean true")
         return value
+
+
+class FreeChatTurn(BaseModel):
+    """자유 대화의 앞선 한 턴. 문맥으로만 쓰고 사실의 출처로 쓰지 않는다(free_chat.py)."""
+    question: str = Field(min_length=1, max_length=4000)
+    answer: str = Field(max_length=8000)

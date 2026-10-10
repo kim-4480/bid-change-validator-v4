@@ -1,6 +1,7 @@
 """Validate every generated factual sentence; keep supported siblings on failure."""
 import re
 
+from .model_gateway import BudgetExceeded
 from .v31_contracts import CandidateClaim, Claim, Draft, Verdicts
 
 
@@ -187,6 +188,23 @@ response_rules가 있으면 사용자에게 보이는 claim 문장에 그 표현
         prompt += '''
 일반 사용자가 한 번에 이해할 수 있도록 짧은 문장을 사용한다. 확인된 사실과 아직 확인되지 않은 영향은
 서로 다른 문장으로 나누고, 구조화·snapshot·추출 대조 같은 내부 용어는 꼭 필요한 경우가 아니면 쉬운 말로 바꾼다.'''
+    if hasattr(gateway, 'input_upper_bound'):
+        # Conversation history and other product facts can also consume the model budget.
+        # Drop only lower-ranked document excerpts, preserving their pinned source scope.
+        limit, _ = gateway.call_limits('generate')
+        while gateway.input_upper_bound('generate', prompt, body, Draft)[0] > limit - 2000:
+            document_fact = next((fact for fact in reversed(bundle.facts)
+                                  if fact.kind == 'NOTICE_FACT' and fact.target_kind == 'DOCUMENT'), None)
+            if document_fact is None:
+                break
+            bundle.facts.remove(document_fact)
+            referenced = {source_id for fact in bundle.facts for source_id in fact.source_ids}
+            bundle.sources = [source for source in bundle.sources if source.source_id in referenced]
+            bundle.coverage['READ_DOCUMENT'] = 'PARTIAL'
+            limitation = '공고문 전체가 아닌 질문과 관련된 일부 근거만 확인했습니다. 빠진 조건은 원문에서 직접 확인해 주세요.'
+            if limitation not in bundle.limitations:
+                bundle.limitations.append(limitation)
+            body['evidence'] = bundle.model_dump(mode='json')
     try:
         draft = gateway.call('generate', prompt, body, Draft)
         claims, validation_events = verify(draft, bundle, gateway, plan=plan)
@@ -282,7 +300,10 @@ response_rules가 있으면 사용자에게 보이는 claim 문장에 그 표현
             len(supported) != len(claims) or not supported or not coverage or coverage[-1] != 'COMPLETE'
         )
     except Exception as error:
-        events.append({'stage': 'generate', 'reason': type(error).__name__})
+        event = {'stage': 'generate', 'reason': type(error).__name__}
+        if isinstance(error, BudgetExceeded):
+            event['budget_code'] = str(error)
+        events.append(event)
         supported, partial = [], True
     # Preserve valid prose. A failed free-form answer may expose a few short, exact product
     # facts, but raw documents remain evidence and never become answer paragraphs.

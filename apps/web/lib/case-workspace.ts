@@ -22,7 +22,11 @@ import {
   type QualificationQuestion,
 } from '@/lib/qualification-api';
 
-const CURRENT_QUALIFICATION_RULE_VERSION = 'qualification-rules-v0.3';
+// 서버의 RULE_VERSION(engine/bidengine/judgment/rules.py)과 같아야 한다. 다르면 저장된 판정을 옛 규칙의 것으로 보고 버려,
+// 새로고침할 때마다 '검토 전' 으로 돌아간다(2026-10-10, v0.3 으로 남아 있어 실제로 그랬다).
+const CURRENT_QUALIFICATION_RULE_VERSION = 'qualification-rules-v0.4-core-requirements';
+
+export type CaseWorkspaceHeader = { caseItem: PreflightCase; notice: BidNoticeDetail; versions: BidNoticeVersion[] };
 
 export type CaseWorkspace = {
   caseItem: PreflightCase;
@@ -39,31 +43,34 @@ export type CaseWorkspace = {
   questions: QualificationQuestion[];
 };
 
-export async function loadCaseWorkspace(caseId: string): Promise<CaseWorkspace> {
+export async function loadCaseWorkspace(caseId: string, onHeader?: (header: CaseWorkspaceHeader) => void): Promise<CaseWorkspace> {
   const caseItem = await getPreflightCase(caseId);
-  const [notice, versions, companies, currentAnalyses, baselineAnalyses, judgmentSummaries] =
-    await Promise.all([
-      getNotice(caseItem.notice_id),
-      getNoticeVersions(caseItem.notice_id),
-      listCompanies(),
-      listQualificationAnalyses(caseItem.notice_id, caseItem.current_version_number),
-      caseItem.baseline_version_number
-        ? listQualificationAnalyses(caseItem.notice_id, caseItem.baseline_version_number)
-        : Promise.resolve([]),
-      listQualificationJudgments(caseItem.id),
-    ]);
-
-  const currentAnalysis = currentAnalyses[0] ?? null;
-  const baselineAnalysis = baselineAnalyses[0] ?? null;
-  const baselineVersionId = versions.find(
-    (item) => item.version_number === caseItem.baseline_version_number,
-  )?.id;
-  const currentVersionId = versions.find(
-    (item) => item.version_number === caseItem.current_version_number,
-  )?.id;
+  // Start secondary reads immediately, but only wait for notice metadata before showing the case header.
+  const noticePromise = getNotice(caseItem.notice_id);
+  const versionsPromise = getNoticeVersions(caseItem.notice_id);
+  const companiesPromise = listCompanies();
+  const currentAnalysesPromise = listQualificationAnalyses(caseItem.notice_id, caseItem.current_version_number);
+  const baselineAnalysesPromise = caseItem.baseline_version_number
+    ? listQualificationAnalyses(caseItem.notice_id, caseItem.baseline_version_number)
+    : Promise.resolve([]);
+  const judgmentSummariesPromise = listQualificationJudgments(caseItem.id);
+  const supportingData = Promise.all([
+    companiesPromise, currentAnalysesPromise, baselineAnalysesPromise, judgmentSummariesPromise,
+  ]);
+  // Prevent early background failures from becoming unhandled while the header is loading.
+  void supportingData.catch(() => {});
+  const [notice, versions] = await Promise.all([noticePromise, versionsPromise]);
+  const baselineVersionId = versions.find((item) => item.version_number === caseItem.baseline_version_number)?.id;
+  const currentVersionId = versions.find((item) => item.version_number === caseItem.current_version_number)?.id;
   if (!currentVersionId || (caseItem.baseline_version_number && !baselineVersionId)) {
     throw new Error('검토 건에 지정된 공고 차수를 찾을 수 없습니다.');
   }
+  // Never expose an unverified version or a provisional judgment as a completed decision.
+  onHeader?.({ caseItem, notice, versions });
+  const [companies, currentAnalyses, baselineAnalyses, judgmentSummaries] = await supportingData;
+
+  const currentAnalysis = currentAnalyses.find((item) => !item.is_stale) ?? null;
+  const baselineAnalysis = baselineAnalyses.find((item) => !item.is_stale) ?? null;
   const baselineSummary = baselineVersionId
     ? judgmentSummaries.find((item) => judgmentMatchesAnalysis(item, baselineAnalysis, caseItem.company_id))
     : null;
@@ -126,7 +133,8 @@ export async function loadCurrentJudgment(caseItem: PreflightCase) {
     listQualificationAnalyses(caseItem.notice_id, caseItem.current_version_number),
     listQualificationJudgments(caseItem.id),
   ]);
-  const summary = judgments.find((item) => judgmentMatchesAnalysis(item, analyses[0] ?? null, caseItem.company_id));
+  const currentAnalysis = analyses.find((item) => !item.is_stale) ?? null;
+  const summary = judgments.find((item) => judgmentMatchesAnalysis(item, currentAnalysis, caseItem.company_id));
   if (!summary) return null;
   const run = await getQualificationJudgment(summary.id);
   return run.rule_version === CURRENT_QUALIFICATION_RULE_VERSION ? run : null;

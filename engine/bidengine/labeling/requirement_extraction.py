@@ -246,6 +246,29 @@ def _is_eligibility_section_anchor(chunk: dict[str, Any]) -> bool:
 SelectionMode = str  # "anchored" | "keyword_fallback" | "whole_document"
 
 
+def section_paths(chunks: list[dict[str, Any]]) -> dict[str, str]:
+    """청크마다 그것이 놓인 절의 제목 경로("5. 제안서 평가 > 가. 평가항목"). 문서가 바뀌면 처음부터.
+
+    같은 "최근 3년 콜센터 운영 실적" 도 자격 절에 있으면 참가 요건이고 평가 기준표에 있으면 점수 항목이다.
+    조항 문장만으로는 가를 수 없어 극성 판별에 이 경로를 함께 넘긴다.
+    """
+    paths: dict[str, str] = {}
+    stack: list[tuple[int, str]] = []
+    document: str | None = None
+    for chunk in chunks:
+        current = _chunk_document_id(chunk)
+        if current != document:
+            stack, document = [], current
+        rank = _label_rank(chunk)
+        if rank is not None:
+            while stack and stack[-1][0] >= rank:
+                stack.pop()
+        paths[str(chunk.get("chunk_id"))] = " > ".join(heading for _rank, heading in stack)
+        if rank is not None:
+            stack.append((rank, " ".join(_heading_text(chunk).split())[:40]))
+    return paths
+
+
 def select_eligibility_chunks(chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Select eligibility sections and their children without crossing documents."""
     return select_eligibility_chunks_with_mode(chunks)[0]
@@ -253,10 +276,17 @@ def select_eligibility_chunks(chunks: list[dict[str, Any]]) -> list[dict[str, An
 
 def select_eligibility_chunks_with_mode(
     chunks: list[dict[str, Any]],
+    *,
+    unanchored_keyword_fallback: bool = True,
 ) -> tuple[list[dict[str, Any]], SelectionMode]:
     """자격 절을 고르고, 어떻게 골랐는지(제목 앵커 / 키워드 폴백 / 문서 전체)를 함께 돌려준다.
 
     앵커를 못 찾았다는 것은 "자격 절을 봤다"고 말할 수 없다는 뜻이라 커버리지가 쓴다.
+
+    unanchored_keyword_fallback: 다른 문서에서 자격 절 제목을 찾았을 때, 제목이 없는 문서(제안요청서·과업지시서)를
+    키워드('인력', '실적', '등록' …)로 훑을지. 이 낱말들은 본문 어디에나 있어 문서의 3분의 1이 딸려 온다. 모델이 문서
+    전체에서 자격 조항을 따로 고르는 경로(hybrid)는 그것으로 충분하니 끈다. 어느 문서에서도 제목을 못 찾았으면 이 값과
+    상관없이 키워드로 고른다 — 그때는 키워드가 유일한 단서다.
     """
     selected: dict[int, dict[str, Any]] = {}
     anchors = [index for index, chunk in enumerate(chunks) if _is_eligibility_section_anchor(chunk)]
@@ -281,6 +311,8 @@ def select_eligibility_chunks_with_mode(
     anchored_documents = {_chunk_document_id(chunks[index]) for index in anchors}
     fallback_keywords = _FALLBACK_REQUIREMENT_KEYWORDS[len(_SECTION_HEADER_KEYWORDS):] if anchors else _FALLBACK_REQUIREMENT_KEYWORDS
     for index, chunk in enumerate(chunks):
+        if anchors and not unanchored_keyword_fallback:
+            break
         if _chunk_document_id(chunk) not in anchored_documents and any(keyword in (chunk.get("text") or "") for keyword in fallback_keywords):
             selected[index] = chunk
     if not selected:
@@ -604,9 +636,18 @@ def build_extraction_body(chunks: list[dict[str, Any]], *, max_chars: int | None
     return "\n\n".join(parts)[:max_chars]
 
 
-def extract_legacy_slots(chunks: list[dict[str, Any]], *, structured_extract: StructuredExtractor, max_retry: int = 1) -> dict[str, Any]:
+def extract_legacy_slots(chunks: list[dict[str, Any]], *, structured_extract: StructuredExtractor, max_retry: int = 1, retrieval_mode: str = "section", dense_ranked_ids: list[str] | None = None, hybrid_extra_budget: int = 6) -> dict[str, Any]:
     """Run structured extraction and source-grounding validation."""
-    target, selection_mode = select_eligibility_chunks_with_mode(chunks)
+    if retrieval_mode == "section":
+        target, selection_mode = select_eligibility_chunks_with_mode(chunks)
+    elif retrieval_mode == "hybrid":
+        from bidengine.labeling.hybrid_candidates import compare_eligibility_candidates
+        comparison = compare_eligibility_candidates(
+            chunks, dense_ranked_ids=dense_ranked_ids, extra_budget=hybrid_extra_budget,
+        )
+        target, selection_mode = comparison.candidates, "hybrid_" + comparison.section_mode
+    else:
+        raise ValueError("retrieval_mode must be section or hybrid")
     full_body = build_extraction_body(target, max_chars=None)
     coverage_inputs = {"selection_mode": selection_mode, "input_truncated": len(full_body) > 32_000}
     body = full_body[:32_000]

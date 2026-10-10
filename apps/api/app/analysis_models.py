@@ -8,7 +8,7 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Index, Numeric, Text, UniqueConstraint, text
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Index, Numeric, String, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PostgresUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -38,6 +38,9 @@ class QualificationAnalysisRun(Base):
     target_chunk_ids: Mapped[list] = mapped_column(JSONB, default=list)
     diagnostics: Mapped[list] = mapped_column(JSONB, default=list)
     dropped_requirements: Mapped[list] = mapped_column(JSONB, default=list)
+    input_fingerprint: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # 엔진 커버리지(확인 항목 공백, 참고 정보, 판정을 막는 공백). 2026-10-07 이전 실행은 NULL.
+    coverage: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=text("now()"), nullable=False
     )

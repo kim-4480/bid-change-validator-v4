@@ -1,0 +1,2033 @@
+{
+  "collected_at": "2026-10-06T10:16:32.018369+09:00",
+  "window_days": 2,
+  "notices": [
+    {
+      "notice_no": "R26BK01756147",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "2026년도 기아타이거즈 홈 최종전 이벤트",
+      "dir": "R26BK01756147-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "DOCX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756147&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "154e70d62675a8c52a8cb065ece88cf1319a8d6518634ea25ee7c595b8d402b7",
+          "blocks": "154e70d62675a8c5.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01750186",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "천성항 남방파제  건설공사 건설폐기물(폐콘크리트) 처리용역",
+      "dir": "R26BK01750186-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01750186&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "05ffdaa952b70544159569eb84133672e9dad6458b6a3cbec1440e2bf547c88d",
+          "blocks": "05ffdaa952b70544.blocks.json"
+        },
+        {
+          "name": "안내공고_천성항 남방파제 건설공사 건설폐기물(폐콘크리트) 처리용역.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01750186&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "0890ea9f6e0c63f28cb69b6a444bcc1e8e6c71040c161ce992f10f446f447e46",
+          "blocks": "0890ea9f6e0c63f2.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756160",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "2026년 국제조세 위탁교육(미국)",
+      "dir": "R26BK01756160-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756160&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "ba0a553b22e68b4c76be3ee81aa383618fc227fe95c69f66867e8b9345baf4f5",
+          "blocks": "ba0a553b22e68b4c.blocks.json"
+        },
+        {
+          "name": "공고서(국제조세 위탁교육_미국).pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756160&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "93666d814f9e6875bb4d1149bb4df920a9e6fcec61e1f720c867caefccaf8043",
+          "blocks": "93666d814f9e6875.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01753143",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "2026년 첨단제작 집중지원 영화 〈바위〉 후반작업 총괄 (포스트프로덕션 슈퍼바이징) 용역",
+      "dir": "R26BK01753143-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01753143&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "b6e23e563ceec0721f373a64b7605626f9cf73e9642953dfa1150ea66fea2112",
+          "blocks": "b6e23e563ceec072.blocks.json"
+        },
+        {
+          "name": "2. 제안요청서_영화바위_영화적순간0928_최종.hwp",
+          "document_order": 2,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01753143&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "3110d52bc950eadccdc195294f7af66528419b948d013124befe9f4e1f432f9a",
+          "blocks": "3110d52bc950eadc.blocks.json"
+        },
+        {
+          "name": "1. (긴급공고)공고문_영화바위_포스트프로덕션_영화적순간0928_최종.pdf",
+          "document_order": 4,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01753143&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=03",
+          "source_file_sha256": "f14c8e52606c39c58d4818ea647b28b380521a7602bd426da040a5d6270748b4",
+          "blocks": "f14c8e52606c39c5.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01736206",
+      "order": "002",
+      "business_type": "SERVICE",
+      "title": "2026 강릉 초당 K-푸드로드 문화관광 융복합 거점거리 조성사업 행사 대행 용역",
+      "dir": "R26BK01736206-002",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01736206&bidPbancOrd=002&fileType=&fileSeq=3&prcmBsneSeCd=03",
+          "source_file_sha256": "5e4ab90798b88cbce1ef4f0fee2fc0f86ff3763ee7e50102f966e92b3276298b",
+          "blocks": "5e4ab90798b88cbc.blocks.json"
+        },
+        {
+          "name": "(변경)과업요청 및 제안요청서.hwp",
+          "document_order": 1,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01736206&bidPbancOrd=002&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "549981a99cf9b8b8b8748bf21e2e0967372b2af7b8a4853cc902cee2f3de3639",
+          "blocks": "549981a99cf9b8b8.blocks.json"
+        },
+        {
+          "name": "(변경)과업요청 및 제안요청서.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01736206&bidPbancOrd=002&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "39f30d3ee6adb6f3f692d0f8cb9f06911a96c8ff2f7f0b76c121c0a093a91908",
+          "blocks": "39f30d3ee6adb6f3.blocks.json"
+        },
+        {
+          "name": "(변경)입찰공고서.pdf",
+          "document_order": 4,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01736206&bidPbancOrd=002&fileType=&fileSeq=4&prcmBsneSeCd=03",
+          "source_file_sha256": "d8d90c44f2c5268af3b06c5e3c59f58badd215dea1ea04a25ce2f36cf8122baf",
+          "blocks": "d8d90c44f2c5268a.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01754516",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "국제물류진흥지역 기본계획 수립 연구",
+      "dir": "R26BK01754516-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754516&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "8069faf9b1244da79d660905fcb666639065a1e5e15e7ea4ffe7a9e7723ea558",
+          "blocks": "8069faf9b1244da7.blocks.json"
+        },
+        {
+          "name": "(입찰공고문)국제물류진흥지역 기본계획 수립 연구.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754516&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "5221d4cb51cb7f99b5c37babdf63d4928af7bd9bc3c7b9d7c8f92cc14ab72bb1",
+          "blocks": "5221d4cb51cb7f99.blocks.json"
+        },
+        {
+          "name": "(제안요청서)국제물류진흥지역 기본계획 수립 연구.hwpx",
+          "document_order": 3,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754516&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+          "source_file_sha256": "a089b2e8e9a0a886abd4c46045eda771cc111a04d047d4d8abd556dd67ebbdde",
+          "blocks": "a089b2e8e9a0a886.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756227",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "2026 Lab to life 연구페스티벌 행사 운영",
+      "dir": "R26BK01756227-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756227&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "5dbc589b3d7b445e0b2f777152881b7f554e275ca0b84d51d3cc2a17cea02479",
+          "blocks": "5dbc589b3d7b445e.blocks.json"
+        },
+        {
+          "name": "첨부1. 2026년 랩투라이프(Lab to Life) 연구페스티벌 입찰 공고.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756227&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "4153628b8b8adb98dba41677b56ede466a21ebbae0535d8bc4acaeb4b4a7361e",
+          "blocks": "4153628b8b8adb98.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756254",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "2026년도 4단계 BK21 K-3MT Competition 행사 운영",
+      "dir": "R26BK01756254-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756254&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "ee4cf703b6365ae4ba9cc233c35fc0b623c43299ad1f27dc0ad41c1f7e700249",
+          "blocks": "ee4cf703b6365ae4.blocks.json"
+        },
+        {
+          "name": "첨부1. 2026 BK21 K-3MT Competition 용역 입찰 공고.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756254&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "b3c4a6f29591931f771af7f07aee1b62716ab390b8f24e0c096579c0f1f12f1d",
+          "blocks": "b3c4a6f29591931f.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01754149",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "경상남도 환경교육 효과 제고를 위한 도민 환경인식 조사 용역",
+      "dir": "R26BK01754149-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754149&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "e84385d91ee3d0569471eba7f13ae79257676bb246492b9267e13a39609926c6",
+          "blocks": "e84385d91ee3d056.blocks.json"
+        },
+        {
+          "name": "2. 과업지시서.hwpx",
+          "document_order": 2,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754149&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "fef445e264f99035327f36348851664ff90149839836aff8779a09b9eb9884ef",
+          "blocks": "fef445e264f99035.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756062",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "2026 뮤지컬 남벌 전식/오토메이션/리깅/플라잉 업체 ",
+      "dir": "R26BK01756062-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "DOCX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756062&bidPbancOrd=000&fileType=&fileSeq=6&prcmBsneSeCd=03",
+          "source_file_sha256": "fb4855d39de8ed4eaf72b0b9bb58dc94ee467e04bd599bd3fea2a45dfc9a08fe",
+          "blocks": "fb4855d39de8ed4e.blocks.json"
+        },
+        {
+          "name": "02_뮤지컬_남벌_전식,오토메이션,리깅,플라잉_과업지시서.docx",
+          "document_order": 1,
+          "extractor": "DOCX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756062&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+          "source_file_sha256": "27cbb2e98f5ee74e39f12cab9eee5127e8d47ae095cab9a4011c3b4058b32473",
+          "blocks": "27cbb2e98f5ee74e.blocks.json"
+        },
+        {
+          "name": "남벌_품목규격서.pdf",
+          "document_order": 3,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756062&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=03",
+          "source_file_sha256": "c3fef5314f3e3386c1929c52f5a879809cc83524c09c4b0d6bd36076d31d8799",
+          "blocks": "c3fef5314f3e3386.blocks.json"
+        },
+        {
+          "name": "01_뮤지컬_남벌_전식,오토메이션,리깅,플라잉_공고문.pdf",
+          "document_order": 5,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756062&bidPbancOrd=000&fileType=&fileSeq=7&prcmBsneSeCd=03",
+          "source_file_sha256": "42f8178fa26ab882ee9d2c337b64f78e6b576bfc529205f786cc1912cab233f8",
+          "blocks": "42f8178fa26ab882.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756277",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "2026년 실험실 글로벌 시장 창업탐색 프로그램 운영 용역(싱가포르 SWITCH)",
+      "dir": "R26BK01756277-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756277&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "7b7c0dd9dbd91214223bd9fe54eb10814fe94e02cbb3c7b22230691278aabce1",
+          "blocks": "7b7c0dd9dbd91214.blocks.json"
+        },
+        {
+          "name": "제안요청서_2026년 실험실 글로벌 시장 창업탐색 프로그램(싱가포르 SWITCH).hwp",
+          "document_order": 2,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756277&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "d1971d30fd7de4f7f60100566c74a53a671e1450a207dc33a3d4e32915e9704c",
+          "blocks": "d1971d30fd7de4f7.blocks.json"
+        },
+        {
+          "name": "과업지시서_2026년 실험실 글로벌 시장 창업탐색 프로그램(싱가포르 SWITCH).hwp",
+          "document_order": 4,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756277&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=03",
+          "source_file_sha256": "d1e8f1f497ae985dbe4fc992ec5bdd10df4c03b036413cc9f765eb9803294f2f",
+          "blocks": "d1e8f1f497ae985d.blocks.json"
+        },
+        {
+          "name": "공고문_2026년 실험실 글로벌 시장 창업탐색 프로그램(싱가포르 SWITCH).pdf",
+          "document_order": 6,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756277&bidPbancOrd=000&fileType=&fileSeq=6&prcmBsneSeCd=03",
+          "source_file_sha256": "5eebf71d844ff970e0c3b2a992322ce2b083865423b9398f954e03f3f407b26a",
+          "blocks": "5eebf71d844ff970.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756278",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "2026년 실험실창업탐색팀 사업화 코칭 및 성장지원 프로그램 운영 용역",
+      "dir": "R26BK01756278-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756278&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "1fbbdac736d6f07dc70eca2bd961c23411ddbec0672fcc3edefa402510994b67",
+          "blocks": "1fbbdac736d6f07d.blocks.json"
+        },
+        {
+          "name": "제안요청서_실험실창업탐색팀 사업화 코칭 및 성장지원 프로그램.hwp",
+          "document_order": 2,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756278&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "2d21749ed8b9740854bc788d7639aa3195138dc2a036d7c2bf6a4ec598e08a5d",
+          "blocks": "2d21749ed8b97408.blocks.json"
+        },
+        {
+          "name": "과업지시서_실험실창업탐색팀 사업화 코칭 및 성장지원 프로그램.hwp",
+          "document_order": 4,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756278&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=03",
+          "source_file_sha256": "47b620c0aba8409327803ade7d5765b957c87f2b0ea7f2cb2ff7661c8a503aa6",
+          "blocks": "47b620c0aba84093.blocks.json"
+        },
+        {
+          "name": "공고문_실험실창업탐색팀 사업화 코칭 및 성장지원 프로그램.pdf",
+          "document_order": 6,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756278&bidPbancOrd=000&fileType=&fileSeq=6&prcmBsneSeCd=03",
+          "source_file_sha256": "14cbc19b915d35231f5a376937c7cdae619b8416296ddc8e4070e495beaff31b",
+          "blocks": "14cbc19b915d3523.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756298",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "양자클러스터 개발계획 이행을 위한 세부 실행방안 및 정책지원 연구",
+      "dir": "R26BK01756298-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756298&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "8fbe518b849662818154334297192a412962f4b16ce3d664388a55345eee6610",
+          "blocks": "8fbe518b84966281.blocks.json"
+        },
+        {
+          "name": "(입찰공고문) 양자클러스터 개발계획 이행을 위한 세부 실행방안 및 정책지원 연구(변환본).pdf",
+          "document_order": 1,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756298&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "162450f1aa5047034f39e2181389b05e6df1df8cfec107af80b83dc4458e3b6e",
+          "blocks": "162450f1aa504703.blocks.json"
+        },
+        {
+          "name": "제안요청서_양자클러스터 개발계획 이행을 위한 세부 실행방안 및 정책지원 연구.hwp",
+          "document_order": 3,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756298&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+          "source_file_sha256": "fca4105cb1431908da3b09c1d146c4372b24a845022c90ab201f4748d76c009a",
+          "blocks": "fca4105cb1431908.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756166",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "2026년 김장철, 연말기간 가격비교조사",
+      "dir": "R26BK01756166-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756166&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "98d84ffdad6b842afb6723d4bbc8277c6c3d118612645e1cfdcda2a54c6e0e0a",
+          "blocks": "98d84ffdad6b842a.blocks.json"
+        },
+        {
+          "name": "[R26BK01756166-000] 공고문.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756166&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "5905447184b953fe437d4e2675e8bf72103ad467324c4dc9fe520b5f7283a0ae",
+          "blocks": "5905447184b953fe.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756172",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "2026년 소상공인 불공정거래 피해실태조사 및 2025년 성과분석 용역",
+      "dir": "R26BK01756172-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756172&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "ffd0662c25dd711f831d062b4f456bac8654af616e4d168ea429718d2a5480dc",
+          "blocks": "ffd0662c25dd711f.blocks.json"
+        },
+        {
+          "name": "[R26BK01756172-000] 공고문.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756172&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "9bdc8263b4b16ebd6d29b5f52b1e2eaf87824a74758a6172b753322e9b16bd29",
+          "blocks": "9bdc8263b4b16ebd.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01750071",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "2026학년도 함평골프고등학교 국제교류 프로그램 위탁 용역 입찰공고",
+      "dir": "R26BK01750071-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01750071&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "ced44f60f8707a943cb812c9fca6832f068f26cf88b3b092199c23312910e632",
+          "blocks": "ced44f60f8707a94.blocks.json"
+        },
+        {
+          "name": "2026학년도 함평골프고등학교 국제교류 프로그램 위탁 용역 공고문.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01750071&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "52d39ff7736525b4bd0e96437f064f4a9886ca23e0be3a1f381cb1f255b6a1ac",
+          "blocks": "52d39ff7736525b4.blocks.json"
+        },
+        {
+          "name": "2026학년도 함평골프고등학교 국제교류 프로그램 위탁 용역 과업설명서.hwpx",
+          "document_order": 3,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01750071&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+          "source_file_sha256": "fc04835fcfc2a98e0c078066f902bcf898554e8ef818314eb55f2486adac6dba",
+          "blocks": "fc04835fcfc2a98e.blocks.json"
+        },
+        {
+          "name": "2026학년도 함평골프고등학교 국제교류 프로그램 위탁 용역 제안요청서.hwp",
+          "document_order": 5,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01750071&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=03",
+          "source_file_sha256": "877df11a34d11d26e5d000e92fe48796669b2e0d7cdfdc1314c948580e3c52f5",
+          "blocks": "877df11a34d11d26.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01753429",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "동현지구 스마트 창조도시 조성사업 건축물 해체(철거) 공사 폐기물처리용역",
+      "dir": "R26BK01753429-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01753429&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "28b6c415274f7358a7f13432f75804943d551fe62088e2d19db9b4f2e60e1f1a",
+          "blocks": "28b6c415274f7358.blocks.json"
+        },
+        {
+          "name": "(공고문) 동현지구 스마트 창조도시 조성사업 건축물 해체(철거) 공사 폐기물처리용역.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01753429&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "f034d223d8e9b66b4797d087bfb082a5660b4ef3480e678fe2fdb5f803762d7c",
+          "blocks": "f034d223d8e9b66b.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01755704",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "신종 해외 가축질병 유입차단 예찰(거점센터 운영 2차) 용역",
+      "dir": "R26BK01755704-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755704&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "b9bad41ceaaa892f5f062ba92e45fb72325c00e53f02a43c61c66ddd86b58ad9",
+          "blocks": "b9bad41ceaaa892f.blocks.json"
+        },
+        {
+          "name": "과업지시서.hwpx",
+          "document_order": 3,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755704&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+          "source_file_sha256": "43de75790701e0c2b9515e3d6b58468b7bd92f8017d72e65369cd267f2109bbc",
+          "blocks": "43de75790701e0c2.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756359",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "2027 학교예술강사 지원사업 예술강사 선발 심사 운영",
+      "dir": "R26BK01756359-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756359&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "9214e9cc72e24d3ea21f24a099ad26397348ebb6e621724eb8c0b18c42afaba9",
+          "blocks": "9214e9cc72e24d3e.blocks.json"
+        },
+        {
+          "name": "붙임1_입찰공고문.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756359&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "5dd14c0a1e6ab16b28f9d7993c6001719451b3d0eede5cf256539b8e319ccfb1",
+          "blocks": "5dd14c0a1e6ab16b.blocks.json"
+        },
+        {
+          "name": "붙임2_제안요청서.hwp",
+          "document_order": 3,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756359&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+          "source_file_sha256": "3a3061e61882384bb527d9c7be3515744d892549109a56b883f0179810d584ab",
+          "blocks": "3a3061e61882384b.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01748264",
+      "order": "000",
+      "business_type": "SERVICE",
+      "title": "2027년 경기도 광역이동지원센터 콜센터 운영 용역",
+      "dir": "R26BK01748264-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01748264&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+          "source_file_sha256": "5f8779d43236fd8648076f6911aadd69497c236bfcb33823146beb148c62fbb3",
+          "blocks": "5f8779d43236fd86.blocks.json"
+        },
+        {
+          "name": "제안요청서(2027년 경기도 광역이동지원센터 콜센터 운영 용역).hwpx",
+          "document_order": 2,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01748264&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+          "source_file_sha256": "bb46e5e7a12e770526015c4fbb3777fa8375b2404ee2efbaf23cdd805dadf599",
+          "blocks": "bb46e5e7a12e7705.blocks.json"
+        },
+        {
+          "name": "과업지시서(2027년 경기도 광역이동지원센터 콜센터 운영 용역).hwpx",
+          "document_order": 3,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01748264&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=03",
+          "source_file_sha256": "32a8498b2ab7c9ec37640a37bbe79a5c9d008343390b4efb056c7516a6d9ef0a",
+          "blocks": "32a8498b2ab7c9ec.blocks.json"
+        },
+        {
+          "name": "도급노동자 보호지침 특별유의서.hwpx",
+          "document_order": 5,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01748264&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=03",
+          "source_file_sha256": "2b6bbd374288bd3f55da6d07c90b072a4ac92913dc09ec57290bf6e91ab1bfe2",
+          "blocks": "2b6bbd374288bd3f.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756103",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "2026년 스마트 생태공장 구축사업_태양광 발전설비",
+      "dir": "R26BK01756103-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756103&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "65d59291533d30d3c3699baaec557531c659f8341e57765501379d3c45ba4d69",
+          "blocks": "65d59291533d30d3.blocks.json"
+        },
+        {
+          "name": "2026년_스마트_생태공장_구축사업_태양광발전설비 규격서 모듈 매수 변경.pdf",
+          "document_order": 1,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756103&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "57a22bb8a1dc651806b5df1e2ebc43fce926e49082fd09d754b478182f493446",
+          "blocks": "57a22bb8a1dc6518.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756126",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "2026년 공동자원화시설 개보수사업(계분 바이오차 생산시설 개보수 제작·납품 및 설치)",
+      "dir": "R26BK01756126-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756126&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "351438412e18ccd3d9291dddcc8c482dbe2409820ec5ba6d1dd6b6e1d0b4bc46",
+          "blocks": "351438412e18ccd3.blocks.json"
+        },
+        {
+          "name": "2. 물품구매설명서.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756126&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "dd415765d78a3b80037ba8d4d3c3ee8e53183f198b0c41df45aedb732ca15278",
+          "blocks": "dd415765d78a3b80.blocks.json"
+        },
+        {
+          "name": "3. 물품구매입찰유의서.pdf",
+          "document_order": 3,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756126&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "1111b5359cd98066f44ec86014f20efd5fe3d7dc59c2da453b0a2a1f5b541aca",
+          "blocks": "1111b5359cd98066.blocks.json"
+        },
+        {
+          "name": "6. 기술규격서.pdf",
+          "document_order": 6,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756126&bidPbancOrd=000&fileType=&fileSeq=6&prcmBsneSeCd=01",
+          "source_file_sha256": "49ed4f41a721b0982f88fd0030133b0c4deb89a2a723da8d9d642546a3ed2a26",
+          "blocks": "49ed4f41a721b098.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756148",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "2027학년 대광고등학교 교복(동·하복) 학교주관구매 입찰 공고",
+      "dir": "R26BK01756148-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756148&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=01",
+          "source_file_sha256": "5109569856a67ddf560bd9110b734a0cf886e58228e11d412154e0375d68d833",
+          "blocks": "5109569856a67ddf.blocks.json"
+        },
+        {
+          "name": "2027학년도 대광고등학교 교복 학교주관구매 입찰공고문 1부.pdf",
+          "document_order": 4,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756148&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=01",
+          "source_file_sha256": "f12e65f351750cd62092362f059c14e589aa018b5a04688b94cf3c0e4f5f0bb9",
+          "blocks": "f12e65f351750cd6.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756150",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "수도용 폴리에틸렌 피복강관 제작구매(한천로 외 1개소 장기사용 배수관 정비공사)",
+      "dir": "R26BK01756150-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756150&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "11f2552b908614bc856c78f55b41226f30ab986341a496f5b007a097eb87f4f5",
+          "blocks": "11f2552b908614bc.blocks.json"
+        },
+        {
+          "name": "5. 입찰유의서, 계약일반조건.hwpx",
+          "document_order": 5,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756150&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=01",
+          "source_file_sha256": "d502e418bb7e2226d3fcc5923178299022c8f27d147b8dd0f6fa61731a52fd14",
+          "blocks": "d502e418bb7e2226.blocks.json"
+        },
+        {
+          "name": "1. 물품입찰공고문(수도용 폴리에틸렌 피복강관 제작구매(한천로)).pdf",
+          "document_order": 6,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756150&bidPbancOrd=000&fileType=&fileSeq=6&prcmBsneSeCd=01",
+          "source_file_sha256": "be617ab94b887c8391df6eb672340c42766360078e1bbc35cdfdf37b30d25f5d",
+          "blocks": "be617ab94b887c83.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756157",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "보령시 생활폐기물 매립시설 증설공사(1차분)관급자재(쇄석자갈)구입",
+      "dir": "R26BK01756157-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756157&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "c03446f5fc47d16bf7e53ea934431ab5d605f7d8ab9c4abff1fdd4a0cd8fffdb",
+          "blocks": "c03446f5fc47d16b.blocks.json"
+        },
+        {
+          "name": "(규격서 및 시방서)보령시 생활폐기물 매립시설증설공사(1차분) 관급(쇄석자갈)구입.hwpx",
+          "document_order": 1,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756157&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "1f7d210c911426ba4de4e22a96257588789395dd6e77fccea846e4672d4baddd",
+          "blocks": "1f7d210c911426ba.blocks.json"
+        },
+        {
+          "name": "(공고문) 보령시 생활폐기물 매립시설 증설공사(1차분)관급자재(쇄석자갈)구입.pdf",
+          "document_order": 4,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756157&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=01",
+          "source_file_sha256": "857391e6f50c0af1cc1630619a300a7b40a12eba8d53c2dc59de5efe911a0f79",
+          "blocks": "857391e6f50c0af1.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756060",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "설천면 대불리 하수관로 정비사업 관급자재(혼합골재)구입",
+      "dir": "R26BK01756060-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756060&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "a1bd986afd904563d38691458a014c1a7ce5a586fe6abca483cba13c80e2db67",
+          "blocks": "a1bd986afd904563.blocks.json"
+        },
+        {
+          "name": "공고서[설천면 대불리 하수관로 정비사업 관급자재(혼합골재) 구입].pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756060&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "a1b5693adfb7bab5eb8176695f08ce97819206075ccc05e8666db43452ccfcd6",
+          "blocks": "a1b5693adfb7bab5.blocks.json"
+        },
+        {
+          "name": "규격서(혼합골재).hwpx",
+          "document_order": 3,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756060&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "48a1bdeada7c4f863d885738c4eddb503170b478ede9551d07f749a83bd19b5d",
+          "blocks": "48a1bdeada7c4f86.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01746068",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "분자동역학 전산모사 해석 컴퓨터 2set 구매",
+      "dir": "R26BK01746068-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01746068&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=01",
+          "source_file_sha256": "04f19013ff5fd920ddb6d247b07d6ce491a9a9a45c22fcdd619e0870cf6aa2ff",
+          "blocks": "04f19013ff5fd920.blocks.json"
+        },
+        {
+          "name": "(구매 규격서) 분자동역학 전산모사 해석 컴퓨터 2set.pdf",
+          "document_order": 1,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01746068&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "6c2c4087b355b47ca3ec736c6a97b5e404b19f8b5be79d18d18e0c3888f0ab4c",
+          "blocks": "6c2c4087b355b47c.blocks.json"
+        },
+        {
+          "name": "(입찰 공고문) 분자동역학 전산모사 해석 컴퓨터 2set.pdf",
+          "document_order": 3,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01746068&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=01",
+          "source_file_sha256": "ca9015ace5de24c24d0c6add10c30921e8fbcaf2b3cb9df07d8ac3079a5252f2",
+          "blocks": "ca9015ace5de24c2.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756287",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "2026년 친환경농업기반구축사업 시설장비구입(지게차)",
+      "dir": "R26BK01756287-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756287&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "ee07f49d2dd88ca49e0bbd3aaaf81c1c61478a29dfd8ddcb17203cc3a2678cef",
+          "blocks": "ee07f49d2dd88ca4.blocks.json"
+        },
+        {
+          "name": "규격서_전동지게차.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756287&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "af51fd609f6c9532b60cc248ff181a5aeaa1466e84656817dfd465b06162d036",
+          "blocks": "af51fd609f6c9532.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756290",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "2026년 펌프차구조대 구조장비 구매(2차) 수의계약 안내",
+      "dir": "R26BK01756290-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756290&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "5846fafae07fa082c5211388159dc714f54a94031294bfca990a15c90392c7ac",
+          "blocks": "5846fafae07fa082.blocks.json"
+        },
+        {
+          "name": "1. 공고문[2026년 펌프차구조대 구조장비 구매(2차)].pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756290&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "a17c43b183241516b39cc033c72ae1d28f351f8ec618d4904afbdace9805dbfe",
+          "blocks": "a17c43b183241516.blocks.json"
+        },
+        {
+          "name": "2. 납품 조건 및 규격서[2026년 펌프차구조대 구조장비 구매(2차)].hwpx",
+          "document_order": 3,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756290&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "e24335006b75ee48216f353c7ed7a32eec0e6cd0bbffeee68f25b937027ccf02",
+          "blocks": "e24335006b75ee48.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01754848",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "봉제공 스판담보루 원단",
+      "dir": "R26BK01754848-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754848&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "a3dbcaf3a3ed7d068a9966c6b8bd60779c3d7cc81315616224a826c967fe3f26",
+          "blocks": "a3dbcaf3a3ed7d06.blocks.json"
+        },
+        {
+          "name": "규격서(반바지용 스판담보루원단).pdf",
+          "document_order": 1,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754848&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "79e2d989e4b91528f40c4c4dfc0ae4b4687b9b7ac3357dfd553d68dd54ee79aa",
+          "blocks": "79e2d989e4b91528.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01754848",
+      "order": "001",
+      "business_type": "GOODS",
+      "title": "봉제공 스판담보루 원단",
+      "dir": "R26BK01754848-001",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754848&bidPbancOrd=001&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "a3dbcaf3a3ed7d068a9966c6b8bd60779c3d7cc81315616224a826c967fe3f26",
+          "blocks": "a3dbcaf3a3ed7d06.blocks.json"
+        },
+        {
+          "name": "규격서(반바지용 스판담보루원단).pdf",
+          "document_order": 3,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754848&bidPbancOrd=001&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "79e2d989e4b91528f40c4c4dfc0ae4b4687b9b7ac3357dfd553d68dd54ee79aa",
+          "blocks": "79e2d989e4b91528.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756302",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "메타융합관 Ⅱ 건물 내부 사인물 및 유리 썬팅 설치_261126",
+      "dir": "R26BK01756302-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756302&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "350a6e61706180400adfe604b89203fd515afd263f7558b4a6d84fc62c6a0a3c",
+          "blocks": "350a6e6170618040.blocks.json"
+        },
+        {
+          "name": "KAIST 물품 구매 입찰 공고서_적격심사제_중기간경쟁_메타융합관 Ⅱ 건물 내부 사인물 및 유리 썬팅 설치_261126_최종.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756302&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "9e84cd3a2a2e37259cecc5001cd142d918e527c8cd7e85269248d6416cfb8a4c",
+          "blocks": "9e84cd3a2a2e3725.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756303",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "(재공고) 연구수행에 필요한 고성능 GPU 구매_261240",
+      "dir": "R26BK01756303-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756303&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=01",
+          "source_file_sha256": "bf0fc0d5397ea113a391cfbc77d7f0706c97f3c9ac5f780200e490606841c4e0",
+          "blocks": "bf0fc0d5397ea113.blocks.json"
+        },
+        {
+          "name": "261240_규격서_.pdf",
+          "document_order": 1,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756303&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "3d805658f77b55cfd7445e4135243666f1bfad463003fe38f9be01efea21327e",
+          "blocks": "3d805658f77b55cf.blocks.json"
+        },
+        {
+          "name": "(재공고) 소액수의(물품) 견적제출 안내공고 및 입찰사양서_261240.pdf",
+          "document_order": 4,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756303&bidPbancOrd=000&fileType=&fileSeq=6&prcmBsneSeCd=01",
+          "source_file_sha256": "c11e836f6037fa37d148a7cd3d69a94c5173c91a4e65babc24e044b9436b4333",
+          "blocks": "c11e836f6037fa37.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756308",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "형광현미경 구매_261540",
+      "dir": "R26BK01756308-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756308&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "ed9fe7438410ec8cb7c02f23fae3acb70f87a31b3f4099d2a7e3e6a78813dbb2",
+          "blocks": "ed9fe7438410ec8c.blocks.json"
+        },
+        {
+          "name": "KAIST 물품 구매 입찰 공고서_규격가격동시입찰_형광현미경 구매_261540_최종.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756308&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "722657216b3745c04b02436b40b068bc6937bfe9da34e74842e328ba4df8c464",
+          "blocks": "722657216b3745c0.blocks.json"
+        },
+        {
+          "name": "물품 내역 및 세부 규격서_최종.hwpx",
+          "document_order": 3,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756308&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "8fe4fdec226dba542420c2162bbaabc64bba182a456e7b782e0e6649417437e7",
+          "blocks": "8fe4fdec226dba54.blocks.json"
+        },
+        {
+          "name": "KAIST 규격가격동시입찰 (규격)제안요청서 양식_최종.hwp",
+          "document_order": 4,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756308&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=01",
+          "source_file_sha256": "9402b161c08b630d975fca0f537467a574eed8c60e44b69758e19ffb579bf56e",
+          "blocks": "9402b161c08b630d.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756314",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "(재공고) 연구수행에 필요한 고성능 GPU 구매_261395",
+      "dir": "R26BK01756314-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756314&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "f5e26bc6175b1404ab17c462207a6bcdb6a20a56b8d5f6f73312028788a5d2f0",
+          "blocks": "f5e26bc6175b1404.blocks.json"
+        },
+        {
+          "name": "(재공고) 소액수의(물품) 견적제출 안내공고 및 입찰사양서_261395.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756314&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "32b8e61bf15f78cf0f8c8a5bfbc219ca89ad466b2f9effebb5aeca2bcd8ef537",
+          "blocks": "32b8e61bf15f78cf.blocks.json"
+        },
+        {
+          "name": "261395_규격서_.pdf",
+          "document_order": 3,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756314&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "360d0b220b438bdb869fee776be5dff60c9c109558567b4dcd0846e591cb6ffd",
+          "blocks": "360d0b220b438bdb.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756318",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "(재공고) 연구수행에 필요한 고성능 GPU 구매_261450",
+      "dir": "R26BK01756318-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756318&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "e3930b1473613be109491c0ce5529dbc3bbf70e486be8e33b996636d2e8b4d1e",
+          "blocks": "e3930b1473613be1.blocks.json"
+        },
+        {
+          "name": "261450_규격서.pdf",
+          "document_order": 1,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756318&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "3ceb4bf8f6eacf45b31a82d492ffdbe071f2c65ea051179ddd7d5d2458c52e29",
+          "blocks": "3ceb4bf8f6eacf45.blocks.json"
+        },
+        {
+          "name": "(재공고) 소액수의(물품) 견적제출 안내공고 및 입찰사양서_261450.pdf",
+          "document_order": 3,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756318&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "6d01b2157b8c1570347010242a1cbed5f7e85bc20ff491207888728ca9ae0e9a",
+          "blocks": "6d01b2157b8c1570.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01754538",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "2027학년도 영락의료과학고등학교 교복 제조, 구매(2차)",
+      "dir": "R26BK01754538-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754538&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "aa9cb9de358a06b3bea50dbbdbfa6e70a10a7b8dcccca6b7dde51447fb30674f",
+          "blocks": "aa9cb9de358a06b3.blocks.json"
+        },
+        {
+          "name": "2027학년도 과업설명서(교복 제조, 구매 특수조건)(2차).hwp",
+          "document_order": 3,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754538&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "de31694cd155948e699858d4d8adf3a69588305e25f96983ce86570057855887",
+          "blocks": "de31694cd155948e.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756252",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "한지 카렌더(롤프레스) 장치 구매·설치",
+      "dir": "R26BK01756252-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756252&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=01",
+          "source_file_sha256": "8066584273ad833259510fc7976ccd7d60fba77509cede496d3725025a9a2237",
+          "blocks": "8066584273ad8332.blocks.json"
+        },
+        {
+          "name": "2. 제안요청서.pdf",
+          "document_order": 1,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756252&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "2ab9d6fece2247c677872718f2e90e961b1e5ec128a785cfbd0ee37dea6608d5",
+          "blocks": "2ab9d6fece2247c6.blocks.json"
+        },
+        {
+          "name": "3. 과업지시서.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756252&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "3e9ec3b4a89116fdc8e77732da5a2a13b7b7356020ad5a9133858eafaf4aaeb0",
+          "blocks": "3e9ec3b4a89116fd.blocks.json"
+        },
+        {
+          "name": "4. 장비규격서.pdf",
+          "document_order": 3,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756252&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+          "source_file_sha256": "75e782c59ad99d7aa39a21644d07b2963769b5ea670a8546966aab1122c08416",
+          "blocks": "75e782c59ad99d7a.blocks.json"
+        },
+        {
+          "name": "5 입찰유의서.pdf",
+          "document_order": 4,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756252&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=01",
+          "source_file_sha256": "2593d8682351cef049f9dc5ff68e910c31cecab4676c61621425e713bfce51d9",
+          "blocks": "2593d8682351cef0.blocks.json"
+        },
+        {
+          "name": "1 입찰 공고문.pdf",
+          "document_order": 6,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756252&bidPbancOrd=000&fileType=&fileSeq=6&prcmBsneSeCd=01",
+          "source_file_sha256": "ce3d0386910e0ed47a7e3a56b479d9ce062b8256304932a40f85d291d68fa72f",
+          "blocks": "ce3d0386910e0ed4.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01755943",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "대학로지점 이전 레이아웃 가구 제작설치",
+      "dir": "R26BK01755943-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755943&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "067c82b2b1bd83e8a72847ef5c6107eebef62ed16bd404afa7ab2acffead45cf",
+          "blocks": "067c82b2b1bd83e8.blocks.json"
+        },
+        {
+          "name": "1.(공고문) 대학로지점 이전 레이아웃 가구 제작설치.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755943&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "dc27be3c8841f10d67e2b82dec23af7548ef6997aac3b6e0397fe7e8af3cf720",
+          "blocks": "dc27be3c8841f10d.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756342",
+      "order": "000",
+      "business_type": "GOODS",
+      "title": "마이크로플레이트 흡광 광도계",
+      "dir": "R26BK01756342-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756342&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+          "source_file_sha256": "1d093cba9c6b7c379518737c790297385373bbe26fdcc53c9c60b803b1ef8f5b",
+          "blocks": "1d093cba9c6b7c37.blocks.json"
+        },
+        {
+          "name": "[입찰공고문] 마이크로플레이트 흡광 광도계.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756342&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+          "source_file_sha256": "c3156a43cf34c3867c69809eb05f3b0852ffe6449b237aee25f5238ef36e75fa",
+          "blocks": "c3156a43cf34c386.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756151",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "2026년 이수고가 보수공사",
+      "dir": "R26BK01756151-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756151&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "f129484db4115e75c430e88bb01d5d55f866dcf60d6eac5db184a2d9d8bdc75a",
+          "blocks": "f129484db4115e75.blocks.json"
+        },
+        {
+          "name": "2. 공사설명서.hwpx",
+          "document_order": 2,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756151&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "ade39676fbfca3c1a1eef01d4ec9983d7244ee3c8fb6a1dbc1c23780d6970b06",
+          "blocks": "ade39676fbfca3c1.blocks.json"
+        },
+        {
+          "name": "1. 입찰공고문(2026년 이수고가 보수공사).pdf",
+          "document_order": 7,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756151&bidPbancOrd=000&fileType=&fileSeq=7&prcmBsneSeCd=07",
+          "source_file_sha256": "784468c6a2b9705a04f0e2b96190f0942f31c5249bade4e57dd3afd1d4f0be0b",
+          "blocks": "784468c6a2b9705a.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756170",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "개봉지하차도 등 4개소 터널안전등 설치 공사",
+      "dir": "R26BK01756170-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756170&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "6189d78f3ab921595fb82741f89a572483c55726c83a4c3499c329168cb34aae",
+          "blocks": "6189d78f3ab92159.blocks.json"
+        },
+        {
+          "name": "4. 공사설명서.hwpx",
+          "document_order": 4,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756170&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=07",
+          "source_file_sha256": "ae9ac45d06a6e7cd541c1d33194535c285f234c1a3950201bc0e68e5a18cc0cb",
+          "blocks": "ae9ac45d06a6e7cd.blocks.json"
+        },
+        {
+          "name": "1. 입찰공고문(안).pdf",
+          "document_order": 5,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756170&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=07",
+          "source_file_sha256": "5e32081226d225acdad5b29111f36150a6969978baae20cbfe7a36db8a7e26be",
+          "blocks": "5e32081226d225ac.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756169",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "2026년 어린나무가꾸기사업(수식지구)",
+      "dir": "R26BK01756169-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756169&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "e3bbbcdcdece3369b63ab6b56c9c1c72975fad623451dfc72e68bd704106326d",
+          "blocks": "e3bbbcdcdece3369.blocks.json"
+        },
+        {
+          "name": "봉화군산림조합 공고 제2026-34호_2026년 어린나무가꾸기사업(수식지구).pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756169&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "8961c798efe43095fe3b91021fe3f37ff27e114ea46f80a7478f14542d090e1b",
+          "blocks": "8961c798efe43095.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756180",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "2026년 3차 조림지 풀베기사업(가곡지구)",
+      "dir": "R26BK01756180-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756180&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "ab33bf151f63c3194e320a14931c293a9b21a48198dddbdc3ecccec46576003c",
+          "blocks": "ab33bf151f63c319.blocks.json"
+        },
+        {
+          "name": "봉화군산림조합 공고 제2026-35호_2026년 3차 조림지 풀베기사업(가곡지구).pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756180&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "8059a519c8171ea249b84c79b709a4a9de3177fc4b7c284a069de288730a888b",
+          "blocks": "8059a519c8171ea2.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756181",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "2026년 3차 조림지 풀베기사업(두문지구)",
+      "dir": "R26BK01756181-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756181&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "5125b7e40b63128d87f6e34fe320018f82e66f87fa946e081912c7972849e732",
+          "blocks": "5125b7e40b63128d.blocks.json"
+        },
+        {
+          "name": "봉화군산림조합 공고 제2026-36호_2026년 3차 조림지 풀베기사업(두문지구).pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756181&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "2119116d9e13b04b24430778875d8023884c3664081f7ea36ec53f7b5ff5ba52",
+          "blocks": "2119116d9e13b04b.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756204",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "쉬미 커뮤니티비즈니스센터 가,감속차로 설치공사",
+      "dir": "R26BK01756204-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756204&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "394594ef7a7c5c826e903fb729f4b2b4133d8b780a3aa8ad53a0c00883cacc49",
+          "blocks": "394594ef7a7c5c82.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756249",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "장흥군 유치면 공동창고 신축공사",
+      "dir": "R26BK01756249-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756249&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "843c80cf113d8f78744e27aadb1670095afb4b8292d04a62054bb223501e478d",
+          "blocks": "843c80cf113d8f78.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756249",
+      "order": "001",
+      "business_type": "CONSTRUCTION",
+      "title": "(입찰대행)장흥군 유치면 공동창고 신축공사",
+      "dir": "R26BK01756249-001",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756249&bidPbancOrd=001&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "843c80cf113d8f78744e27aadb1670095afb4b8292d04a62054bb223501e478d",
+          "blocks": "843c80cf113d8f78.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01754139",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "입상활성탄 여과지 신탄투입공사(제5,6호지)",
+      "dir": "R26BK01754139-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754139&bidPbancOrd=000&fileType=&fileSeq=4&prcmBsneSeCd=07",
+          "source_file_sha256": "e986431ac82090117ea73c7815405ce3c8d365bbd842a8dea00f450654823655",
+          "blocks": "e986431ac8209011.blocks.json"
+        },
+        {
+          "name": "(공고문)입상활성탄 여과지 신탄투입공사.pdf",
+          "document_order": 3,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754139&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=07",
+          "source_file_sha256": "316c1e7d06782aee4011e3c313924f9b4ed5b81e54245f7ae22af19c4a166396",
+          "blocks": "316c1e7d06782aee.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756300",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "봉화군청사 천장형 냉난방기 실외기(GHP) 구입 및 설치",
+      "dir": "R26BK01756300-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756300&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "d407f0f18efe52ee017a697eaac0bc5a049041e588bb9f15444a7e9ec07eae74",
+          "blocks": "d407f0f18efe52ee.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756309",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "2026년 상수도시설 확충공사(사농동 760번지 일원)",
+      "dir": "R26BK01756309-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756309&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "acfd98700f9921dfde76813ddb2b1dbf32b0187f2dfb74bca735c22d7cba67c6",
+          "blocks": "acfd98700f9921df.blocks.json"
+        },
+        {
+          "name": "공고문(2026년 상수도시설 확충공사(사농동 760번지 일원)).pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756309&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "b641e3bbfdcb5488d29cdbcb94d95c1f991fc86a1affbc413a5520c5b6cb186b",
+          "blocks": "b641e3bbfdcb5488.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756321",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "2026년 상수도시설 확충공사(신북읍 용산리 553-10번지 일원)",
+      "dir": "R26BK01756321-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756321&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "baffde8d6908f5ccbe6bde2ca30aaf9b8ac3680a1e4cd4ce74a1a4e1b6d028de",
+          "blocks": "baffde8d6908f5cc.blocks.json"
+        },
+        {
+          "name": "공고문(2026년 상수도시설 확충공사(신북읍 용산리 553-10번지 일원)).pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756321&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "fc30d99b51c76366329ef746fcbbc08851d5e5201f3158280367b7b4f8e335d9",
+          "blocks": "fc30d99b51c76366.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01755926",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "대학로지점 이전 레이아웃 건축공사",
+      "dir": "R26BK01755926-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755926&bidPbancOrd=000&fileType=&fileSeq=7&prcmBsneSeCd=07",
+          "source_file_sha256": "d8e5ad23fbd8f82bc2d55d9e60bc89154664dad6c295b0257376ee06532f8270",
+          "blocks": "d8e5ad23fbd8f82b.blocks.json"
+        },
+        {
+          "name": "1.(공고문) 대학로지점 이전 레이아웃 건축공사.pdf",
+          "document_order": 8,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755926&bidPbancOrd=000&fileType=&fileSeq=8&prcmBsneSeCd=07",
+          "source_file_sha256": "702c9db0746087ee976c1c9c6e81a973abc7e4805a264e7136c7e73ddbbb554f",
+          "blocks": "702c9db0746087ee.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01755931",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "대학로지점 이전 레이아웃 전기공사",
+      "dir": "R26BK01755931-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755931&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "bb54106dd1f25ceed2f2a90ada760922e4f4e91f2d5cef3cec618d6c48053494",
+          "blocks": "bb54106dd1f25cee.blocks.json"
+        },
+        {
+          "name": "1.(공고문) 대학로지점 이전 레이아웃 전기공사.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755931&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "006c49bde2974cda10df8fd897f8aeb3eedc6af393eca502e0886a0f80d66d71",
+          "blocks": "006c49bde2974cda.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01755937",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "대학로지점 이전 레이아웃 설비공사",
+      "dir": "R26BK01755937-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755937&bidPbancOrd=000&fileType=&fileSeq=8&prcmBsneSeCd=07",
+          "source_file_sha256": "4dab5e603d3e6c0e687a9e2093d5dd946d0a1e2d23acd6439a387e83ac4667a6",
+          "blocks": "4dab5e603d3e6c0e.blocks.json"
+        },
+        {
+          "name": "1.(공고문) 대학로지점 이전 레이아웃 설비공사.pdf",
+          "document_order": 9,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755937&bidPbancOrd=000&fileType=&fileSeq=9&prcmBsneSeCd=07",
+          "source_file_sha256": "b899fb8df19843c806ffb33fbefd68185f6988330f538394a4849bb39f952951",
+          "blocks": "b899fb8df19843c8.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01755940",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "대학로지점 이전 레이아웃 통신공사",
+      "dir": "R26BK01755940-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWP5_BODYTEXT",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755940&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "fb80c1cee3e3d21583179b9a87afec974be6775704c25a11c2ded8b94ce2506e",
+          "blocks": "fb80c1cee3e3d215.blocks.json"
+        },
+        {
+          "name": "1.(공고문) 대학로지점 이전 레이아웃 통신공사.pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755940&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "837769aa027bc08c572a0d9570691b189e70683db69df4c2f055b84999938b4b",
+          "blocks": "837769aa027bc08c.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01756340",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "2026년 노후 상수관로 정비(천전리 195-2번지 일원) 구간 포장공사",
+      "dir": "R26BK01756340-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756340&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "67ad88a71619e30afe32cb3ae0b223deb80ee8687f32faa1cf4d3b6a5e71725f",
+          "blocks": "67ad88a71619e30a.blocks.json"
+        },
+        {
+          "name": "공고문(2026년 노후 상수관로 정비(천전리 195-2번지 일원) 구간 포장공사).pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756340&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "2a27d765c3f7d4b5dd93a46e7f2f29e821188faf9503ea0ec5a73fbb1a358192",
+          "blocks": "2a27d765c3f7d4b5.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01754648",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "서홍공영노외3주차장 조성공사",
+      "dir": "R26BK01754648-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754648&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "f55dab6df6ce5f64949d4984d3e5bb72815c01fae19ff05588979439b80a3dfc",
+          "blocks": "f55dab6df6ce5f64.blocks.json"
+        },
+        {
+          "name": "[수의견적제출안내공고].pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754648&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "d07bb24daac561c44e878eff67486690d35c011957be8ff9f33d3d7f4e64d8ea",
+          "blocks": "d07bb24daac561c4.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01754933",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "2026년 서귀포시 공영주차장(안덕,동홍,서홍) 유료화 조성공사(전기)",
+      "dir": "R26BK01754933-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754933&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "9ea915e7baa4ab6bd72d73c4c4dc1eab1b09d5069caae9101e7dac631325503e",
+          "blocks": "9ea915e7baa4ab6b.blocks.json"
+        },
+        {
+          "name": "[수의견적제출안내공고].pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01754933&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "877ad2e57ceb7c0dfd793dc6406d502afda6a5f723bf5ce2501585f7ee95bf4d",
+          "blocks": "877ad2e57ceb7c0d.blocks.json"
+        }
+      ]
+    },
+    {
+      "notice_no": "R26BK01755329",
+      "order": "000",
+      "business_type": "CONSTRUCTION",
+      "title": "2026년 서귀포시 공영주차장(안덕,동홍,서홍) 유료화 조성공사(통신)",
+      "dir": "R26BK01755329-000",
+      "documents": [
+        {
+          "name": "표준공고문",
+          "document_order": 0,
+          "extractor": "HWPX_XML",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755329&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=07",
+          "source_file_sha256": "941f3c7bcd075b7a024d2f7d412baed4bf7c6d24ab8418aeddf6e3fb9d37671c",
+          "blocks": "941f3c7bcd075b7a.blocks.json"
+        },
+        {
+          "name": "[수의견적제출안내공고].pdf",
+          "document_order": 2,
+          "extractor": "PYPDF",
+          "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755329&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=07",
+          "source_file_sha256": "2b963392f38bc736f41fd3d62b5500fd4997b74ab93e2f59fa33a7f99c07ddea",
+          "blocks": "2b963392f38bc736.blocks.json"
+        }
+      ]
+    }
+  ],
+  "changed": [],
+  "unselected": [
+    {
+      "kind": "registered",
+      "reason": "no_notice_document",
+      "notice_no": "R26BK01756241",
+      "business_type": "SERVICE",
+      "title": "「2026년 서울시립과학관 기관협력 특별전 「가장 긴, 시작」전시 운영 위탁용역」",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01756241-000",
+          "documents": [
+            {
+              "name": "5. 과업지시서.hwpx",
+              "document_order": 1,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756241&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "3977078f73d4b2543e4327d42f2736dde47393ee22db184306fba29acee323e9",
+              "blocks": "3977078f73d4b254.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "registered",
+      "reason": "no_notice_document",
+      "notice_no": "R26BK01755145",
+      "business_type": "SERVICE",
+      "title": "상용SW 제3자단가(유지관리)(VIXAI-SMART v4.0_인텔리빅스)",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01755145-000",
+          "documents": [
+            {
+              "name": "2. 유지관리 규격서.pdf",
+              "document_order": 5,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755145&bidPbancOrd=000&fileType=&fileSeq=5&prcmBsneSeCd=03",
+              "source_file_sha256": "81b251981ad81670eeea7df53bdfcfb402c297258a53123c25f8b2e1a64b058d",
+              "blocks": "81b251981ad81670.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "registered",
+      "reason": "no_notice_document",
+      "notice_no": "R26BK01755176",
+      "business_type": "SERVICE",
+      "title": "상용SW 제3자단가(커스터마이징)(VIXAI-SMART v4.0_인텔리빅스)",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01755176-000",
+          "documents": [
+            {
+              "name": "2. 커스터마이징상품 규격서.pdf",
+              "document_order": 1,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01755176&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "969cd30398a9801ce735a9207f48906df7cda1103aa4d952e79a6e8b91ce7291",
+              "blocks": "969cd30398a9801c.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "registered",
+      "reason": "no_documents",
+      "notice_no": "R26BK01752388",
+      "business_type": "SERVICE",
+      "title": "LCDC 플랫폼 앱 개발",
+      "versions": [
+        {
+          "order": "001",
+          "dir": null,
+          "documents": []
+        }
+      ]
+    },
+    {
+      "kind": "registered",
+      "reason": "no_documents",
+      "notice_no": "R26BK01756353",
+      "business_type": "SERVICE",
+      "title": "포스트타워 여의도 승강설비 14호기 및 3층 DSC 보수 용역",
+      "versions": [
+        {
+          "order": "000",
+          "dir": null,
+          "documents": []
+        }
+      ]
+    },
+    {
+      "kind": "registered",
+      "reason": "no_documents",
+      "notice_no": "R26BK01756097",
+      "business_type": "GOODS",
+      "title": "직원 안전화 구매",
+      "versions": [
+        {
+          "order": "000",
+          "dir": null,
+          "documents": []
+        }
+      ]
+    },
+    {
+      "kind": "registered",
+      "reason": "no_notice_document",
+      "notice_no": "R26BK01756238",
+      "business_type": "GOODS",
+      "title": "『AX시대의 신라 기와 연구, 어떻게 접근할 것인가』 한국고고학회 공동 학술 워크숍 발표 자료집 발간",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01756238-000",
+          "documents": [
+            {
+              "name": "과업내용서.hwpx",
+              "document_order": 1,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756238&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "025e7ff4893ddc2bd47257ed61a2a56b97900564a47d67ae911cd1ea613a9d29",
+              "blocks": "025e7ff4893ddc2b.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "registered",
+      "reason": "no_notice_document",
+      "notice_no": "R26BK01756245",
+      "business_type": "GOODS",
+      "title": "「경주 월성 해자 출토 목부재 조사 보고서 」 (가제)  발간",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01756245-000",
+          "documents": [
+            {
+              "name": "과업내용서.hwpx",
+              "document_order": 1,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01756245&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "b43b6be97a8d54dcc00424bef86ef61dd5643a869231f22644be9d53d2b8ad3f",
+              "blocks": "b43b6be97a8d54dc.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "registered",
+      "reason": "no_documents",
+      "notice_no": "R26BK01742733",
+      "business_type": "GOODS",
+      "title": "2026년 친환경농업기반구축사업 시설장비구입(지게차)",
+      "versions": [
+        {
+          "order": "001",
+          "dir": null,
+          "documents": []
+        }
+      ]
+    },
+    {
+      "kind": "registered",
+      "reason": "no_documents",
+      "notice_no": "R26BK01754230",
+      "business_type": "GOODS",
+      "title": "2026년 양천구 도로열선 설치사업(4권역)",
+      "versions": [
+        {
+          "order": "000",
+          "dir": null,
+          "documents": []
+        }
+      ]
+    },
+    {
+      "kind": "registered",
+      "reason": "no_documents",
+      "notice_no": "R26BK01756104",
+      "business_type": "CONSTRUCTION",
+      "title": "본관 화장실 탈의실 냉난방기 공사",
+      "versions": [
+        {
+          "order": "000",
+          "dir": null,
+          "documents": []
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01739028",
+      "business_type": "SERVICE",
+      "title": "2026 CAU 공학학술제 행사대행 용역 ",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01739028-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01739028&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=03",
+              "source_file_sha256": "be16f5ec8b37dea58fe67d3dc2dbd4aa211851029fdc44b2379bcefc7e7975bb",
+              "blocks": "be16f5ec8b37dea5.blocks.json"
+            },
+            {
+              "name": "#붙임1-2. 제안요청서_2026 CAU공학학술제.hwp",
+              "document_order": 2,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01739028&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=03",
+              "source_file_sha256": "bf62a90a827a042a01bfbf44646bc1b4d39560e74fbd4e3c4035f719decfd514",
+              "blocks": "bf62a90a827a042a.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01741346",
+      "business_type": "GOODS",
+      "title": "함현중 2027학년도 교복(동,하복,활동복(동계)) 학교주관구매 ",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01741346-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWP5_BODYTEXT",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01741346&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "62704dc1a7801f821fddb21e628410cf2d5552db8558c9cfadd35db2f9f98572",
+              "blocks": "62704dc1a7801f82.blocks.json"
+            },
+            {
+              "name": "2027학년도 함현중 교복 및 편한복 학교주관구매 규격가격분리 공고문★.pdf",
+              "document_order": 2,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01741346&bidPbancOrd=000&fileType=&fileSeq=2&prcmBsneSeCd=01",
+              "source_file_sha256": "60fcfc8c3903bd97e51b176d73a507703c97be0606ef985a1f87e8a1bd163e7d",
+              "blocks": "60fcfc8c3903bd97.blocks.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "changed",
+      "reason": "single_version",
+      "notice_no": "R26BK01740186",
+      "business_type": "GOODS",
+      "title": "(재공고)2027학년도 소담고등학교 교복(동복, 하복(생활복)) 학교주관구매 입찰 재공고",
+      "versions": [
+        {
+          "order": "000",
+          "dir": "R26BK01740186-000",
+          "documents": [
+            {
+              "name": "표준공고문",
+              "document_order": 0,
+              "extractor": "HWPX_XML",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01740186&bidPbancOrd=000&fileType=&fileSeq=1&prcmBsneSeCd=01",
+              "source_file_sha256": "3167d4f07f775f084bcb0cc9494d13edc14cd076d92a0cbd9a6c7ce264cc0b9f",
+              "blocks": "3167d4f07f775f08.blocks.json"
+            },
+            {
+              "name": "(재공고)2027학년도 소담고등학교 교복(동복, 하복(생활복)) 학교주관구매 입찰 재공고문.pdf",
+              "document_order": 3,
+              "extractor": "PYPDF",
+              "source_url": "https://www.g2b.go.kr/pn/pnp/pnpe/UntyAtchFile/downloadFile.do?bidPbancNo=R26BK01740186&bidPbancOrd=000&fileType=&fileSeq=3&prcmBsneSeCd=01",
+              "source_file_sha256": "70795e107721f21d186d8c236682400d8d6cbca63a3df37a5cf1a4621a849f16",
+              "blocks": "70795e107721f21d.blocks.json"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

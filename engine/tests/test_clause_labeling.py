@@ -149,4 +149,116 @@ def test_mode_is_taken_from_environment_when_not_given(monkeypatch):
     analyze_qualification_documents(doc, structured_extract=recorder)
     monkeypatch.setenv("BIDENGINE_EXTRACTION_MODE", "legacy")
     analyze_qualification_documents(doc, structured_extract=recorder)
-    assert calls == ["clause_labels", "eligibility_slots"]
+    # 공백 설명(gap_summary) 호출은 추출 방식과 무관하다 — 추출 호출만 본다.
+    assert [name for name in calls if name != "gap_summary"] == ["clause_labels", "eligibility_slots"]
+
+
+def test_labels_are_remembered_per_clause_and_reused():
+    """같은 조항은 같은 라벨. 두 번째 분석은 모델을 부르지 않고, 처음 받은 라벨을 쓴다."""
+    calls = []
+
+    def first(system, body, schema):
+        calls.append(body)
+        return fake_extractor(system, body, schema)
+
+    memory: dict = {}
+    once = extract_clause_slots([CHUNK], structured_extract=first, labeling_memory=memory)
+    assert len(calls) == 1
+
+    def different(system, body, schema):  # 다시 물으면 다른 답을 내는 모델
+        calls.append(body)
+        return {"clauses": [{"clause_id": "C003", "requirements": [_slot("인증요건", 등록인증_raw="소프트웨어사업")]}]}
+
+    again = extract_clause_slots([CHUNK], structured_extract=different, labeling_memory=memory)
+    assert len(calls) == 1
+    assert [(s["유형"], s["raw"]) for s in again["slots"]] == [(s["유형"], s["raw"]) for s in once["slots"]]
+    assert again["labels_reused"] == again["clause_count"]
+
+
+def test_only_new_clauses_are_asked():
+    memory: dict = {}
+    extract_clause_slots([CHUNK], structured_extract=fake_extractor, labeling_memory=memory)
+    changed = {**CHUNK, "text": SECTION.replace("서울특별시 또는 경기도", "부산광역시")}
+    asked = []
+
+    def model(system, body, schema):
+        asked.append(body)
+        return {"clauses": []}
+
+    extract_clause_slots([changed], structured_extract=model, labeling_memory=memory)
+    assert len(asked) == 1 and "부산광역시" in asked[0] and "업종코드: 1468" not in asked[0]
+
+
+def test_failed_call_is_not_remembered():
+    memory: dict = {}
+
+    def broken(system, body, schema):
+        raise RuntimeError("down")
+
+    result = extract_clause_slots([CHUNK], structured_extract=broken, labeling_memory=memory, max_retry=0)
+    assert result["status"] == "failed" and memory == {}
+
+
+def test_a_label_that_fails_validation_is_remembered_without_the_failed_slot():
+    """원문에 없는 문구를 적은 슬롯은 탈락한다. 답은 그 슬롯만 빼고 기억한다 — 기억하지 않으면 다음 분석에서 다시
+    물어 다른 답을 받게 되어 일관성이 깨진다(2026-10-07 luna 슬레이트 공고)."""
+    from bidengine.labeling.clause_labeling import clause_label_key
+
+    def invented(system, body, schema):
+        return {"clauses": [
+            {"clause_id": "C003", "requirements": [_slot("지역요건", 지역_raw="부산광역시")]},   # 원문에 없다
+            {"clause_id": "C004", "requirements": [_slot("기업규모요건", 기업규모_raw="대기업 및 중견기업")]},
+        ]}
+
+    memory: dict = {}
+    result = extract_clause_slots([CHUNK], structured_extract=invented, labeling_memory=memory)
+    clauses = {c.clause_id: c.text for c in enumerate_clauses([CHUNK])}
+    assert result["dropped_requirements"]
+    assert memory[clause_label_key(clauses["C003"])] == []          # 탈락한 슬롯은 빠지고 답은 기억된다
+    assert clause_label_key(clauses["C004"]) in memory
+
+    def other(system, body, schema):  # 다시 물으면 다른 답을 내는 모델
+        return {"clauses": [{"clause_id": "C003", "requirements": [_slot("기업규모요건", 기업규모_raw="중소기업")]}]}
+
+    again = extract_clause_slots([CHUNK], structured_extract=other, labeling_memory=memory)
+    assert [s["_clause_id"] for s in again["slots"]] == [s["_clause_id"] for s in result["slots"]]
+
+
+def test_memories_are_split_by_model_and_prompt_version():
+    """모델을 바꾸면 예전 모델의 답을 쓰지 않는다 — 기억은 '모델|프롬프트 판|' 이름공간으로 갈린다."""
+    from bidengine.pipeline.memory import namespaced
+
+    store: dict = {}
+    first = namespaced(store, "gpt-6-luna", "v1")
+    first["k"] = "POSITIVE"
+    assert "k" in first and "k" not in namespaced(store, "glm-5.3-flash", "v1")
+    assert "k" not in namespaced(store, "gpt-6-luna", "v2")
+    assert namespaced(store, None, "v1") is store
+
+
+def test_every_selected_clause_ends_in_exactly_one_visible_outcome():
+    """고른 조항은 요건·공백·이유가 보이는 제외 중 하나로 남는다. 흔적 없이 사라지는 조항이 없어야 한다."""
+    from bidengine.pipeline.analysis_result import clause_accounting
+
+    def partial_model(system, body, schema):
+        if schema is CLAUSE_SCHEMA:
+            # C004(규모)와 C005(지역)만 라벨을 붙이고 나머지는 빈다 — 모델이 요건 아님으로 본 조항이다.
+            return {"clauses": [
+                {"clause_id": "C004", "requirements": [_slot("기업규모요건", 기업규모_raw="대기업 및 중견기업")]},
+                {"clause_id": "C005", "requirements": [_slot("지역요건", 지역_raw="서울특별시 또는 경기도")]},
+            ]}
+        return {"clauses": []}
+
+    result = analyze_qualification_documents(
+        QualificationAnalysisInput(notice_id="n", notice_version_id="v",
+                                   documents=[QualificationDocumentInput(document_id="d", extracted_blocks=[{"block_index": 0, "text": SECTION}])]),
+        structured_extract=partial_model, extraction_mode="clause", polarity_guard=False, clause_selection="code",
+    )
+    from bidengine.pipeline.analysis_pipeline import _build_global_chunks
+
+    chunks = _build_global_chunks([QualificationDocumentInput(document_id="d", extracted_blocks=[{"block_index": 0, "text": SECTION}])],
+                                  max_chunk_chars=1800)
+    clauses = extract_clause_slots(chunks, structured_extract=partial_model)["clause_texts"]
+    assert len(clauses) >= 5
+    assert clause_accounting(clauses, result) == []
+    assert {gap.reason for gap in result.coverage.ignored} >= {"MODEL_NO_REQUIREMENT"}

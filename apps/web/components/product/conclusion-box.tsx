@@ -6,6 +6,8 @@ type ConclusionBoxProps = {
   satisfied: number;
   unknown: number;
   unsatisfied: number;
+  /** 종합 판정에 넣지 않고 사용자가 확인할 항목 수. 판정 전이면 undefined(칸을 그리지 않는다). */
+  checklist?: number;
   action?: ReactNode;
 };
 
@@ -15,6 +17,7 @@ export function ConclusionBox({
   satisfied,
   unknown,
   unsatisfied,
+  checklist,
   action,
 }: ConclusionBoxProps) {
   return (
@@ -38,6 +41,12 @@ export function ConclusionBox({
             <span className="block text-[12px] text-[var(--product-muted)]">미달</span>
             <strong className="mt-1 block text-[28px] text-rose-700">{unsatisfied}</strong>
           </div>
+          {checklist !== undefined && (
+            <div className="min-w-[88px] rounded-2xl border border-dashed border-[var(--product-line)] bg-white px-4 py-3 text-center">
+              <span className="block text-[12px] text-[var(--product-muted)]">확인할 항목</span>
+              <strong className="mt-1 block text-[28px] text-[var(--product-body)]">{checklist}</strong>
+            </div>
+          )}
           {action}
         </div>
       </div>

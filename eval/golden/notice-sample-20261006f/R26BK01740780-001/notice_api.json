@@ -1,0 +1,15 @@
+{
+ "notice_no": "R26BK01740780",
+ "order": "001",
+ "licenses": [],
+ "regions": [
+  "세종특별자치시"
+ ],
+ "flags": {
+  "prdctClsfcLmtYn": "Y",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "수의계약"
+ },
+ "errors": []
+}

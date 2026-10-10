@@ -14,7 +14,9 @@ from ..errors import ApiError
 from ..qualification.judgment import QualificationJudgmentError
 from ..revalidation_schemas import QualificationRevalidationRead
 from .actions import confirm_action
-from .chat import CopilotChatRequest, CopilotChatResponse, chat, route_intent
+from bidengine.providers.openai import OpenAIStructuredExtractor
+from .chat import CopilotChatRequest, CopilotChatResponse, DocumentSource, _action_control, chat, route_intent
+from .free_chat import CONSENT_ANSWER, answer_free_question, document_passages, load_briefing
 from .context import compact
 from .contracts import ConfirmAction
 from .document_qa import answer_grounded_document_question
@@ -102,6 +104,47 @@ def _sync_visible_targets(result: CopilotChatResponse) -> CopilotChatResponse:
     return result
 
 
+def is_free_chat(payload: CopilotChatRequest, guided, semantic_processing: bool = True) -> bool:
+    """입력창에 직접 쓴 질문인가. 버튼으로 고른 안내형 질문, 사용자 답변 입력, 저장·재검증 실행 요청은 기존 경로를 탄다.
+
+    '공고문 근거 답변' 만 켠 요청도 기존 경로다. 그 동의는 질문과 공개 공고문에만 미치므로, 회사 정보와 판정 결과가
+    들어가는 자유 대화 대신 공고문 전용 문서 QA 로 보낸다.
+    """
+    if not payload.free_chat or guided is not None or payload.user_input is not None:
+        return False
+    if payload.allow_external_processing and not semantic_processing:
+        return False
+    return _action_control(payload) not in {"answer", "revalidate", "cancel", "partial_scope"}
+
+
+def free_chat_response(db, payload: CopilotChatRequest, case, semantic_processing: bool, *, extractor=None) -> CopilotChatResponse:
+    """자유 대화 한 턴. 모델 호출은 사용자가 'AI 상세 설명 사용' 을 켰을 때만 한다."""
+    briefing, summary = load_briefing(db, case)
+    if not semantic_processing:
+        return CopilotChatResponse(answer=CONSENT_ANSWER, intent="UNKNOWN", product_state=summary)
+    provider = extractor or OpenAIStructuredExtractor()
+    passages = document_passages(db, case, payload.message) if payload.allow_external_processing else []
+    result = answer_free_question(
+        payload.message, briefing, history=payload.history, passages=[item.text for item in passages],
+        extractor=provider if getattr(provider, "available", True) else None,
+    )
+    used = result.status == "OK"
+    sources = [
+        DocumentSource(
+            ref=f"S{index}", document_id=item.metadata.document_id, document_name=item.metadata.document_name,
+            notice_version_id=item.metadata.notice_version_id, chunk_id=item.metadata.chunk_id,
+            clause_label=item.metadata.clause_label, page=item.metadata.page,
+            source_locations=list(item.metadata.source_locations), quote=item.text[:1200],
+        )
+        for index, item in enumerate(passages, start=1)
+    ] if used and result.scope == "CASE" else []
+    return CopilotChatResponse(
+        answer=result.answer, intent="UNKNOWN", product_state=summary, sources=sources,
+        external_processing_used=used,
+        external_processing_scope="PUBLIC_NOTICE_DOCUMENT" if used and passages else None,
+    )
+
+
 @router.post("/chat", response_model=CopilotChatResponse)
 def copilot_chat(
     payload: CopilotChatRequest,
@@ -114,6 +157,8 @@ def copilot_chat(
     if guided is not None:
         ensure_question_available(case, guided)
         payload = payload.model_copy(update={"message": guided.label})
+    if is_free_chat(payload, guided, semantic_processing):
+        return free_chat_response(db, payload, case, semantic_processing)
     if payload.response_version == '3.1':
         from .orchestration import chat_v31
         return chat_v31(db, payload, user, case, semantic_processing)

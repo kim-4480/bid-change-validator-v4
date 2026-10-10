@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import date
 
 from bidengine.contracts import QualificationRequirement
-from bidengine.judgment.rules import CompanyProfileSnapshot, judge_requirements
+from bidengine.judgment.rules import CompanyProfileSnapshot, judge_requirements, normalize_overall_status
 from bidengine.labeling.requirement_extraction import select_eligibility_chunks_with_mode
 from bidengine.pipeline.analysis_result import build_requirement_analysis_result
 
@@ -65,22 +65,37 @@ def test_eligible_requires_complete_coverage():
             analysis_status=result.status, coverage_complete=result.coverage.complete,
         ).overall_status
 
-    assert overall(complete) == "eligible"
-    assert overall(incomplete) == "insufficient_data"
+    assert overall(complete) == "core_met"
+    assert overall(incomplete) == "needs_review"
 
 
-def test_coverage_overrides_partial_status_but_absence_keeps_old_behaviour():
-    """PARTIAL 은 파이프라인 사정을 섞어 쓴다. 커버리지가 있으면 그것이 우선이다."""
+def test_partial_analysis_never_confirms_core_requirements():
+    """커버리지가 완전해 보여도 부분 완료 분석은 충족을 확정하지 않는다."""
     kwargs = dict(preflight_case_id="c", reference_date=date(2026, 9, 1), analysis_status="PARTIAL")
-    assert judge_requirements([REQ], SEOUL, **kwargs).overall_status == "insufficient_data"
-    assert judge_requirements([REQ], SEOUL, coverage_complete=True, **kwargs).overall_status == "eligible"
+    assert judge_requirements([REQ], SEOUL, **kwargs).overall_status == "needs_review"
+    assert judge_requirements([REQ], SEOUL, coverage_complete=True, **kwargs).overall_status == "needs_review"
 
 
 def test_ineligible_does_not_depend_on_coverage():
     busan = CompanyProfileSnapshot(company_id="c", region_name="부산광역시")
     result = judge_requirements([REQ], busan, preflight_case_id="c", reference_date=date(2026, 9, 1),
                                 coverage_complete=False)
-    assert result.overall_status == "ineligible"
+    assert result.overall_status == "core_unmet"
+
+
+def test_unverified_source_cannot_create_a_determinate_core_verdict():
+    for profile in (SEOUL, CompanyProfileSnapshot(company_id="c", region_name="부산광역시")):
+        result = judge_requirements(
+            [REQ], profile, preflight_case_id="c", reference_date=date(2026, 9, 1),
+            coverage_complete=True, grounded_requirement_keys=set(),
+        )
+        assert result.overall_status == "needs_review"
+        assert result.judgments[0].status == "UNKNOWN"
+
+
+def test_historical_participation_status_is_not_promoted_to_core_status():
+    assert {normalize_overall_status(status) for status in
+            ("eligible", "ineligible", "insufficient_data")} == {"needs_review"}
 
 
 def test_selection_mode_reports_how_the_section_was_found():
@@ -133,3 +148,41 @@ def test_same_unmapped_clause_counts_once():
     result = _result([clause, dict(clause, raw="건축(또는 토목건축)공사업  등록업체")])
     assert result.coverage.unrepresentable == 1
     assert len(result.coverage.gaps) == 1
+
+
+def test_documents_without_a_section_title_are_not_swept_by_keywords_when_the_model_selects():
+    """제안요청서 본문의 '인력'·'실적' 낱말 때문에 문서 3분의 1이 딸려 오던 문제(2026-10-10)."""
+    from bidengine.labeling.clause_labeling import select_clauses
+
+    def chunk(index, document, label, text):
+        return {"chunk_id": str(index), "document_id": document, "clause_label": label, "text": text,
+                "source_blocks": [{"document_id": document, "block_index": index}]}
+
+    chunks = [
+        chunk(0, "notice", "3.", "3. 입찰참가자격\n가. 전기공사업 등록업체"),
+        chunk(1, "notice", "4.", "4. 입찰 방법"),
+        chunk(2, "rfp", None, "□ 투입 인력은 상주 3명으로 한다"),
+        chunk(3, "rfp", None, "□ 유사 사업 실적을 제안서에 기술한다"),
+        chunk(4, "rfp", None, "□ 정보통신공사업 등록업체이어야 한다"),
+    ]
+    swept, mode = select_eligibility_chunks_with_mode(chunks)
+    assert mode == "anchored" and {c["chunk_id"] for c in swept} == {"0", "2", "3", "4"}
+    narrow, mode = select_eligibility_chunks_with_mode(chunks, unanchored_keyword_fallback=False)
+    assert mode == "anchored" and {c["chunk_id"] for c in narrow} == {"0"}
+    # 어느 문서에서도 제목을 못 찾았으면 키워드가 유일한 단서라 그대로 쓴다.
+    untitled = chunks[2:]
+    assert select_eligibility_chunks_with_mode(untitled, unanchored_keyword_fallback=False) == select_eligibility_chunks_with_mode(untitled)
+
+    def model(_system, body, _schema):
+        # 모델은 문서 전체의 조항을 보고 자격 조항만 고른다 — 제안요청서의 등록업체 조항.
+        blocks = [block.split(chr(10), 1) for block in body.split(chr(10) * 2)]
+        return {"clause_ids": [head.strip("[]") for head, text in blocks if "정보통신공사업" in text]}
+
+    kept, target, base, _note = select_clauses(chunks, structured_extract=model, clause_selection="hybrid", selection_memory={})
+    texts = [clause.text for clause in kept]
+    assert any("전기공사업" in text for text in texts) and any("정보통신공사업" in text for text in texts)
+    assert not any("투입 인력" in text or "유사 사업 실적" in text for text in texts)
+    assert base["selection_mode"] == "anchored"
+    # 코드만으로 고르는 방식은 예전 그대로다.
+    kept_code, *_ = select_clauses(chunks, structured_extract=model, clause_selection="code")
+    assert any("투입 인력" in clause.text for clause in kept_code)

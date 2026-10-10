@@ -43,6 +43,7 @@ from ..models import (
     IndustryCode,
     PreflightCase,
 )
+from ..qualification.analysis import qualification_analysis_version_fingerprint
 
 
 GOLDEN_CONTRACT_VERSION = "golden-v0.2-draft"
@@ -318,6 +319,7 @@ def _replace_analysis(
         target_chunk_ids=[],
         diagnostics=[{"code": "GOLDEN_DRAFT", "message": "독립 검토자 승인 전 골든셋 초안"}],
         dropped_requirements=[],
+        input_fingerprint=qualification_analysis_version_fingerprint(version),
     )
     db.add(run)
     db.flush()

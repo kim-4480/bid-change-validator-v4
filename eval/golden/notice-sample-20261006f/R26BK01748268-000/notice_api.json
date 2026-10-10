@@ -1,0 +1,50 @@
+{
+ "notice_no": "R26BK01748268",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "학술.연구용역",
+   "code": "1169",
+   "raw": {
+    "bidNtceNo": "R26BK01748268",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "학술.연구용역/1169",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:44:01",
+    "bsnsDivNm": "용역"
+   }
+  },
+  {
+   "group": "1",
+   "seq": "2",
+   "name": "해양조사정보업(수로측량업)",
+   "code": "5034",
+   "raw": {
+    "bidNtceNo": "R26BK01748268",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "2",
+    "lcnsLmtNm": "해양조사정보업(수로측량업)/5034",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:44:01",
+    "bsnsDivNm": "용역"
+   }
+  }
+ ],
+ "regions": [],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "prdctClsfcLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(전자)공동이행",
+  "cntrctCnclsMthdNm": "제한경쟁"
+ },
+ "errors": []
+}

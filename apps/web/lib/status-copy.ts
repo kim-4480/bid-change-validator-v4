@@ -75,19 +75,36 @@ export const ANALYSIS_STATUS_COPY: Record<
   },
 };
 
+/** 요건으로 정리하지 못한 조항의 종류 (엔진 gap_summary.CATEGORIES 와 같은 값). */
+export const GAP_CATEGORY_LABEL: Record<string, string> = {
+  LICENSE_PERMIT: '면허·허가·등록',
+  CERTIFICATION: '인증·확인서',
+  PERFORMANCE: '실적',
+  STAFF: '인력',
+  FACILITY_EQUIPMENT: '시설·장비',
+  PRODUCT_CONDITION: '납품 물품 조건',
+  INDUSTRY_ALTERNATIVE: '업종 대안·예외',
+  REGION_SIZE: '소재지·기업 규모',
+  CONDITIONAL: '조건부 자격',
+  BASIC_QUALIFICATION: '법령상 기본 자격·결격',
+  PROCEDURE: '입찰 절차',
+  DOCUMENT: '제출 서류',
+  OTHER: '기타',
+};
+
 /** 공고 전체 결론 */
 export const OVERALL_STATUS_COPY: Record<OverallStatus, { label: string; description: string }> = {
-  eligible: {
-    label: '참가 가능',
-    description: '현재 판정된 필수 항목에서 미달이 없습니다.',
+  core_met: {
+    label: '핵심 요건 충족',
+    description: '검증된 공고 근거와 회사 정보에서 핵심 요건을 충족했습니다. 법적 입찰 참가 가능을 보증하지 않으며 확인 항목은 직접 검토해야 합니다.',
   },
-  ineligible: {
-    label: '참가 불가',
-    description: '미달 항목이 있어 현재 상태로는 참가 자격을 충족하지 못합니다.',
+  core_unmet: {
+    label: '핵심 요건 미충족',
+    description: '근거가 확인된 핵심 요건 중 미충족 항목이 있습니다. 법적 입찰 참가 불가능을 확정하는 판정은 아닙니다.',
   },
-  insufficient_data: {
+  needs_review: {
     label: '확인 필요',
-    description: '회사 정보가 부족하거나 근거가 불충분한 항목을 확인해야 합니다.',
+    description: '회사 정보·공고 근거·문서 또는 분석 커버리지가 부족해 핵심 요건을 확정할 수 없습니다.',
   },
 };
 
@@ -98,9 +115,9 @@ export const OVERALL_STATUS_COPY: Record<OverallStatus, { label: string; descrip
  * 목록에는 아직 판정이 없는 행이 있어 'unreviewed'를 하나 더 둔다.
  */
 export const OVERALL_STATUS_BADGE: Record<OverallStatus | 'unreviewed', { label: string; className: string }> = {
-  eligible: { label: '참가 가능', className: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
-  insufficient_data: { label: '확인 필요', className: 'border-amber-200 bg-amber-50 text-amber-700' },
-  ineligible: { label: '참가 불가', className: 'border-rose-200 bg-rose-50 text-rose-700' },
+  core_met: { label: '핵심 요건 충족', className: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
+  needs_review: { label: '확인 필요', className: 'border-amber-200 bg-amber-50 text-amber-700' },
+  core_unmet: { label: '핵심 요건 미충족', className: 'border-rose-200 bg-rose-50 text-rose-700' },
   unreviewed: { label: '미검토', className: 'border-slate-200 bg-slate-50 text-slate-600' },
 };
 
@@ -169,6 +186,7 @@ export const BUSINESS_TYPE_LABEL: Record<string, string> = {
   GOODS: '물품',
   CONSTRUCTION: '공사',
   FOREIGN: '외자',
+  OTHER: '\uAE30\uD0C0',
 };
 
 /** 첨부 뷰어 타입. PDF · RHWP만 실제로 확인된 값. */

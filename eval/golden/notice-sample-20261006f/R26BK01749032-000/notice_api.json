@@ -1,0 +1,31 @@
+{
+ "notice_no": "R26BK01749032",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "총포판매업",
+   "code": "2757",
+   "raw": {
+    "bidNtceNo": "R26BK01749032",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "총포판매업/2757",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 16:09:05",
+    "bsnsDivNm": "물품"
+   }
+  }
+ ],
+ "regions": [],
+ "flags": {
+  "prdctClsfcLmtYn": "Y",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "수의계약"
+ },
+ "errors": []
+}

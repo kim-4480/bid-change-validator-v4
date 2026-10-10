@@ -1,0 +1,50 @@
+{
+ "notice_no": "R26BK01748921",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "소프트웨어사업자(패키지소프트웨어개발.공급사업)",
+   "code": "1426",
+   "raw": {
+    "bidNtceNo": "R26BK01748921",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "소프트웨어사업자(패키지소프트웨어개발.공급사업)/1426",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:42:42",
+    "bsnsDivNm": "용역"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "2",
+   "name": "소프트웨어사업자(컴퓨터관련서비스사업)",
+   "code": "1468",
+   "raw": {
+    "bidNtceNo": "R26BK01748921",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "2",
+    "lcnsLmtNm": "소프트웨어사업자(컴퓨터관련서비스사업)/1468",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:42:42",
+    "bsnsDivNm": "용역"
+   }
+  }
+ ],
+ "regions": [],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "prdctClsfcLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "제한경쟁"
+ },
+ "errors": []
+}

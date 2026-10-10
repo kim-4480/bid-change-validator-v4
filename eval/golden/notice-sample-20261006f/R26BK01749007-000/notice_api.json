@@ -1,0 +1,36 @@
+{
+ "notice_no": "R26BK01749007",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "도장ㆍ습식ㆍ방수ㆍ석공사업",
+   "code": "4992",
+   "raw": {
+    "bidNtceNo": "R26BK01749007",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "도장ㆍ습식ㆍ방수ㆍ석공사업/4992",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "[1^습식·방수공사]",
+    "rgstDt": "2026-09-29 16:07:43",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [
+  "경기도 시흥시"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "rgnLmtBidLocplcJdgmBssNm": "본사또는참여지사소재지",
+  "cntrctCnclsMthdNm": "수의계약",
+  "cnstrtsiteRgnNm": "경기도 시흥시"
+ },
+ "errors": []
+}

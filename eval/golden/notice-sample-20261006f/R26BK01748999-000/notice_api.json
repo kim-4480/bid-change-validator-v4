@@ -1,0 +1,33 @@
+{
+ "notice_no": "R26BK01748999",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "기타자유업(행사대행업)",
+   "code": "9901",
+   "raw": {
+    "bidNtceNo": "R26BK01748999",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "기타자유업(행사대행업)/9901",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:55:35",
+    "bsnsDivNm": "용역"
+   }
+  }
+ ],
+ "regions": [],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "prdctClsfcLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "제한경쟁"
+ },
+ "errors": []
+}

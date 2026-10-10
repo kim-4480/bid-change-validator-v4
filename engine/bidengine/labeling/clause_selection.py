@@ -46,6 +46,10 @@ SELECTION_SYSTEM_PROMPT = """너는 입찰공고 문서에서 참가자격 조�
 4. 원문은 쓰지 않는다. id 만 낸다. 참가자격 조항이 없으면 빈 배열."""
 
 
+# 조항 선택 프롬프트를 바꾸면 올린다(기억 열쇠 이름공간에 쓰인다).
+SELECTION_PROMPT_VERSION = "selection-v1"
+
+
 def selection_key(text: str) -> str:
     """같은 문장은 같은 열쇠다 — 공백과 줄바꿈 차이는 무시한다."""
     return hashlib.sha256("".join((text or "").split()).encode("utf-8")).hexdigest()[:24]

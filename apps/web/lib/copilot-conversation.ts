@@ -1,36 +1,41 @@
 import { apiFetch, ApiError } from './api';
+import { buildCopilotTransport, type CopilotTransportRequest } from './copilot-transport';
 import { validateEnvelope } from './copilot-v31';
-import type { CopilotChatRequest, CopilotChatResponse, CopilotIntent, ReplyContext } from './copilot-api';
+import type { CopilotChatResponse, CopilotIntent, ReplyContext } from './copilot-api';
 
-export type Turn = { id: number; question: string; response?: CopilotChatResponse };
+export type Turn = { id: number; question: string; response?: CopilotChatResponse; free?: boolean };
 export type Conversation = { turns: Turn[]; busy: boolean; error: string; errorCode: string; focus: string | null; revision: number; reply?: ReplyContext; conversationId?: string; serverRevision?: number; targetId?: string };
 const empty = (): Conversation => ({ turns: [], busy: false, error: '', errorCode: '', focus: null, revision: 0 });
-type ConversationRequest = CopilotChatRequest & { semantic_processing?: boolean; document_processing?: boolean };
+type ConversationRequest = CopilotTransportRequest;
 export type Transport = (request: ConversationRequest) => Promise<CopilotChatResponse>;
 export type GuidedSelection = { jobId: string; questionId: string };
 type FailedRead = { request: ConversationRequest; turnId: number };
 
 async function sendConversationMessage(request: ConversationRequest): Promise<CopilotChatResponse> {
-  const { semantic_processing, document_processing, ...payload } = request;
-  const body: CopilotChatRequest = document_processing ? {
-    ...payload,
-    public_document_question: payload.public_document_question ?? payload.message,
-    allow_external_processing: true,
-  } : payload;
-  const response = await apiFetch('/api/v1/copilot/chat', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(semantic_processing ? { 'X-Copilot-Semantic-Processing': 'true' } : {}),
-    },
-    body: JSON.stringify({ ...body, response_version: '3.1' }),
-  });
-  if (!response.ok) {
-    const responseBody = (await response.json().catch(() => null)) as { error?: { message?: string; code?: string } } | null;
-    throw new ApiError(responseBody?.error?.message ?? `요청에 실패했습니다. (${response.status})`,
-      response.status, responseBody?.error?.code ?? 'HTTP_ERROR');
+  const { body, headers } = buildCopilotTransport(request);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 70000);
+  try {
+    const response = await apiFetch('/api/v1/copilot/chat', {
+      method: 'POST',
+      signal: controller.signal,
+      headers,
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const responseBody = (await response.json().catch(() => null)) as { error?: { message?: string; code?: string } } | null;
+      throw new ApiError(responseBody?.error?.message ?? `요청에 실패했습니다. (${response.status})`,
+        response.status, responseBody?.error?.code ?? 'HTTP_ERROR');
+    }
+    return response.json() as Promise<CopilotChatResponse>;
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new ApiError('AI 응답 시간이 초과됐습니다. 잠시 후 다시 시도해 주세요.', 0, 'COPILOT_TIMEOUT');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
   }
-  return response.json() as Promise<CopilotChatResponse>;
 }
 
 function canonical(value: unknown): string {
@@ -203,11 +208,14 @@ export class ConversationStore {
     semanticProcessing = false,
     documentProcessing = false,
     guided?: GuidedSelection,
+    freeChat = false,
   ) {
     const old = this.get(caseId);
     if (!caseId || old.busy || !question.trim()) return;
     const revision = old.revision + 1;
-    this.update(caseId, { revision, busy: true, error: '', errorCode: '', turns: [...old.turns, { id: revision, question }] });
+    // 입력창에 직접 쓴 질문만 자유 대화다. 버튼(안내형 질문, 요건 근거 보기)은 기존 경로를 탄다.
+    const free = freeChat && !intent && !guided;
+    this.update(caseId, { revision, busy: true, error: '', errorCode: '', turns: [...old.turns, { id: revision, question, free }] });
 
     if (!intent && isCopilotHelpQuestion(question)) {
       const response = localHelpResponse(revision, old.reply);
@@ -218,7 +226,11 @@ export class ConversationStore {
     }
 
     const request: ConversationRequest = {
-        case_id: caseId, message: question, intent: intent ?? inferE1Intent(question),
+        case_id: caseId, message: question, intent: free ? undefined : intent ?? inferE1Intent(question),
+        free_chat: free || undefined,
+        // 앞선 자유 대화 네 턴. 서버는 문맥으로만 쓰고, 사실은 매번 저장된 판정에서 다시 읽는다.
+        history: free ? old.turns.filter(turn => turn.free && turn.response?.answer).slice(-4)
+          .map(turn => ({ question: turn.question, answer: turn.response!.answer })) : undefined,
         job_id: guided?.jobId, question_id: guided?.questionId,
         conversation_id: old.conversationId, context_revision: old.serverRevision, target_id: old.targetId,
         requirement_key: hasOrdinalReference(question) ? undefined : old.focus,

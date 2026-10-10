@@ -29,8 +29,10 @@ from typing import Any
 
 from bidengine.labeling.requirement_extraction import StructuredExtractor
 
-POLARITIES = ("POSITIVE", "EXCLUSION", "EXCEPTION", "NOT_REQUIREMENT", "UNSURE")
+POLARITIES = ("POSITIVE", "EXCLUSION", "EXCEPTION", "NOT_REQUIREMENT", "EVALUATION", "UNSURE")
 POLARITY_KEY = "_clause_polarity"
+# 극성 프롬프트·값 목록을 바꾸면 올린다. 기억 열쇠에 섞여 예전 답을 새 규칙의 답으로 쓰지 않는다.
+POLARITY_PROMPT_VERSION = "polarity-v2"
 MAX_BODY_CHARS = 24_000
 
 POLARITY_SCHEMA: dict[str, Any] = {
@@ -61,8 +63,11 @@ POLARITY_SYSTEM_PROMPT = """너는 입찰공고 조항이 입찰 참가 업체�
 - POSITIVE: 업체가 갖추어야 하는 자격·조건을 정한 조항이다. 문장 안의 '또는'·'다만'·괄호가 주소를 확인하는 서류, 기간, 대상 범위를 설명할 뿐이면 POSITIVE 다. 인정되는 대안을 나열하는 것("A 또는 B 를 등록한 자")도 POSITIVE 다.
 - EXCLUSION: 해당하는 업체는 참가할 수 없다고 정한 조항이다(참여 제한, 참가 불가, 제외).
 - EXCEPTION: 단서나 예외 때문에 일부 업체에는 그 요건이 적용되지 않거나 다른 것으로 갈음되는 조항이다.
-- NOT_REQUIREMENT: 업체의 자격을 정한 것이 아니다. 절차·일정·제출 서류 안내, 평가에 반영한다는 설명, 납품할 물품이나 장비가 갖출 조건, 증명서의 유효기간 안내가 여기에 든다.
+- EVALUATION: 참가 자격이 아니라 점수를 매기는 기준이다. 제안서·기술능력 평가, 적격심사, 계약이행능력심사의 배점·평점·가점·감점 항목과 그 대상(실적, 인증, 인력, 신용등급)이 여기에 든다. 갖추지 못해도 입찰에는 참가할 수 있다. 조항이 놓인 위치(평가, 심사, 배점 같은 절)를 보고 판단한다.
+- NOT_REQUIREMENT: 업체의 자격을 정한 것이 아니다. 절차·일정·제출 서류 안내, 납품할 물품이나 장비가 갖출 조건, 증명서의 유효기간 안내, 계약 후 과업을 수행할 때 지켜야 할 조건(투입 인력의 자격·경력·상주, 보고, 납품 방법)이 여기에 든다.
 - UNSURE: 위 중 어느 것인지 분명하지 않다.
+
+각 조항에는 그 조항이 놓인 절의 제목 경로(위치)가 함께 주어진다. 같은 문장도 참가자격 절에 있으면 요건이고, 평가 기준이나 과업 내용 절에 있으면 요건이 아니다.
 
 규칙:
 1. 받은 clause_id 를 그대로 쓴다. 없는 id 를 만들지 마라.
@@ -92,10 +97,11 @@ def attach_clause_polarity(
         raw = (slot.get("raw") or "").strip()
         if not raw:
             continue
-        key = clause_key(raw)
+        section = (slot.get("_section_path") or "").strip()
+        key = clause_key(f"{section}\n{raw}" if section else raw)
         if key in known:
             continue
-        entry = pending.setdefault(key, {"text": raw, "types": []})
+        entry = pending.setdefault(key, {"text": raw, "types": [], "section": section})
         slot_type = str(slot.get("유형") or "")
         if slot_type and slot_type not in entry["types"]:
             entry["types"].append(slot_type)
@@ -110,7 +116,7 @@ def attach_clause_polarity(
             return
         ids = {f"P{index:03d}": key for index, (key, _entry) in enumerate(batch, start=1)}
         body = "\n\n".join(
-            f"[{clause_id}] 요건 유형: {', '.join(entry['types']) or '미상'}\n{entry['text']}"
+            f"[{clause_id}] 위치: {entry['section'] or '알 수 없음'} | 요건 유형: {', '.join(entry['types']) or '미상'}\n{entry['text']}"
             for clause_id, (_key, entry) in zip(ids, batch)
         )
         answers: dict[str, str] = {}
@@ -146,7 +152,8 @@ def attach_clause_polarity(
         raw = (slot.get("raw") or "").strip()
         if not raw:
             continue
-        polarity = known.get(clause_key(raw), "UNSURE")
+        section = (slot.get("_section_path") or "").strip()
+        polarity = known.get(clause_key(f"{section}\n{raw}" if section else raw), "UNSURE")
         slot[POLARITY_KEY] = polarity
         counts[polarity] = counts.get(polarity, 0) + 1
     return {"asked": asked, "unanswered": failed, "polarity_counts": counts}
