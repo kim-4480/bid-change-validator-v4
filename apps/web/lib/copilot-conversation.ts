@@ -3,7 +3,7 @@ import { buildCopilotTransport, type CopilotTransportRequest } from './copilot-t
 import { validateEnvelope } from './copilot-v31';
 import type { CopilotChatResponse, CopilotIntent, ReplyContext } from './copilot-api';
 
-export type Turn = { id: number; question: string; response?: CopilotChatResponse };
+export type Turn = { id: number; question: string; response?: CopilotChatResponse; free?: boolean };
 export type Conversation = { turns: Turn[]; busy: boolean; error: string; errorCode: string; focus: string | null; revision: number; reply?: ReplyContext; conversationId?: string; serverRevision?: number; targetId?: string };
 const empty = (): Conversation => ({ turns: [], busy: false, error: '', errorCode: '', focus: null, revision: 0 });
 type ConversationRequest = CopilotTransportRequest;
@@ -208,11 +208,14 @@ export class ConversationStore {
     semanticProcessing = false,
     documentProcessing = false,
     guided?: GuidedSelection,
+    freeChat = false,
   ) {
     const old = this.get(caseId);
     if (!caseId || old.busy || !question.trim()) return;
     const revision = old.revision + 1;
-    this.update(caseId, { revision, busy: true, error: '', errorCode: '', turns: [...old.turns, { id: revision, question }] });
+    // 입력창에 직접 쓴 질문만 자유 대화다. 버튼(안내형 질문, 요건 근거 보기)은 기존 경로를 탄다.
+    const free = freeChat && !intent && !guided;
+    this.update(caseId, { revision, busy: true, error: '', errorCode: '', turns: [...old.turns, { id: revision, question, free }] });
 
     if (!intent && isCopilotHelpQuestion(question)) {
       const response = localHelpResponse(revision, old.reply);
@@ -223,7 +226,11 @@ export class ConversationStore {
     }
 
     const request: ConversationRequest = {
-        case_id: caseId, message: question, intent: intent ?? inferE1Intent(question),
+        case_id: caseId, message: question, intent: free ? undefined : intent ?? inferE1Intent(question),
+        free_chat: free || undefined,
+        // 앞선 자유 대화 네 턴. 서버는 문맥으로만 쓰고, 사실은 매번 저장된 판정에서 다시 읽는다.
+        history: free ? old.turns.filter(turn => turn.free && turn.response?.answer).slice(-4)
+          .map(turn => ({ question: turn.question, answer: turn.response!.answer })) : undefined,
         job_id: guided?.jobId, question_id: guided?.questionId,
         conversation_id: old.conversationId, context_revision: old.serverRevision, target_id: old.targetId,
         requirement_key: hasOrdinalReference(question) ? undefined : old.focus,

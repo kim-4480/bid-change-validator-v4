@@ -91,6 +91,10 @@ export type CopilotChatRequest = {
   /** Only this separate public question is eligible for external embedding, with explicit opt-in. */
   public_document_question?: string | null;
   allow_external_processing?: boolean;
+  /** 입력창에 직접 쓴 질문. 서버가 저장된 판정을 근거로 자유롭게 답한다(app/copilot/free_chat.py). */
+  free_chat?: boolean;
+  /** 자유 대화의 앞선 턴. 문맥으로만 쓰인다. */
+  history?: { question: string; answer: string }[];
 };
 
 export type GuidedQuestion = {

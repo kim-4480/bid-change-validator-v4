@@ -17,7 +17,7 @@ from ..models import PreflightCase
 from ..qualification.judgment import QualificationJudgmentError
 from .actions import ChangedNoticeResult, get_changed_notice, propose_answer
 from .contracts import (
-    ActionInput, ActionProposal, JudgmentProfileResult, QualificationSummary,
+    ActionInput, ActionProposal, FreeChatTurn, JudgmentProfileResult, QualificationSummary,
     RequiredChecksResult, RequirementEvidenceResult, RevalidationProposal,
 )
 from .product_tools import (
@@ -50,6 +50,10 @@ class CopilotChatRequest(BaseModel):
     target_id: str | None = Field(default=None, max_length=100)
     job_id: str | None = Field(default=None, min_length=1, max_length=80)
     question_id: str | None = Field(default=None, min_length=1, max_length=80)
+    # 사용자가 입력창에 직접 쓴 질문. 저장된 판정을 평문 한 장으로 만들어 모델에 한 번 묻는다(free_chat.py).
+    # 버튼(안내형 질문, 요건 근거 보기)과 실행 요청은 이 경로를 타지 않는다.
+    free_chat: StrictBool = False
+    history: list[FreeChatTurn] = Field(default_factory=list, max_length=8)
 
 
 class ProductSource(BaseModel):
