@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ChevronDown, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CopilotNavigationLink } from './navigation-link';
@@ -67,11 +67,40 @@ function PanelHeader({ caseId, close }: { caseId: string; close: () => void }) {
   </header>;
 }
 
+const consentKey = (kind: 'semantic' | 'document') => `bidcheck.copilot.consent.${kind}`;
+const consentListeners = new Set<() => void>();
+// 저장소를 못 쓰는 브라우저에서도 이번 방문 동안은 고른 값이 유지되게 한다.
+const consentMemory = new Map<string, boolean>();
+
+function readConsent(kind: 'semantic' | 'document') {
+  const key = consentKey(kind);
+  if (consentMemory.has(key)) return consentMemory.get(key)!;
+  try { return window.localStorage.getItem(key) === 'true'; } catch { return false; }
+}
+
+function subscribeConsent(listener: () => void) {
+  consentListeners.add(listener);
+  window.addEventListener('storage', listener);
+  return () => { consentListeners.delete(listener); window.removeEventListener('storage', listener); };
+}
+
+/** 동의 체크박스 값. 처음에는 꺼져 있고, 사용자가 바꾼 값만 이 브라우저에 남긴다. */
+function useRememberedConsent(kind: 'semantic' | 'document') {
+  const value = useSyncExternalStore(subscribeConsent, () => readConsent(kind), () => false);
+  const update = (next: boolean) => {
+    consentMemory.set(consentKey(kind), next);
+    try { window.localStorage.setItem(consentKey(kind), String(next)); } catch { /* 저장소 차단 — 이번 방문에만 유지 */ }
+    consentListeners.forEach(listener => listener());
+  };
+  return [value, update] as const;
+}
+
 function PanelBody({ caseId, page }: { caseId: string; page: typeof pages[keyof typeof pages] }) {
   const { store, state } = useCopilot(caseId);
   const [question, setQuestion] = useState('');
-  const [semanticProcessing, setSemanticProcessing] = useState(false);
-  const [documentProcessing, setDocumentProcessing] = useState(false);
+  // AI 처리 동의는 사용자가 직접 켠다. 한 번 고른 값은 이 브라우저에 기억해, 패널을 열 때마다 다시 켜지 않아도 된다.
+  const [semanticProcessing, setSemanticProcessing] = useRememberedConsent('semantic');
+  const [documentProcessing, setDocumentProcessing] = useRememberedConsent('document');
   const [jobsOpen, setJobsOpen] = useState({ page, open: true });
   const [catalogState, setCatalogState] = useState<{ caseId: string; catalog: GuidedJobCatalog | null; error: string }>({ caseId: '', catalog: null, error: '' });
   const end = useRef<HTMLDivElement>(null);
