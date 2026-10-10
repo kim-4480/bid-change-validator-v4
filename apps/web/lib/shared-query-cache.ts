@@ -25,9 +25,9 @@ export function sharedRead<T>(path: string, network: () => Promise<T>): Promise<
 export function cachedGet<T>(path: string): T | undefined {
   return sharedQueryClient().getQueryData<T>(queryKeyForGet(path));
 }
-// Only stable, scoped read endpoints. Analysis, jobs and polling always hit the server.
+// Cache safe metadata and immutable judgment snapshots, not live analyses, jobs, or polling.
 export function mayCacheGet(path: string) {
-  return /^\/api\/v1\/(?:companies(?:\?.*)?|notices(?:\?.*)?|preflight-cases(?:\?.*)?|master-codes\/industries(?:\?.*)?)$/.test(path);
+  return /^\/api\/v1\/(?:companies(?:\?.*)?|notices(?:\?.*)?|notices\/[^/?]+(?:\/versions)?|preflight-cases(?:\?.*)?|preflight-cases\/[^/?]+|qualification-judgment-runs\/[^/?]+|master-codes\/industries(?:\?.*)?)$/.test(path);
 }
 export function clearSharedData() {
   if (typeof window !== 'undefined') sharedQueryClient().clear();

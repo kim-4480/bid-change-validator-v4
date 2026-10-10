@@ -24,6 +24,8 @@ import {
 
 const CURRENT_QUALIFICATION_RULE_VERSION = 'qualification-rules-v0.3';
 
+export type CaseWorkspaceHeader = { caseItem: PreflightCase; notice: BidNoticeDetail; versions: BidNoticeVersion[] };
+
 export type CaseWorkspace = {
   caseItem: PreflightCase;
   notice: BidNoticeDetail;
@@ -39,31 +41,34 @@ export type CaseWorkspace = {
   questions: QualificationQuestion[];
 };
 
-export async function loadCaseWorkspace(caseId: string): Promise<CaseWorkspace> {
+export async function loadCaseWorkspace(caseId: string, onHeader?: (header: CaseWorkspaceHeader) => void): Promise<CaseWorkspace> {
   const caseItem = await getPreflightCase(caseId);
-  const [notice, versions, companies, currentAnalyses, baselineAnalyses, judgmentSummaries] =
-    await Promise.all([
-      getNotice(caseItem.notice_id),
-      getNoticeVersions(caseItem.notice_id),
-      listCompanies(),
-      listQualificationAnalyses(caseItem.notice_id, caseItem.current_version_number),
-      caseItem.baseline_version_number
-        ? listQualificationAnalyses(caseItem.notice_id, caseItem.baseline_version_number)
-        : Promise.resolve([]),
-      listQualificationJudgments(caseItem.id),
-    ]);
-
-  const currentAnalysis = currentAnalyses.find((item) => !item.is_stale) ?? null;
-  const baselineAnalysis = baselineAnalyses.find((item) => !item.is_stale) ?? null;
-  const baselineVersionId = versions.find(
-    (item) => item.version_number === caseItem.baseline_version_number,
-  )?.id;
-  const currentVersionId = versions.find(
-    (item) => item.version_number === caseItem.current_version_number,
-  )?.id;
+  // Start secondary reads immediately, but only wait for notice metadata before showing the case header.
+  const noticePromise = getNotice(caseItem.notice_id);
+  const versionsPromise = getNoticeVersions(caseItem.notice_id);
+  const companiesPromise = listCompanies();
+  const currentAnalysesPromise = listQualificationAnalyses(caseItem.notice_id, caseItem.current_version_number);
+  const baselineAnalysesPromise = caseItem.baseline_version_number
+    ? listQualificationAnalyses(caseItem.notice_id, caseItem.baseline_version_number)
+    : Promise.resolve([]);
+  const judgmentSummariesPromise = listQualificationJudgments(caseItem.id);
+  const supportingData = Promise.all([
+    companiesPromise, currentAnalysesPromise, baselineAnalysesPromise, judgmentSummariesPromise,
+  ]);
+  // Prevent early background failures from becoming unhandled while the header is loading.
+  void supportingData.catch(() => {});
+  const [notice, versions] = await Promise.all([noticePromise, versionsPromise]);
+  const baselineVersionId = versions.find((item) => item.version_number === caseItem.baseline_version_number)?.id;
+  const currentVersionId = versions.find((item) => item.version_number === caseItem.current_version_number)?.id;
   if (!currentVersionId || (caseItem.baseline_version_number && !baselineVersionId)) {
     throw new Error('검토 건에 지정된 공고 차수를 찾을 수 없습니다.');
   }
+  // Never expose an unverified version or a provisional judgment as a completed decision.
+  onHeader?.({ caseItem, notice, versions });
+  const [companies, currentAnalyses, baselineAnalyses, judgmentSummaries] = await supportingData;
+
+  const currentAnalysis = currentAnalyses.find((item) => !item.is_stale) ?? null;
+  const baselineAnalysis = baselineAnalyses.find((item) => !item.is_stale) ?? null;
   const baselineSummary = baselineVersionId
     ? judgmentSummaries.find((item) => judgmentMatchesAnalysis(item, baselineAnalysis, caseItem.company_id))
     : null;

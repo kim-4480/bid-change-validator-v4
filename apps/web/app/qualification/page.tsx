@@ -196,6 +196,7 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
     return () => window.cancelAnimationFrame(frame);
   }, [selectedEvidenceKey]);
   const [busy, setBusy] = useState<Busy>('load');
+  const [detailsPending, setDetailsPending] = useState(Boolean(requestedCaseId));
   const [reviewStep, setReviewStep] = useState<ReviewStep>('idle');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -265,7 +266,17 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
 
   const initialize = useCallback(async () => {
     async function hydrateCase(caseId: string, request: number) {
-      const workspace = await loadCaseWorkspace(caseId);
+      const workspace = await loadCaseWorkspace(caseId, ({ caseItem, notice, versions: headerVersions }) => {
+        if (request !== generation.current) return;
+        setCaseNoticeState({ noticeId: caseItem.notice_id, notice });
+        setActiveCase(caseItem);
+        setCases((previous) => previous.some((item) => item.id === caseItem.id) ? previous : [caseItem, ...previous]);
+        setNoticeId(caseItem.notice_id);
+        setCompanyId(caseItem.company_id ?? '');
+        setVersions(headerVersions);
+        setDetailsPending(true);
+        setBusy(null);
+      });
       if (request !== generation.current) return;
       // Case ID가 있는 진입에서는 검토 상세만으로 첫 화면을 그릴 수 있다.
       // 전체 공고/Case 목록을 기다리지 않고 현재 항목을 먼저 넣어 로딩 화면을 끝낸다.
@@ -288,6 +299,7 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
       setQuestions(workspace.questions);
       setReviewStep(workspace.displayJudgment ? 'done' : 'idle');
       setSelectedEvidenceKey(null);
+      setDetailsPending(false);
     }
 
     generation.current += 1;
@@ -300,32 +312,33 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
     setMessage('');
     setMessageTone('ok');
     setBusy('load');
+    setDetailsPending(Boolean(requestedCaseId));
     setError('');
     try {
       const targetCase = requestedCaseId;
       if (targetCase) {
-        // 공고 100건과 Case 드롭다운 자료는 보조 데이터다. 검토 상세와 동시에 요청하되
-        // 첫 화면 렌더링을 막지 않고 도착하는 대로 갱신한다.
-        const supportingData = Promise.allSettled([listNotices(), listPreflightCases()]);
+        // Case dropdown is secondary; neither the 100-notice list nor this dropdown blocks the case header.
+        void listPreflightCases().then((result) => {
+          if (request === generation.current) setCases(result.items);
+        }).catch(() => { /* Current case stays usable if the dropdown request fails. */ });
         await hydrateCase(targetCase, request);
-        void supportingData.then(([noticeResult, caseResult]) => {
-          if (request !== generation.current) return;
-          if (noticeResult.status === 'fulfilled') setNotices(noticeResult.value.items);
-          if (caseResult.status === 'fulfilled') setCases(caseResult.value.items);
-        });
         return;
       }
-      const [noticeResult, companyResult, caseResult] = await Promise.all([listNotices(), listCompanies(), listPreflightCases()]);
+      // On navigation, identify the latest case before requesting notices or company creation options.
+      const caseResult = await listPreflightCases();
+      if (request !== generation.current) return;
+      setCases(caseResult.items);
+      if (caseResult.items[0]) {
+        router.replace(`/qualification?caseId=${encodeURIComponent(caseResult.items[0].id)}`);
+        return;
+      }
+      // Fetch the creation form's options only when the user has no case to open.
+      const [noticeResult, companyResult] = await Promise.all([listNotices(), listCompanies()]);
       if (request !== generation.current) return;
       setNotices(noticeResult.items);
       setCompanies(companyResult);
-      setCases(caseResult.items);
       setNoticeId(noticeResult.items[0]?.id ?? '');
       setCompanyId(companyResult[0]?.id ?? '');
-      if (caseResult.items[0]) {
-        // 로그인한 회사에 허용된 가장 최근 Case로 바로 진입한다.
-        router.replace(`/qualification?caseId=${encodeURIComponent(caseResult.items[0].id)}`);
-      }
     } catch (cause) {
       if (request === generation.current) setError(cause instanceof Error ? cause.message : '초기 데이터를 불러오지 못했습니다.');
     } finally {
@@ -760,7 +773,7 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
       return <QualificationRow key={requirement.requirement_key} status={status} basisType={judgment?.basis_type ?? 'NONE'} condition={`${labelOf(REQUIREMENT_TYPE_LABEL, requirement.type)} · ${requirement.raw}`} companyValue={companyValueText} evidenceLabel={evidenceLabel} actionLabel={actionable ? (askable ? '확인하기' : '원문 확인') : judgment ? null : '판정 필요'} onEvidence={requirement.evidence_keys[0] ? () => revealEvidence(requirement.evidence_keys[0]) : undefined} onAction={actionable ? () => { router.push(askable ? `/ask-back?caseId=${activeCaseId}` : evidenceHref); } : undefined} />;
   };
 
-  if (busy === 'load' || (requestedCaseId && activeCase?.id !== requestedCaseId && !error)) return <main className="app-shell-container py-12" aria-label="???? ?? ?? ?? ?">
+  if (busy === 'load' || (!requestedCaseId && cases.length > 0 && !activeCase) || (requestedCaseId && activeCase?.id !== requestedCaseId && !error)) return <main className="app-shell-container py-12" aria-label="???? ?? ?? ?? ?">
     {requestedCaseId && <ActionCard caseId={requestedCaseId} />}
     <output className="block space-y-5" aria-label="?? ???? ???? ????">
       <div className="h-10 w-64 animate-pulse rounded-xl bg-slate-200" />
@@ -777,6 +790,34 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
     <NavigationLink href="/notices" className="ml-4 underline">공고 찾기</NavigationLink>
   </main>;
 
+  // Display verified notice metadata immediately; never render a provisional decision.
+  const caseHeader = activeCase ? (
+      <section className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
+        <div className="min-w-0"><div className="flex flex-wrap gap-2"><Badge variant="outline">현재 v{activeCase.current_version_number}</Badge>{activeCase.baseline_version_number && <Badge variant="secondary">기준 v{activeCase.baseline_version_number}</Badge>}{analysisDetail?.status && <Badge variant="outline">{analysisBadgeLabel(analysisDetail.status)}</Badge>}</div><h2 className="mt-4 text-[28px] font-extrabold leading-10 tracking-[-0.035em] text-[var(--product-ink)]">{caseNotice?.title ?? activeCase.notice_title}</h2><p className="mt-2 text-[15px] text-[var(--product-muted)]">공고번호 {activeCase.bid_notice_no} · {caseNotice?.announcing_institution_name ?? caseNotice?.demanding_institution_name ?? (caseNoticeSettled ? '공고기관 정보를 불러오지 못했습니다' : '공고기관 확인 중')}</p></div>
+        {/* 검토 건 이동은 화면 맨 아래 카드에 있어서 아무도 못 찾았다. 제목 옆으로 올린다. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <NativeSelect aria-label="다른 검토 건으로 이동" className="w-full sm:w-[300px]" value={activeCase.id} onChange={(event) => router.push(`/qualification?caseId=${encodeURIComponent(event.target.value)}`)}>{cases.map((item) => <NativeSelectOption key={item.id} value={item.id}>{item.bid_notice_no} · {item.title}</NativeSelectOption>)}</NativeSelect>
+          <Button variant="outline" onClick={() => void initialize()} disabled={busy !== null}><RefreshCw /> 새로고침</Button>
+          <NavigationLink href="/notices" className={buttonVariants({ variant: 'outline' })}>공고 목록</NavigationLink>
+        </div>
+      </section>
+
+  ) : null;
+  if (activeCase && (detailsPending || error)) return (
+    <main className="bg-white text-[var(--product-body)]">
+      <div className="app-shell-container py-10">
+        {error && <div role="alert" className="mb-6 rounded-[14px] border border-rose-200 bg-rose-50 px-4 py-3 text-[15px] text-rose-700">{error}<Button variant="outline" className="ml-3" onClick={() => void initialize()}>다시 시도</Button></div>}
+        {caseHeader}
+        <CaseTabs caseId={activeCase.id} active="qualification" />
+        <output className="mt-6 block space-y-4" aria-label="검토 상세 불러오는 중">
+          <p className="text-[14px] text-[var(--product-muted)]">자격요건과 판정 결과를 불러오고 있습니다.</p>
+          <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />
+          <div className="h-32 animate-pulse rounded-2xl bg-slate-100" />
+        </output>
+      </div>
+    </main>
+  );
+
   return (
     <main className="bg-white text-[var(--product-body)]">
       <div className="app-shell-container py-10">
@@ -792,16 +833,7 @@ function QualificationWorkspace({ requestedCaseId }: { requestedCaseId: string |
         ) : (
           <>
             {/* ── 1 공고 · 검토 건 ── */}
-            <section className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
-              <div className="min-w-0"><div className="flex flex-wrap gap-2"><Badge variant="outline">현재 v{activeCase.current_version_number}</Badge>{activeCase.baseline_version_number && <Badge variant="secondary">기준 v{activeCase.baseline_version_number}</Badge>}{analysisDetail?.status && <Badge variant="outline">{analysisBadgeLabel(analysisDetail.status)}</Badge>}</div><h2 className="mt-4 text-[28px] font-extrabold leading-10 tracking-[-0.035em] text-[var(--product-ink)]">{caseNotice?.title ?? activeCase.notice_title}</h2><p className="mt-2 text-[15px] text-[var(--product-muted)]">공고번호 {activeCase.bid_notice_no} · {caseNotice?.announcing_institution_name ?? caseNotice?.demanding_institution_name ?? (caseNoticeSettled ? '공고기관 정보를 불러오지 못했습니다' : '공고기관 확인 중')}</p></div>
-              {/* 검토 건 이동은 화면 맨 아래 카드에 있어서 아무도 못 찾았다. 제목 옆으로 올린다. */}
-              <div className="flex flex-wrap items-center gap-2">
-                <NativeSelect aria-label="다른 검토 건으로 이동" className="w-full sm:w-[300px]" value={activeCase.id} onChange={(event) => router.push(`/qualification?caseId=${encodeURIComponent(event.target.value)}`)}>{cases.map((item) => <NativeSelectOption key={item.id} value={item.id}>{item.bid_notice_no} · {item.title}</NativeSelectOption>)}</NativeSelect>
-                <Button variant="outline" onClick={() => void initialize()} disabled={busy !== null}><RefreshCw /> 새로고침</Button>
-                <NavigationLink href="/notices" className={buttonVariants({ variant: 'outline' })}>공고 목록</NavigationLink>
-              </div>
-            </section>
-
+            {caseHeader}
             <CaseTabs caseId={activeCase.id} active="qualification" />
 
             {/* ── 1-1 어느 차수 기준으로 보는가 ── */}
