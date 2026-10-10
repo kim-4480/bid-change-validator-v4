@@ -1,10 +1,11 @@
-"""PR 변경 파일을 영역별로 묶고, 두 영역 이상이면 실패한다.
+"""PR 변경 파일을 영역별로 묶어 알려 준다. 실패시키지 않는다.
 
-`cross-zone` 라벨이 붙은 PR은 경고만 남긴다. 영역 정의는 ADR 0001과 CODEOWNERS를 따른다.
+2026-10-08부터 여러 영역을 함께 바꾸는 PR을 막지 않는다. 업무 분담이 영역별로 딱 나뉘어 있지 않고, 겹치는 코드는
+PR이 병합된 뒤 각자 pull 받아 맞추는 방식으로 협업하기 때문이다. 리뷰어가 어느 영역을 봐야 하는지 알 수 있게
+영역별 변경 파일 수는 계속 출력한다. 영역 정의는 ADR 0001과 CODEOWNERS를 따른다.
 """
 from __future__ import annotations
 
-import os
 import sys
 
 # (경로 접두사, 영역). 먼저 일치하는 규칙이 이긴다. None은 어느 영역에도 속하지 않는 공용 파일.
@@ -43,14 +44,11 @@ def main(changed_file: str) -> int:
         for f in files[:10]:
             print(f"  {f}")
     if len(by_zone) <= 1:
-        print("OK: 단일 영역 PR")
+        print("단일 영역 PR")
         return 0
-    message = f"영역 {len(by_zone)}개를 동시에 변경: {', '.join(sorted(by_zone))}"
-    if os.environ.get("ALLOW_CROSS_ZONE") == "true":
-        print(f"::warning::{message} (cross-zone 라벨로 허용)")
-        return 0
-    print(f"::error::{message}. 계약 PR과 영역별 구현 PR로 나누거나, 합의 후 cross-zone 라벨을 붙이세요.")
-    return 1
+    zones = ", ".join(f"{zone} {len(files)}개" for zone, files in sorted(by_zone.items()))
+    print(f"::notice::여러 영역을 함께 변경합니다: {zones}. 해당 영역 담당자도 리뷰해 주세요.")
+    return 0
 
 
 if __name__ == "__main__":
