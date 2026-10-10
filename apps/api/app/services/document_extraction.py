@@ -474,6 +474,12 @@ def extract_document(
         return _extract_pdf(source)
     if signature.startswith(b"\xd0\xcf\x11\xe0"):
         return _extract_hwp(source)
+    # Some G2B downloads contain HWPML XML bytes under a .hwpx name.
+    # Identify the actual XML payload before the ZIP-by-extension fallback.
+    if suffix in {".hwp", ".hwpx", ".hml"} and signature.lstrip(
+        b"\xef\xbb\xbf \t\r\n"
+    ).lower().startswith((b"<?xml", b"<hwpml")):
+        return _extract_hwpml(source)
     if signature.startswith(b"PK") or suffix in {".hwpx", ".docx"}:
         try:
             with ZipFile(source) as archive:
