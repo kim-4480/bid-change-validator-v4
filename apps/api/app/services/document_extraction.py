@@ -234,6 +234,78 @@ def _extract_hwpx(source: BinaryIO) -> ExtractionResult:
                     continue
                 if any(_local_name(child.tag) == "encryption-data" for child in entry):
                     raise UnsupportedDocumentError("encrypted HWPX section is not supported")
+        # Automatic numbering is defined in header.xml, not inline text nodes.
+        numbering_rules = {}
+        paragraph_rules = {}
+        header_name = next((n for n in archive.namelist() if n.casefold() == "contents/header.xml"), None)
+        if header_name:
+            header_root = ElementTree.fromstring(archive.read(header_name))
+            for node in header_root.iter():
+                name = _local_name(node.tag)
+                if name == "numbering":
+                    rules = {}
+                    for head in node:
+                        if _local_name(head.tag) == "paraHead":
+                            try:
+                                level = int(head.get("level", "0"))
+                                initial = int(head.get("start", "1"))
+                            except ValueError:
+                                continue
+                            rules[level] = (head.text or "", head.get("numFormat", "DIGIT"), initial)
+                    numbering_rules[node.get("id", "")] = rules
+                elif name == "paraPr":
+                    heading = next((child for child in node if _local_name(child.tag) == "heading"), None)
+                    if heading is not None and heading.get("type", "").upper() == "NUMBER":
+                        try:
+                            paragraph_rules[node.get("id", "")] = (heading.get("idRef", ""), int(heading.get("level", "0")))
+                        except ValueError:
+                            pass
+        counters = {}
+
+        def numbering_label(paragraph: ElementTree.Element) -> str:
+            rule = paragraph_rules.get(paragraph.get("paraPrIDRef", ""))
+            if not rule:
+                return ""
+            numbering_id, raw_level = rule
+            levels = numbering_rules.get(numbering_id, {})
+            level = raw_level + 1 if raw_level + 1 in levels else raw_level
+            if level not in levels:
+                return ""
+            template, fmt, initial = levels[level]
+            if not re.search(r"\^[1-9]", template):
+                return ""
+            key = (numbering_id, level)
+            counters[key] = counters.get(key, initial - 1) + 1
+            for other in list(counters):
+                if other[0] == numbering_id and other[1] > level:
+                    del counters[other]
+            def number_text(value: int, form: str) -> str | None:
+                if form == "DIGIT":
+                    return str(value)
+                if form == "HANGUL_SYLLABLE":
+                    chars = "가나다라마바사아자차카타파하"
+                    return chars[value - 1] if 1 <= value <= len(chars) else None
+                if form in ("LATIN_CAPITAL", "LATIN_SMALL"):
+                    if not 1 <= value <= 26:
+                        return None
+                    return chr((65 if form == "LATIN_CAPITAL" else 97) + value - 1)
+                if form == "CIRCLED_DIGIT" and 1 <= value <= 20:
+                    return chr(0x2460 + value - 1)
+                return None
+            def substitute(match: re.Match[str]) -> str:
+                depth = int(match.group(1))
+                if depth not in levels:
+                    raise ValueError("missing numbering level")
+                previous = counters.get((numbering_id, depth), levels[depth][2])
+                result = number_text(previous, levels[depth][1])
+                if result is None:
+                    raise ValueError("unsupported number format")
+                return result
+            try:
+                return re.sub(r"\^([1-9])", substitute, template).strip()
+            except ValueError:
+                return ""
+
         blocks: list[dict[str, Any]] = []
         for section_index, section_name in enumerate(section_names):
             root = ElementTree.fromstring(archive.read(section_name))
@@ -247,13 +319,32 @@ def _extract_hwpx(source: BinaryIO) -> ExtractionResult:
                     parent = parents.get(parent)
                 return None
 
+            def text_node_value(node: ElementTree.Element) -> str:
+                parts = [node.text or ""]
+                for child in node:
+                    kind = _local_name(child.tag).lower()
+                    if kind in {"linebreak", "br"}:
+                        parts.append("\n")
+                    elif kind == "tab":
+                        parts.append("\t")
+                    elif kind in {"hyphen", "hypen"}:
+                        parts.append("-")
+                    elif kind in {"nbspace", "fwspace"}:
+                        parts.append(" ")
+                    else:
+                        parts.append(text_node_value(child))
+                    parts.append(child.tail or "")
+                return "".join(parts)
+
             def paragraph_text(paragraph: ElementTree.Element) -> str:
-                return "".join(
-                    child.text or ""
+                content = "".join(
+                    text_node_value(child)
                     for child in paragraph.iter()
                     if _local_name(child.tag) == "t"
                     and nearest_ancestor(child, "p") is paragraph
                 )
+                label = numbering_label(paragraph)
+                return f"{label} {content}".strip() if label and not content.lstrip().startswith(label) else content
 
             row_indices = {
                 row: index
@@ -280,14 +371,30 @@ def _extract_hwpx(source: BinaryIO) -> ExtractionResult:
                         and nearest_ancestor(item, "tr") is row
                     ]
                     cell_texts = []
-                    for table_cell in cells:
+                    cell_metadata = []
+                    for cell_ordinal, table_cell in enumerate(cells):
                         paragraphs = [
                             paragraph_text(item)
                             for item in table_cell.iter()
                             if _local_name(item.tag) == "p"
                             and nearest_ancestor(item, "tc") is table_cell
                         ]
-                        cell_texts.append(" / ".join(text for text in paragraphs if text.strip()))
+                        value = " / ".join(text for text in paragraphs if text.strip())
+                        cell_texts.append(value)
+                        addr = next((n for n in table_cell if _local_name(n.tag) == "cellAddr"), None)
+                        span = next((n for n in table_cell if _local_name(n.tag) == "cellSpan"), None)
+                        def cell_int(node: ElementTree.Element | None, attr: str, default: int) -> int:
+                            try:
+                                return int(node.get(attr, str(default))) if node is not None else default
+                            except ValueError:
+                                return default
+                        cell_metadata.append({
+                            "row": cell_int(addr, "rowAddr", row_indices[row] - 1),
+                            "col": cell_int(addr, "colAddr", cell_ordinal),
+                            "row_span": cell_int(span, "rowSpan", 1),
+                            "col_span": cell_int(span, "colSpan", 1),
+                            "text": value,
+                        })
                     text = " | ".join(cell_texts)
                     location = f"section {section_index + 1} · table row {row_indices[row]}"
                 else:
@@ -299,6 +406,7 @@ def _extract_hwpx(source: BinaryIO) -> ExtractionResult:
                         "paragraph_index": paragraph_index,
                         "location": location,
                         "text": text,
+                        **({"kind": "table_row", "cells": cell_metadata} if row is not None and cell is not None else {"kind": "paragraph"}),
                     }
                 )
                 paragraph_index += 1

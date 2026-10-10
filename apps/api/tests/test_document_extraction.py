@@ -237,3 +237,44 @@ def test_encrypted_unrelated_hwpx_entry_does_not_hide_plain_section() -> None:
 
     assert result.extractor == "HWPX_XML"
     assert result.text == "Readable"
+
+
+def test_hwpx_auto_numbering_and_merged_cell_coordinates() -> None:
+    source = BytesIO()
+    header = """<head><refList>
+    <numberings><numbering id="3">
+      <paraHead level="1" start="1" numFormat="DIGIT">^1.</paraHead>
+      <paraHead level="2" start="1" numFormat="HANGUL_SYLLABLE">^2.</paraHead>
+    </numbering></numberings>
+    <paraProperties>
+      <paraPr id="10"><heading type="NUMBER" idRef="3" level="0"/></paraPr>
+      <paraPr id="11"><heading type="NUMBER" idRef="3" level="1"/></paraPr>
+    </paraProperties></refList></head>"""
+    section = """<section>
+    <p paraPrIDRef="10"><run><t>참가자격</t></run></p>
+    <p paraPrIDRef="11"><run><t>중소기업</t></run></p>
+    <p paraPrIDRef="11"><run><t>실적</t></run></p>
+    <p paraPrIDRef="10"><run><t>제출서류</t></run></p>
+    <p><run><tbl>
+      <tr>
+        <tc><cellAddr rowAddr="0" colAddr="0"/><cellSpan rowSpan="2" colSpan="1"/><p><t>구분</t></p></tc>
+        <tc><cellAddr rowAddr="0" colAddr="1"/><p><t>세부사항</t></p></tc>
+      </tr>
+      <tr><tc><cellAddr rowAddr="1" colAddr="1"/><p><t>2년 이상</t></p></tc></tr>
+    </tbl></run></p>
+    </section>"""
+    with ZipFile(source, "w") as archive:
+        archive.writestr("Contents/header.xml", header)
+        archive.writestr("Contents/section0.xml", section)
+
+    result = extract_document(source, filename="공고.hwpx", content_type=None)
+    assert [b["text"] for b in result.blocks] == [
+        "1. 참가자격", "가. 중소기업", "나. 실적", "2. 제출서류",
+        "구분 | 세부사항", "2년 이상",
+    ]
+    row = result.blocks[4]
+    assert row["kind"] == "table_row"
+    assert row["cells"][0] == {
+        "row": 0, "col": 0, "row_span": 2, "col_span": 1, "text": "구분",
+    }
+    assert result.blocks[5]["cells"][0]["col"] == 1
