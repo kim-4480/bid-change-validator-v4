@@ -165,6 +165,8 @@ export type AnalysisCoverage = {
   /** 공동수급·하도급 허용 여부처럼 회사 자격이 아닌 입찰 방식 안내. */
   notes: CoverageGap[];
   gaps: CoverageGap[];
+  /** 엔진이 요건이 아니라고 걸러 낸 조항(제목, 평가 항목, 공통 결격, 사업 설명 등). 사용자가 확인할 것이 아니다. */
+  ignored?: CoverageGap[];
 };
 
 /** VERDICT: 종합 판정에 쓰는 핵심 자격(업종코드·소재지·규모·품명번호). CHECKLIST: 사용자가 확인할 항목. */

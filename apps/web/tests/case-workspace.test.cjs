@@ -7,7 +7,7 @@ const path = require('node:path');
 const ts = require('typescript');
 const vm = require('node:vm');
 
-function workspaceModule({ stale = false, noCurrent = false, missingVersion = false, ruleVersion = 'qualification-rules-v0.3', mixedRules = false, slowDetail = false } = {}) {
+function workspaceModule({ stale = false, noCurrent = false, missingVersion = false, ruleVersion = 'qualification-rules-v0.4-core-requirements', mixedRules = false, slowDetail = false } = {}) {
   const calls = [];
   let releaseDetail;
   const detailGate = slowDetail ? new Promise((resolve) => { releaseDetail = resolve; }) : Promise.resolve();
@@ -55,7 +55,7 @@ test('mixed previous/current rule summaries select the current rule judgment', a
   const workspaceApi = workspaceModule({ mixedRules: true });
   const w = await workspaceApi.loadCaseWorkspace('case');
   assert.equal(w.displayJudgment.id, 'j2');
-  assert.equal(w.displayJudgment.rule_version, 'qualification-rules-v0.3');
+  assert.equal(w.displayJudgment.rule_version, 'qualification-rules-v0.4-core-requirements');
   assert.deepEqual(workspaceApi.calls, ['j2']);
 });
 
@@ -64,7 +64,7 @@ test('summary matching skips previous rule results before selecting a judgment',
   const analysis = { id: 'a2', notice_version_id: 'v2', status: 'SUCCEEDED' };
   const base = { analysis_run_id: 'a2', notice_version_id: 'v2', company_id: 'company' };
   assert.equal(workspaceApi.judgmentMatchesAnalysis({ ...base, rule_version: 'qualification-rules-v0.2' }, analysis, 'company'), false);
-  assert.equal(workspaceApi.judgmentMatchesAnalysis({ ...base, rule_version: 'qualification-rules-v0.3' }, analysis, 'company'), true);
+  assert.equal(workspaceApi.judgmentMatchesAnalysis({ ...base, rule_version: 'qualification-rules-v0.4-core-requirements' }, analysis, 'company'), true);
 });
 
 test('reanalysis or missing current judgment never falls back to a baseline/old result', async () => {
