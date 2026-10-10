@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from bidengine.judgment.askability import build_semantic_question, classify_askability
 from bidengine.contracts import Judgment
 from bidengine.judgment.rules import RULE_VERSION, derive_overall_status
+from .analysis import no_restriction_stated
 from ..models import PreflightCase
 from ..ask_back_models import QualificationAnswer
 from ..ask_back_schemas import QualificationAnswerCreate, QualificationAnswerRead, QualificationQuestionRead
@@ -206,7 +207,7 @@ def answer_and_rejudge(
                 )
             )
 
-    overall = derive_overall_status(analysis.requirements, judgments, analysis_status=analysis.status, coverage_complete=analysis.verdict_complete)
+    overall = derive_overall_status(analysis.requirements, judgments, analysis_status=analysis.status, coverage_complete=analysis.verdict_complete, no_restriction_stated=no_restriction_stated(analysis))
     result_run = QualificationJudgmentRun(
         preflight_case_id=source.preflight_case_id,
         analysis_run_id=source.analysis_run_id,

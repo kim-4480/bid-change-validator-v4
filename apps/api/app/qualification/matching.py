@@ -14,6 +14,7 @@ from sqlalchemy import exists, func, select, tuple_
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from bidengine.judgment.rules import judge_requirements
+from .analysis import no_restriction_stated
 from ..analysis_models import QualificationAnalysisRun
 from ..judgment_models import CompanyQualificationProfileCompleteness
 from ..matching_schemas import NoticeMatchRead, NoticeMatchSearchResponse
@@ -118,7 +119,7 @@ def match_cached_notices(
             preflight_case_id=f"MATCH:{company_id}:{notice.id}",
             reference_date=ref_date,
             analysis_status=run.status,
-            coverage_complete=analysis.verdict_complete,
+            coverage_complete=analysis.verdict_complete, no_restriction_stated=no_restriction_stated(analysis),
             grounded_requirement_keys=grounded_keys_for_analysis(run, analysis),
         )
         overall = evaluation.overall_status
