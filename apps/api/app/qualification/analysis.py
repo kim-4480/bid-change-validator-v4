@@ -27,6 +27,7 @@ from ..analysis_models import (
 )
 from ..analysis_schemas import QualificationAnalysisRunRead, QualificationAnalysisRunSummary
 from ..models import BidNoticeVersion, NoticeDocument
+from ..services.participation_limits import LimitsFetcher, engine_notice_limits, ensure_participation_limits
 from .answer_memory import DbAnswerMemory, DbIndustryNameResolver
 
 
@@ -233,10 +234,14 @@ def run_qualification_analysis(
     version_number: int,
     structured_extract: StructuredExtractor,
     commit: bool = True,
+    limits_fetcher: LimitsFetcher | None = None,
 ) -> QualificationAnalysisRun:
     version = _load_notice_version(
         db, notice_id=notice_id, version_number=version_number
     )
+    # 나라장터가 구조화해 둔 면허제한·참가가능지역 — 문서 옆의 두 번째 근거다. 저장된 값이 없으면 한 번 받아 둔다.
+    # 조회 함수를 넘기지 않았거나 조회가 실패하면 문서만으로 분석한다.
+    notice_limits = engine_notice_limits(version, ensure_participation_limits(db, version, limits_fetcher))
     analysis_input = build_qualification_analysis_input(version)
     input_fingerprint = qualification_analysis_input_fingerprint(analysis_input)
     # 같은 조항은 같은 답 — 조항 라벨·극성·조항 선택의 첫 답을 DB 에 두고 다시 묻지 않는다. 모델이 temperature 를
@@ -252,6 +257,7 @@ def run_qualification_analysis(
         gap_summary_memory=DbAnswerMemory(db, "gap_summary"),
         # 기억은 모델별로 갈린다 — 모델을 바꾸면 예전 모델의 답을 쓰지 않는다.
         memory_namespace=getattr(structured_extract, "model", None) or type(structured_extract).__name__,
+        notice_limits=notice_limits,
     )
     return _persist_result(
         db,

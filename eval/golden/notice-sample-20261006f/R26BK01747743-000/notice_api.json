@@ -1,0 +1,35 @@
+{
+ "notice_no": "R26BK01747743",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "전기공사업",
+   "code": "0037",
+   "raw": {
+    "bidNtceNo": "R26BK01747743",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "전기공사업/0037",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:36:58",
+    "bsnsDivNm": "공사"
+   }
+  }
+ ],
+ "regions": [
+  "경기도"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "제한경쟁",
+  "cnstrtsiteRgnNm": "경기도 포천시"
+ },
+ "errors": []
+}

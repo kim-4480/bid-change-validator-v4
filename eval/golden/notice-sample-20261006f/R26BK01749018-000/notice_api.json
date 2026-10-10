@@ -1,0 +1,16 @@
+{
+ "notice_no": "R26BK01749018",
+ "order": "000",
+ "licenses": [],
+ "regions": [
+  "울산광역시",
+  "경상남도"
+ ],
+ "flags": {
+  "prdctClsfcLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "제한경쟁"
+ },
+ "errors": []
+}

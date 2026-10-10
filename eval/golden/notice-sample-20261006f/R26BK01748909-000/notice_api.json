@@ -1,0 +1,33 @@
+{
+ "notice_no": "R26BK01748909",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "의약품판매업(의약품도매상)",
+   "code": "5307",
+   "raw": {
+    "bidNtceNo": "R26BK01748909",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "의약품판매업(의약품도매상)/5307",
+    "permsnIndstrytyList": "[약국/5332]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:57:13",
+    "bsnsDivNm": "물품"
+   }
+  }
+ ],
+ "regions": [
+  "서울특별시"
+ ],
+ "flags": {
+  "prdctClsfcLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "제한경쟁"
+ },
+ "errors": []
+}

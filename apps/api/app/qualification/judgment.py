@@ -33,6 +33,7 @@ from .analysis import (
     load_qualification_analysis_run,
 )
 from .impact_adapter import current_grounded_requirement_keys
+from ..services.participation_limits import notice_api_grounded_keys
 
 
 class QualificationJudgmentError(ValueError):
@@ -49,10 +50,14 @@ def grounded_keys_for_analysis(run: QualificationAnalysisRun, analysis) -> set[s
     notice_version = getattr(run, "notice_version", None)
     if notice_version is None:
         return set()
-    return current_grounded_requirement_keys(
+    grounded = current_grounded_requirement_keys(
         analysis.requirements, analysis.evidence,
         build_qualification_analysis_input(notice_version).documents,
         notice_version_id=str(run.notice_version_id),
+    )
+    # 나라장터 면허제한·참가가능지역에서 온 요건은 인용할 문서가 없다. 저장된 조회 값에 그 값이 지금도 있으면 근거가 있다.
+    return grounded | notice_api_grounded_keys(
+        analysis.requirements, getattr(notice_version, "participation_limits", None),
     )
 
 

@@ -1,0 +1,70 @@
+{
+ "notice_no": "R26BK01748176",
+ "order": "000",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "건설폐기물 중간처리업",
+   "code": "1253",
+   "raw": {
+    "bidNtceNo": "R26BK01748176",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "건설폐기물 중간처리업/1253",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:47:58",
+    "bsnsDivNm": "용역"
+   }
+  },
+  {
+   "group": "2",
+   "seq": "3",
+   "name": "건설폐기물 중간처리업",
+   "code": "1253",
+   "raw": {
+    "bidNtceNo": "R26BK01748176",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "2",
+    "lmtSno": "3",
+    "lcnsLmtNm": "건설폐기물 중간처리업/1253",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:47:58",
+    "bsnsDivNm": "용역"
+   }
+  },
+  {
+   "group": "1",
+   "seq": "2",
+   "name": "건설폐기물 수집·운반업",
+   "code": "6728",
+   "raw": {
+    "bidNtceNo": "R26BK01748176",
+    "bidNtceOrd": "000",
+    "lmtGrpNo": "1",
+    "lmtSno": "2",
+    "lcnsLmtNm": "건설폐기물 수집·운반업/6728",
+    "permsnIndstrytyList": "[건설폐기물 중간처리업/1253]",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:47:58",
+    "bsnsDivNm": "용역"
+   }
+  }
+ ],
+ "regions": [
+  "전북특별자치도 고창군"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "prdctClsfcLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "rgnLmtBidLocplcJdgmBssNm": "본사또는참여지사소재지",
+  "cntrctCnclsMthdNm": "수의계약"
+ },
+ "errors": []
+}

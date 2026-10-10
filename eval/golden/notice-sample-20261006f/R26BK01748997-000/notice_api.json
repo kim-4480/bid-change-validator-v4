@@ -1,0 +1,15 @@
+{
+ "notice_no": "R26BK01748997",
+ "order": "000",
+ "licenses": [],
+ "regions": [],
+ "flags": {
+  "indstrytyLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "수의계약",
+  "cnstrtsiteRgnNm": "인천광역시 강화군"
+ },
+ "errors": []
+}

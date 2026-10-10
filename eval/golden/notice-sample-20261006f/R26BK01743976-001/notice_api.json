@@ -1,0 +1,35 @@
+{
+ "notice_no": "R26BK01743976",
+ "order": "001",
+ "licenses": [
+  {
+   "group": "1",
+   "seq": "1",
+   "name": "건설재해예방 전문지도기관",
+   "code": "5612",
+   "raw": {
+    "bidNtceNo": "R26BK01743976",
+    "bidNtceOrd": "001",
+    "lmtGrpNo": "1",
+    "lmtSno": "1",
+    "lcnsLmtNm": "건설재해예방 전문지도기관/5612",
+    "permsnIndstrytyList": "",
+    "indstrytyMfrcFldList": "",
+    "rgstDt": "2026-09-29 15:43:17",
+    "bsnsDivNm": "용역"
+   }
+  }
+ ],
+ "regions": [
+  "부산광역시"
+ ],
+ "flags": {
+  "indstrytyLmtYn": "Y",
+  "prdctClsfcLmtYn": "N",
+  "bidPrtcptLmtYn": "N",
+  "cmmnSpldmdCorpRgnLmtYn": "N",
+  "cmmnSpldmdMethdNm": "(없음)공동수급불허",
+  "cntrctCnclsMthdNm": "수의계약"
+ },
+ "errors": []
+}

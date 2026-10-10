@@ -20,8 +20,7 @@ from pydantic import BaseModel, Field
 
 from bidengine.contracts import Judgment, QualificationRequirement
 from bidengine.judgment.clause_safety import GUARD_REASON_EXCEPTION, is_guard_assessed, unsafe_clause_reason
-from bidengine.normalization.region_vocab import SIGUNGU_PARENTS
-from bidengine.normalization.regions import SIDO_CANONICAL, SIDO_MERGED_INTO, find_regions, region_name_relation
+from bidengine.normalization.regions import region_name_relation, sidos_of
 
 
 RULE_VERSION = "qualification-rules-v0.4-core-requirements"
@@ -594,6 +593,22 @@ def _judge_industry(
         ),
         None,
     )
+    held = {_norm(item.code) for item in profile.industries}
+    accepted_by = requirement.scope.get("accepted_by") or {}
+
+    def covered(code: object) -> bool:
+        """그 업종을 갖고 있거나, 그 업종을 포함하는 면허(포함 면허)를 갖고 있다."""
+        return _norm(code) in held or any(_norm(parent) in held for parent in accepted_by.get(str(code), []))
+
+    if match is None:
+        # 토목건축공사업을 가진 회사는 건축공사업 요건을 충족한다(나라장터 업종 마스터의 포함 면허).
+        match = next(
+            (item for item in profile.industries if _norm(item.code) in {_norm(p) for p in accepted_by.get(str(requirement.value), [])}),
+            None,
+        )
+    if match is not None and not all(covered(code) for code in requirement.scope.get("with_codes") or []):
+        # 나라장터 면허제한의 한 묶음 — 묶음 안의 면허를 모두 가져야 한다. 하나라도 없으면 이 묶음은 안 맞는다.
+        match = None
     if match is not None:
         return _judgment(
             requirement=requirement,
@@ -615,12 +630,6 @@ def _judge_industry(
         # 확정하면 자격 있는 회사가 부적합이 된다(2026-10-06 가상 회사 시험의 틀린 미달 대부분).
         return _vocabulary_unknown(
             requirement, preflight_case_id, [("industry", "name", item.name) for item in profile.industries]
-        )
-    if requirement.scope.get("evidence") == "family":
-        # 공고에 이 코드도 정확한 업종명도 적혀 있지 않다 — 묶음 이름("폐기물수집·운반업")에서 추론한 코드다. 추론이
-        # 틀리면 자격 있는 회사가 부적합이 되므로 미달로 확정하지 않는다(2026-10-08, 부적합은 명시된 값으로만).
-        return _vocabulary_unknown(
-            requirement, preflight_case_id, [("industry", "code", item.code) for item in profile.industries]
         )
     general = [item for item in profile.industries if _norm(item.code) in _GENERAL_CONSTRUCTION_CODES]
     if requirement.scope.get("general_contractor_allowed") and general:
@@ -1001,7 +1010,20 @@ def judge_requirement(
     if exception_alternative:
         base = _judge_by_type(requirement, profile, preflight_case_id, reference_date)
         return base if base.status == "SATISFIED" else _unknown(requirement, preflight_case_id)
-    return _judge_by_type(requirement, profile, preflight_case_id, reference_date)
+    judged = _judge_by_type(requirement, profile, preflight_case_id, reference_date)
+    if judged.status == "UNSATISFIED" and requirement.scope.get("evidence") in _WEAK_EVIDENCE:
+        return judged.model_copy(update={"status": "UNKNOWN", "basis_type": "NONE", "reason_code": "NEEDS_REVIEW"})
+    return judged
+
+
+# 안 맞아도 부적합으로 확정하지 않는 근거(scope["evidence"]). 부적합은 공고 문서가 분명히 말한 값으로만 낸다.
+#   family       공고에 코드도 정확한 업종명도 없이 묶음 이름("폐기물수집·운반업")에서 추론한 코드
+#   model_match  공고의 이름이 마스터와 달라 모델이 마스터 후보 중에서 고른 코드
+#   compound     코드가 '또는' 으로 갈라 읽은 대안 갈래의 업종(공통 업종은 여기에 들지 않는다)
+#   name_only    문서에 숫자 코드 없이 이름에서 푼 코드인데 나라장터 면허제한에는 없는 코드
+#   notice_api   문서에서는 못 뽑고 나라장터 면허제한·참가가능지역에만 있는 값 — 상위 면허가 대신하거나 공동수급으로
+#                채울 수 있는지 엔진이 가르지 못한다
+_WEAK_EVIDENCE = {"family", "model_match", "notice_api", "compound", "name_only"}
 
 
 def _judge_by_type(
@@ -1103,6 +1125,7 @@ def derive_overall_status(
     *,
     analysis_status: str = "SUCCEEDED",
     coverage_complete: bool | None = None,
+    no_restriction_stated: bool = False,
 ) -> OverallQualificationStatus:
     """핵심 요건 충족은 모든 핵심 요건과 분석 커버리지가 검증됐을 때만 준다.
 
@@ -1158,6 +1181,11 @@ def derive_overall_status(
         status_by_key.get(r.requirement_key) == "UNSATISFIED"
         for r in mandatory if requirement_tier(r) != "VERDICT"
     )
+    if not mandatory and seen_everything and no_restriction_stated:
+        # 요건이 하나도 없다. 보통은 추출 실패일 수 있어 확인 필요다. 다만 나라장터가 참가 제한이 없는 입찰(일반경쟁, 면허제한·
+        # 지역·제한 표시 없음)이라고 말하고 놓친 조항도 없으면, 핵심 요건이 없는 공고로 확정한다(2026-10-10). 부르는 쪽이
+        # 이 값을 넘기지 않으면(기본값) 예전처럼 확인 필요다.
+        return "core_met"
     if not group_statuses:
         # 판정 대상 요건이 없다. 요건이 아예 없으면 추출 실패일 수 있어 확인 필요, 확인 항목만 있으면
         # (그리고 놓친 닫힌 값이 없으면) 닫힌 값 기준으로는 제한이 없는 공고다.
@@ -1176,6 +1204,7 @@ def judge_requirements(
     analysis_status: str = "SUCCEEDED",
     coverage_complete: bool | None = None,
     grounded_requirement_keys: set[str] | None = None,
+    no_restriction_stated: bool = False,
 ) -> JudgmentEvaluation:
     judgments = [
         judge_requirement(
@@ -1199,7 +1228,8 @@ def judge_requirements(
     return JudgmentEvaluation(
         judgments=judgments,
         overall_status=derive_overall_status(
-            requirements, judgments, analysis_status=analysis_status, coverage_complete=coverage_complete
+            requirements, judgments, analysis_status=analysis_status, coverage_complete=coverage_complete,
+            no_restriction_stated=no_restriction_stated,
         ),
     )
 
@@ -1245,14 +1275,5 @@ def _conflicting(kind: str, left: object, right: object) -> bool:
         a = _COMPANY_SIZE_ALIASES.get(str(left).strip()) or _company_size_set(str(left))
         b = _COMPANY_SIZE_ALIASES.get(str(right).strip()) or _company_size_set(str(right))
         return a is not None and b is not None and a != b
-    a, b = _sidos_of(left), _sidos_of(right)
+    a, b = sidos_of(left), sidos_of(right)
     return bool(a) and bool(b) and not (a & b)
-
-
-def _sidos_of(value: object) -> set[str]:
-    """지역 값이 속한 시·도(통합 전후 이름 포함). 사전에 없는 이름이면 빈 집합 — 겹치는지 모르니 어긋났다고 하지 않는다."""
-    sidos, subs = find_regions(str(value or ""))
-    found = set(sidos) | {SIDO_CANONICAL[p] for sub in subs for p in SIGUNGU_PARENTS.get(sub, ()) if p in SIDO_CANONICAL}
-    return found | {SIDO_MERGED_INTO[name] for name in found if name in SIDO_MERGED_INTO} | {
-        old for old, new in SIDO_MERGED_INTO.items() if new in found
-    }
