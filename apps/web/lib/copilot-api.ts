@@ -1,4 +1,5 @@
 import { apiFetch, ApiError } from './api';
+import { invalidateSharedData } from './shared-query-cache';
 import type { CopilotEnvelope } from './copilot-v31';
 import type { EvidenceLocation, QualificationQuestion } from './qualification-api';
 
@@ -152,8 +153,11 @@ export async function getCopilotJobs(caseId: string, signal?: AbortSignal) {
 }
 
 /** Invoke only after explicit confirmation. Pass the server proposal unchanged; never auto-retry. */
-export function confirmCopilotAction(payload: ConfirmAction, signal?: AbortSignal) {
-  return post<ConfirmActionResult>('/api/v1/copilot/actions/confirm', payload, signal);
+export async function confirmCopilotAction(payload: ConfirmAction, signal?: AbortSignal) {
+  const result = await post<ConfirmActionResult>('/api/v1/copilot/actions/confirm', payload, signal);
+  // POST uses apiFetch directly; refresh case/notice/judgment caches after a confirmed write.
+  invalidateSharedData();
+  return result;
 }
 
 export type ReadReceipt = { kind: 'product'; provenance: ProductProvenance } | { kind: 'revalidation'; provenance: RevalidationProvenance };

@@ -127,6 +127,59 @@ test('title bands share qualification spacing across four product pages', async 
   for (const position of positions.slice(1)) expect(position).toEqual(positions[0]);
 });
 
+test('qualification navigation opens latest case before the slow analysis results and skips unused notice list', async ({ page }) => {
+  await mockApi(page);
+  const caseItem = {
+    id: 'case-e2e', company_id: null, notice_id: 'notice-e2e', bid_notice_no: '2026-5010',
+    notice_title: '단계별 로딩 테스트 공고', title: '검토 테스트', status: 'READY',
+    baseline_version_id: null, baseline_version_number: null,
+    current_version_id: 'version-e2e', current_version_number: 1, documents: [],
+    created_at: '2026-10-10T00:00:00Z', updated_at: '2026-10-10T00:00:00Z',
+  };
+  let releaseAnalysis!: () => void;
+  const analysisGate = new Promise<void>((resolve) => { releaseAnalysis = resolve; });
+  const requests: string[] = [];
+  await page.route('**/api/v1/**', async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (route.request().method() !== 'GET') return route.fallback();
+    if (path !== '/api/v1/auth/me') requests.push(path);
+    if (path === '/api/v1/preflight-cases') return route.fulfill({ status: 200, json: { total: 1, limit: 100, offset: 0, items: [caseItem] } });
+    if (path === '/api/v1/preflight-cases/case-e2e') return route.fulfill({ status: 200, json: caseItem });
+    if (path === '/api/v1/notices/notice-e2e') return route.fulfill({ status: 200, json: { id: 'notice-e2e', title: caseItem.notice_title, announcing_institution_name: '테스트 기관' } });
+    if (path === '/api/v1/notices/notice-e2e/versions') return route.fulfill({ status: 200, json: [{ id: 'version-e2e', version_number: 1, documents: [] }] });
+    if (path === '/api/v1/notices/notice-e2e/versions/1/qualification-analyses') {
+      await analysisGate;
+      return route.fulfill({ status: 200, json: [] });
+    }
+    if (path === '/api/v1/preflight-cases/case-e2e/qualification-judgment-runs') return route.fulfill({ status: 200, json: [] });
+    return route.fallback();
+  });
+  await page.goto('/guide');
+  await page.locator('nav.app-primary-nav a[href="/qualification"]').click();
+  await expect(page).toHaveURL(/\/qualification\?caseId=case-e2e$/);
+  await expect(page.getByRole('heading', { name: '단계별 로딩 테스트 공고' })).toBeVisible();
+  await expect(page.getByRole('status', { name: '검토 상세 불러오는 중' })).toBeVisible();
+  expect(requests).not.toContain('/api/v1/notices');
+  await expect(page.getByText('참가자격 검토 시작')).toHaveCount(0);
+  releaseAnalysis();
+  await expect(page.getByRole('status', { name: '검토 상세 불러오는 중' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '참가자격 검토 시작' }).first()).toBeVisible();
+
+  // Cached case/notice/version GETs must survive same-session navigation.
+  const cached = {
+    case: requests.filter((url) => url === '/api/v1/preflight-cases/case-e2e').length,
+    notice: requests.filter((url) => url === '/api/v1/notices/notice-e2e').length,
+    versions: requests.filter((url) => url === '/api/v1/notices/notice-e2e/versions').length,
+  };
+  await page.locator('nav.app-primary-nav a[href="/guide"]').click();
+  await page.locator('nav.app-primary-nav a[href="/qualification"]').click();
+  await expect(page).toHaveURL(/\/qualification\?caseId=case-e2e$/);
+  await expect(page.getByRole('button', { name: '참가자격 검토 시작' }).first()).toBeVisible();
+  expect(requests.filter((url) => url === '/api/v1/preflight-cases/case-e2e')).toHaveLength(cached.case);
+  expect(requests.filter((url) => url === '/api/v1/notices/notice-e2e')).toHaveLength(cached.notice);
+  expect(requests.filter((url) => url === '/api/v1/notices/notice-e2e/versions')).toHaveLength(cached.versions);
+});
+
 test('cached notice list survives route round trip without another GET or empty-state flash', async ({ page }) => {
   let noticeGets = 0;
   let companyGets = 0;

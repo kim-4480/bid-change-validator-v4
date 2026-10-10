@@ -2,6 +2,7 @@
 
 import { NavigationLink } from '@/components/navigation-link';
 import { PageContainer } from '@/components/product/page-container';
+import { listPreflightCases } from '@/lib/api';
 import type { AuthUser } from '@/lib/auth';
 
 /*
@@ -95,6 +96,8 @@ export function AppHeader({
                 key={item.href}
                 href={item.href}
                 className="app-nav-link"
+                onMouseEnter={item.href === '/qualification' && user ? () => { void listPreflightCases().catch(() => {}); } : undefined}
+                onFocus={item.href === '/qualification' && user ? () => { void listPreflightCases().catch(() => {}); } : undefined}
                 aria-current={isActive(pathname, item.href) ? 'page' : undefined}
               >
                 {item.label}
