@@ -20,10 +20,16 @@ void test('AWS compose and Dockerfile keep single HTTPS origin and Secure Cookie
   assert.match(dockerfile, /NEXT_PUBLIC_API_BASE_URL/);
 });
 
-void test('AWS deployment still requires an explicitly dispatched deployment job', () => {
+void test('AWS deployment requires successful develop push CI or explicit manual dispatch', () => {
   const workflow = read('../../../.github/workflows/aws-deploy.yml');
   assert.match(workflow, /workflow_dispatch/);
-  assert.match(workflow, /github\.event_name == 'workflow_dispatch' && inputs\.deploy == true/);
+  assert.match(workflow, /workflow_run:/);
+  assert.match(workflow, /github\.event\.workflow_run\.event == 'push'/);
+  assert.match(workflow, /github\.event\.workflow_run\.head_branch == 'develop'/);
+  assert.match(workflow, /github\.event\.workflow_run\.conclusion == 'success'/);
+  assert.match(workflow, /github\.event_name == 'workflow_run' \|\| inputs\.deploy == true/);
+  assert.match(workflow, /Skip superseded develop commit/);
+  assert.match(workflow, /Skip if a newer commit reached develop during build/);
 });
 
 void test('private document URL contract is served through the authenticated backend', () => {
