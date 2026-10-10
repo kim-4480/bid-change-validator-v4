@@ -5,7 +5,7 @@ import { sharedQueryClient, invalidateSharedData } from '@/lib/shared-query-cach
 import { ArrowUpRight, BrainCircuit, RefreshCw, ShieldCheck } from 'lucide-react';
 import { NavigationLink } from '@/components/navigation-link';
 import { Button } from '@/components/ui/button';
-import { getCurrentUser } from '@/lib/auth';
+import { useAppUser } from '@/components/app-user-context';
 import { listCompanies } from '@/lib/qualification-api';
 import { listNoticeMatches, type NoticeMatch } from '@/lib/notice-matching-api';
 import {
@@ -54,6 +54,7 @@ function describeFailure(error: unknown) {
 }
 
 export default function RecommendationsPage() {
+  const user = useAppUser();
   const [state, setState] = useState<RecommendationState>(() => sharedQueryClient().getQueryData<RecommendationState>(['view', 'recommendations']) ?? INITIAL);
   const [attempt, setAttempt] = useState(0);
 
@@ -61,7 +62,7 @@ export default function RecommendationsPage() {
     let active = true;
     async function load() {
       try {
-        const [companies, user] = await Promise.all([listCompanies(), getCurrentUser()]);
+        const companies = await listCompanies();
         if (!active) return;
         const company = user?.company_id
           ? companies.find((item) => item.id === user.company_id)
@@ -91,7 +92,7 @@ export default function RecommendationsPage() {
     }
     void load();
     return () => { active = false; };
-  }, [attempt]);
+  }, [attempt, user?.id, user?.company_id]);
 
   function retry() {
     invalidateSharedData();
