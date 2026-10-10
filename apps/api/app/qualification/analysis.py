@@ -77,6 +77,16 @@ def build_qualification_analysis_input(version: BidNoticeVersion) -> Qualificati
     )
 
 
+def no_restriction_stated(analysis) -> bool:
+    """나라장터가 이 공고를 참가 제한이 없는 입찰(일반경쟁, 면허제한·참가가능지역·제한 표시 없음)이라 했는가.
+
+    분석할 때 coverage 에 저장해 둔 값이다. 판정기는 문서에서 요건을 하나도 못 찾았고 놓친 조항도 없을 때만 이 값을 보고
+    '핵심 요건이 없는 공고' 로 확정한다. 2026-10-10 이전 분석이나 참가 제한을 받지 못한 분석은 False 다.
+    """
+    coverage = getattr(analysis, "coverage", None)
+    return bool(coverage is not None and getattr(coverage, "no_restriction_stated", False))
+
+
 def qualification_analysis_input_fingerprint(
     analysis_input: QualificationAnalysisInput,
 ) -> str:

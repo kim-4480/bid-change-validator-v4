@@ -12,6 +12,7 @@ from bidengine.contracts import Judgment
 from bidengine.diff.impact_plan import plan_requirement_impacts
 from bidengine.judgment.rules import RULE_VERSION, derive_overall_status, judge_requirement
 from bidengine.diff.requirement_diff import RequirementChange, diff_requirements, diff_same_documents, documents_fingerprint
+from .analysis import no_restriction_stated
 from ..analysis_models import QualificationAnalysisRun
 from ..judgment_models import CompanyQualificationProfileCompleteness, QualificationJudgmentRecord, QualificationJudgmentRun
 from ..models import NoticeDocument, PreflightCase
@@ -231,7 +232,7 @@ def run_qualification_revalidation(db: Session, *, case_id: UUID, payload: Quali
             ))
             revalidated_keys.append(requirement.requirement_key)
 
-    overall_status = derive_overall_status(current.requirements, judgments, analysis_status=current_analysis.status, coverage_complete=current.verdict_complete)
+    overall_status = derive_overall_status(current.requirements, judgments, analysis_status=current_analysis.status, coverage_complete=current.verdict_complete, no_restriction_stated=no_restriction_stated(current))
 
     result_run = QualificationJudgmentRun(
         preflight_case_id=case.id, analysis_run_id=current_analysis.id, company_id=case.company_id, notice_version_id=case.current_version_id,

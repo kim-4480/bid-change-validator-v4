@@ -14,6 +14,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from bidengine.judgment.rules import RULE_VERSION, judge_requirements
+from .analysis import no_restriction_stated
 from ..analysis_models import QualificationAnalysisRun
 from ..judgment_models import CompanyQualificationProfileCompleteness, QualificationJudgmentRecord, QualificationJudgmentRun
 from .analysis import analysis_run_response, is_qualification_analysis_run_stale
@@ -85,7 +86,7 @@ def run_targeted_qualification_judgment(
         preflight_case_id=str(case.id),
         reference_date=actual_reference_date,
         analysis_status=analysis_run.status,
-        coverage_complete=analysis.verdict_complete,
+        coverage_complete=analysis.verdict_complete, no_restriction_stated=no_restriction_stated(analysis),
         grounded_requirement_keys=grounded_keys_for_analysis(analysis_run, analysis),
     )
     overall_status = evaluation.overall_status

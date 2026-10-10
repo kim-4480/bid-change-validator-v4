@@ -9,6 +9,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from bidengine.judgment.rules import judge_requirements
+from ..qualification.analysis import no_restriction_stated
 from ..models import Company
 from ..analysis_models import QualificationAnalysisRun
 from ..judgment_models import CompanyQualificationProfileCompleteness
@@ -56,7 +57,7 @@ def evaluate(db,company_id,items,reference_date=None):
             evaluation=judge_requirements(analysis.requirements,snapshot,
                 preflight_case_id="ML:"+str(company_id)+":"+str(key),
                 reference_date=reference_date or date.today(),analysis_status=run.status,
-                coverage_complete=analysis.verdict_complete,
+                coverage_complete=analysis.verdict_complete, no_restriction_stated=no_restriction_stated(analysis),
                 grounded_requirement_keys=grounded_keys_for_analysis(run, analysis))
             state=evaluation.overall_status
             if state not in ("core_met", "core_unmet", "needs_review"):

@@ -134,3 +134,29 @@ def test_client_asks_both_lookups_with_the_notice_order(monkeypatch) -> None:
         ("getBidPblancListInfoLicenseLimit", "R26BK01747591", "000", "2", 2),
         ("getBidPblancListInfoPrtcptPsblRgn", "R26BK01747591", "000", "2", 1),
     ]
+
+
+def test_stored_coverage_tells_the_judge_the_tender_is_open() -> None:
+    """요건이 하나도 없는 공고는 나라장터가 '제한 없는 입찰' 이라 한 분석에서만 핵심 요건 충족으로 확정된다."""
+    from datetime import date
+
+    from bidengine.judgment.rules import CompanyProfileSnapshot, judge_requirements
+    from bidengine.pipeline.analysis_result import AnalysisCoverage
+
+    from apps.api.app.qualification.analysis import no_restriction_stated
+
+    open_tender = SimpleNamespace(coverage=AnalysisCoverage(section_selection="anchored", no_restriction_stated=True))
+    unknown = SimpleNamespace(coverage=AnalysisCoverage(section_selection="anchored"))
+    assert no_restriction_stated(open_tender) and not no_restriction_stated(unknown)
+    assert not no_restriction_stated(SimpleNamespace(coverage=None))          # 예전 분석
+    assert not no_restriction_stated(SimpleNamespace())
+
+    profile = CompanyProfileSnapshot(company_id="c", region_name="서울특별시 중구", company_size="SMALL")
+
+    def overall(analysis):
+        return judge_requirements([], profile, preflight_case_id="c", reference_date=date(2026, 10, 10),
+                                  coverage_complete=analysis.coverage.verdict_complete,
+                                  no_restriction_stated=no_restriction_stated(analysis)).overall_status
+
+    assert overall(open_tender) == "core_met"
+    assert overall(unknown) == "needs_review"
